@@ -1,3 +1,3 @@
-# zlsgo-app
+# App 
 
-Go 项目模板
+[框架文档](https://docs.73zls.com/zls-go/#/)
