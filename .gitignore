@@ -1,7 +1,7 @@
+.idea/
+.vscode/
 /app
 /tmpApp
-/.idea/
-/.vscode/
 /db.sqlite3
 /conf.yml
 /app_*
