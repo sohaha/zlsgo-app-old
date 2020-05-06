@@ -1,0 +1,35 @@
+kind: reverse
+name: mydb
+source:
+  # database: mysql
+  # conn_str: 'root:root@tcp(127.0.0.1:33060)/go?charset=utf8'
+  database: sqlite3
+  conn_str: './db.sqlite3'
+targets:
+  - type: codes
+    debug: true
+    language: golang
+    multiple_files: true
+    output_dir: ./service/model
+    table_prefix: z_
+    template: |
+      package model
+
+      {{$ilen := len .Imports}}
+      {{if gt $ilen 0}}
+        import (
+        {{range .Imports}}"{{.}}"{{end}}
+        )
+      {{end}}
+
+      {{range .Tables}}
+        type {{TableMapper .Name}} struct {
+        {{$table := .}}
+        {{range .ColumnsSeq}}{{$col := $table.GetColumn .}}	{{ColumnMapper $col.Name}}	{{Type $col}} `{{Tag $table $col}}`
+        {{end}}
+        }
+        func (m *migrate) Migrate{{TableMapper .Name}}() {
+          m.tables = append(m.tables, &{{TableMapper .Name}}{})
+        }
+      {{end}}
+    # template_path: ./service/model/z_dao.tmpl
