@@ -13,22 +13,32 @@ import (
 type ControllerSt struct {
 }
 
-func Run() {
-	// 初始化服务
-	r := znet.New()
+// Engine 路由服务
+var Engine *znet.Engine
 
+func init() {
+	Engine = znet.New()
+}
+
+// Run 启动服务
+func Run() {
+	znet.Run()
+}
+
+// Init 初始化路由
+func Init() {
 	// 复用日志对象
-	r.Log = conf.Log
+	Engine.Log = conf.Log
 
 	// 设置开发模式
 	if conf.Base().Debug && conf.Web().Debug {
-		r.SetMode(znet.DebugMode)
+		Engine.SetMode(znet.DebugMode)
 		// conf.Log.Discard()
 	}
 
 	// 性能分析
 	if conf.Web().Pprof {
-		zpprof.Register(r, conf.Web().PprofToken)
+		zpprof.Register(Engine, conf.Web().PprofToken)
 	}
 
 	// 绑定端口
@@ -36,10 +46,10 @@ func Run() {
 	if webPort == "" {
 		webPort = conf.Web().Port
 	}
-	r.SetAddr(webPort)
+	Engine.SetAddr(webPort)
 
 	// 未知路由处理
-	r.NotFoundHandler(func(c *znet.Context) {
+	Engine.NotFoundHandler(func(c *znet.Context) {
 		if c.IsAjax() {
 			c.ApiJSON(404, "NotFound", nil)
 			return
@@ -48,7 +58,7 @@ func Run() {
 	})
 
 	// 异常处理
-	r.PanicHandler(func(c *znet.Context, err error) {
+	Engine.PanicHandler(func(c *znet.Context, err error) {
 		if c.Engine.IsDebug() {
 			errData := zlog.TrackCurrent(10, 4)
 			if c.IsAjax() {
@@ -66,23 +76,20 @@ func Run() {
 	})
 
 	// 注册全局中间件
-	registerMiddleware(r)
+	registerMiddleware(Engine)
 
 	// 注册路由
-	registerController(r)
+	registerController(Engine)
 
 	// 设置 HTTPS
 	if conf.Web().Tls && conf.Web().TlsPort != "" {
-		r.AddAddr(":"+conf.Web().TlsPort, znet.TlsCfg{
+		Engine.AddAddr(":"+conf.Web().TlsPort, znet.TlsCfg{
 			// http 重定向 https
 			HTTPAddr: webPort,
 			Key:      conf.Web().Key,
 			Cert:     conf.Web().Cert, // or domain.crt
 		})
 	}
-
-	// 启动服务
-	znet.Run()
 }
 
 func registerController(r *znet.Engine) {
