@@ -1,6 +1,7 @@
 package main
 
 import (
+	"app/common"
 	"app/conf"
 	"app/service"
 	"app/service/router"
@@ -21,7 +22,7 @@ func main() {
 / _// (_/\___ \/    \) __/) __/
 (____)____(____/\_/\_(__) (__) `
 	zcli.Version = "1.0.0"
-
+	// run()
 	err := zcli.LaunchServiceRun("ZlsApp", "", run)
 
 	zutil.CheckErr(err, true)
@@ -35,6 +36,15 @@ func run() {
 	// 初始化
 	service.InitEngine()
 
+	// 设置 Web 关闭后回收操作
+	router.Closed(stop)
+
 	// 启动 Web 服务
 	router.Run()
+}
+
+func stop() {
+	if saveErr := common.SaveWxCacheData(); saveErr != nil {
+		common.Log.Error(saveErr)
+	}
 }

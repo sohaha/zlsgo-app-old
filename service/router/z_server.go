@@ -25,6 +25,10 @@ func Run() {
 	znet.Run()
 }
 
+func Closed(fn func())  {
+	znet.ShutdownDone = fn
+}
+
 // Init 初始化路由
 func Init() {
 	// 复用日志对象
@@ -62,10 +66,11 @@ func Init() {
 		if c.Engine.IsDebug() {
 			errData := zlog.TrackCurrent(10, 4)
 			if c.IsAjax() {
-				c.ApiJSON(500, "Panic", errData)
+				c.ApiJSON(500, err.Error(), errData)
 				return
 			}
-			c.HTML(500, strings.Join(errData, "<br><br>"))
+			c.HTML(500, err.Error()+"<br><br>"+strings.Join(errData, "<br><br>"))
+			c.Log.Error(errData)
 			return
 		}
 		if c.IsAjax() {

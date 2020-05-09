@@ -71,7 +71,7 @@ type (
 )
 
 var (
-	Log          = zlog.New()
+	Log          = zlog.New("[App] ")
 	data         config
 	cfg          *gconf.Confhub
 	onec         sync.Once
