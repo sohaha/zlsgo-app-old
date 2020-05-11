@@ -1,10 +1,7 @@
 package router
 
 import (
-	"strings"
-
 	"app/conf"
-	"github.com/sohaha/zlsgo/zlog"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zpprof"
 	"github.com/sohaha/zlsgo/zutil"
@@ -52,6 +49,12 @@ func Init() {
 	}
 	Engine.SetAddr(webPort)
 
+	// 注册全局中间件
+	registerMiddleware(Engine)
+
+	// 注册路由
+	registerController(Engine)
+
 	// 未知路由处理
 	Engine.NotFoundHandler(func(c *znet.Context) {
 		if c.IsAjax() {
@@ -60,31 +63,6 @@ func Init() {
 		}
 		c.String(404, "NotFound")
 	})
-
-	// 异常处理
-	Engine.PanicHandler(func(c *znet.Context, err error) {
-		if c.Engine.IsDebug() {
-			errData := zlog.TrackCurrent(10, 4)
-			if c.IsAjax() {
-				c.ApiJSON(500, err.Error(), errData)
-				return
-			}
-			c.HTML(500, err.Error()+"<br><br>"+strings.Join(errData, "<br><br>"))
-			c.Log.Error(errData)
-			return
-		}
-		if c.IsAjax() {
-			c.ApiJSON(500, "Panic", nil)
-			return
-		}
-		c.String(500, "Panic")
-	})
-
-	// 注册全局中间件
-	registerMiddleware(Engine)
-
-	// 注册路由
-	registerController(Engine)
 
 	// 设置 HTTPS
 	if conf.Web().Tls && conf.Web().TlsPort != "" {

@@ -61,8 +61,8 @@ func (*Open) Ticket(c *znet.Context) {
 
 var o sync.Once
 func (*Open) AccessToken(c *znet.Context) {
-	// 开放平台的是由授权时候获取的
 	o.Do(func() {
+		// 因为开放平台的是授权的时候获取的，需要根据实际情况调用
 		common.WxOpen.GetConfig().(*wechat.Open).SetAuthorizerAccessToken(
 			"wx2d9176b8947d2103",
 			"33_4bYCZQlAYKZ7MHq4P_LmGZEzdsc_RRFtzWjtUv5iPJmJIxsxBbFkMdKuu1lW2WlmlDldQK1aD2NyozO0b8JX--czTHk0BcbNMm8cdR0G2u_mCXftuzH3Ymgls96CaeqmN2BNmVYxhxbYqEP6FSMbAGDPCW", "refreshtoken@@@kuo1_wz2vPtE3dOtNKLbsgk5Hotc4Z3SdRYms0tgEGU", 4)

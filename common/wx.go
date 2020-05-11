@@ -6,9 +6,11 @@ import (
 
 // Wx 微信
 //noinspection GoUnusedGlobalVariable
-var Wx *wechat.Engine
-var WxOpen *wechat.Engine
-var WxQy *wechat.Engine
+var (
+	Wx     *wechat.Engine
+	WxOpen *wechat.Engine
+	WxQy   *wechat.Engine
+)
 
 func init() {
 	_ = wechat.LoadCacheData("wechat.json")
