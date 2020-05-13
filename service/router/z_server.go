@@ -22,10 +22,6 @@ func Run() {
 	znet.Run()
 }
 
-func Closed(fn func())  {
-	znet.ShutdownDone = fn
-}
-
 // Init 初始化路由
 func Init() {
 	// 复用日志对象

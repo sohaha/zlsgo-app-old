@@ -25,12 +25,16 @@ func (*ControllerSt) RegWx(r *znet.Engine) {
 	{
 		mp.GET("/token", wxMp.AccessToken)
 		mp.GET("/jsapiTicket", wxMp.JsapiTicket)
+		mp.GET("/receiveMessage", wxMp.ReceiveMessage)
+		mp.POST("/receiveMessage", wxMp.ReceiveMessage)
 	}
 
 	qy := g.Group("/qy")
 	{
 		qy.GET("/token", wxQy.AccessToken)
 		qy.GET("/jsapiTicket", wxQy.JsapiTicket)
+		qy.GET("/receiveMessage", wxQy.ReceiveMessage)
+		qy.POST("/receiveMessage", wxQy.ReceiveMessage)
 	}
 
 	open := g.Group("/open")

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/sohaha/zlsgo/znet"
+	"github.com/sohaha/zlsgo/zstring"
 	"github.com/sohaha/zlsgo/ztime"
 )
 
@@ -26,19 +27,20 @@ type (
 		Data        []RequestStat `json:"data"`
 	}
 	RequestStat struct {
-		RequestedAt    time.Time     `json:"requested_at"`
-		RequestUrl     string        `json:"request_url"`
-		HttpMethod     string        `json:"http_method"`
-		HttpStatus     int           `json:"http_status"`
-		ContentType    string        `json:"content_type"`
-		GetParams      interface{}   `json:"get_params"`
-		PostParams     interface{}   `json:"post_params"`
-		PostMultipart  interface{}   `json:"post_multipart"`
-		ClientIP       string        `json:"client_ip"`
-		Cookies        interface{}   `json:"cookies"`
-		Headers        interface{}   `json:"headers"`
-		Content        template.HTML `json:"content"`
-		ProcessingTime string        `json:"processing_time"`
+		RequestedAt   time.Time   `json:"requested_at"`
+		RequestUrl    string      `json:"request_url"`
+		HttpMethod    string      `json:"http_method"`
+		HttpStatus    int         `json:"http_status"`
+		ContentType   string      `json:"content_type"`
+		GetParams     interface{} `json:"get_params"`
+		PostParams    interface{} `json:"post_params"`
+		PostMultipart interface{} `json:"post_multipart"`
+		ClientIP      string      `json:"client_ip"`
+		Cookies       interface{} `json:"cookies"`
+		Headers       interface{} `json:"headers"`
+		// Content      []byte   `json:"content"`
+		Content        interface{} `json:"content"`
+		ProcessingTime string      `json:"processing_time"`
 		Raw            string
 	}
 	AllRequests struct {
@@ -204,7 +206,7 @@ const (
                         <div id="modal-{{$i}}-tab1" class="tab-pane active">
                           <h3>Response</h3>
                           <code>
-                            {{.Content}}
+                            {{ .Content }}
                           </code>
                         </div>
                         <div id="modal-{{$i}}-tab2" class="tab-pane fade">
@@ -403,6 +405,12 @@ func inspector(r *znet.Engine, path string) func(c *znet.Context) {
 			}
 			p := c.PrevContent()
 			raw, _ := c.GetDataRaw()
+			var content interface{}
+			if p.Type == znet.ContentTypeJSON {
+				content = template.HTML(p.Content)
+			} else {
+				content = zstring.Bytes2String(p.Content)
+			}
 			request := RequestStat{
 				RequestedAt:    start,
 				ProcessingTime: time.Since(start).String(),
@@ -410,7 +418,7 @@ func inspector(r *znet.Engine, path string) func(c *znet.Context) {
 				HttpMethod:     c.Request.Method,
 				HttpStatus:     p.Code,
 				ContentType:    p.Type,
-				Content:        template.HTML(p.Content),
+				Content:        content,
 				Headers:        c.Request.Header,
 				Cookies:        c.Request.Cookies(),
 				GetParams:      c.Request.URL.Query(),

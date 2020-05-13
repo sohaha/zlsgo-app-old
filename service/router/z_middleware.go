@@ -2,12 +2,10 @@ package router
 
 import (
 	"strings"
-	"time"
 
 	"github.com/sohaha/zlsgo/zlog"
 	"github.com/sohaha/zlsgo/znet"
 	_ "github.com/sohaha/zlsgo/znet/limiter"
-	"github.com/sohaha/zlsgo/znet/timeout"
 )
 
 func registerMiddleware(r *znet.Engine) {
@@ -20,7 +18,7 @@ func registerMiddleware(r *znet.Engine) {
 				return
 			}
 			c.HTML(500, err.Error()+"<br><br>"+strings.Join(errData, "<br><br>"))
-			c.Log.Error("panic", errData)
+			c.Log.Error("panic", err, errData)
 			return
 		}
 		if c.IsAjax() {
@@ -40,9 +38,9 @@ func registerMiddleware(r *znet.Engine) {
 	if r.IsDebug() {
 		r.Use(inspector(r, "/_inspector"))
 	}
-	
+
 	// 最长超时时间
-	r.Use(timeout.New(60 * time.Second))
+	// r.Use(timeout.New(60 * time.Second))
 }
 
 //noinspection GoUnusedFunction

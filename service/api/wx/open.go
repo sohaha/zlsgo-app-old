@@ -19,7 +19,8 @@ func (*Open) Notification(c *znet.Context) {
 	if err != nil {
 		c.Log.Warn(err.Error())
 	}
-	c.String(200, "")
+	// 需要返回 success 给微信
+	c.String(200, "success")
 }
 
 // 公众号授权
@@ -60,6 +61,7 @@ func (*Open) Ticket(c *znet.Context) {
 }
 
 var o sync.Once
+
 func (*Open) AccessToken(c *znet.Context) {
 	o.Do(func() {
 		// 因为开放平台的是授权的时候获取的，需要根据实际情况调用

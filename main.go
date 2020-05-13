@@ -22,10 +22,12 @@ func main() {
 / _// (_/\___ \/    \) __/) __/
 (____)____(____/\_/\_(__) (__) `
 	zcli.Version = "1.0.0"
-	// run()
+
 	err := zcli.LaunchServiceRun("ZlsApp", "", run)
 
 	zutil.CheckErr(err, true)
+
+	stop()
 }
 
 func run() {
@@ -36,15 +38,13 @@ func run() {
 	// 初始化
 	service.InitEngine()
 
-	// 设置 Web 关闭后回收操作
-	router.Closed(stop)
-
 	// 启动 Web 服务
 	router.Run()
 }
 
 func stop() {
-	if saveErr := common.SaveWxCacheData(); saveErr != nil {
+	// 设置程序关闭前回收操作
+	if _, saveErr := common.SaveWxCacheData(); saveErr != nil {
 		common.Log.Error(saveErr)
 	}
 }
