@@ -26,7 +26,7 @@ pipeline {
           }
           stage('Build') {
             steps {
-              sh 'curl -L https://raw.githubusercontent.com/sohaha/zzz/master/install.sh | NoChina=1 bash'
+              sh 'export NoChina=1 && curl -L https://raw.githubusercontent.com/sohaha/zzz/master/install.sh | bash'
               sh 'zzz build -P --os win,mac,linux --out build'
               sh 'ls'
               archiveArtifacts(artifacts: 'build/', allowEmptyArchive: true, onlyIfSuccessful: false)
