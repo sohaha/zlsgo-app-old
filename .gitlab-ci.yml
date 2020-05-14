@@ -1,0 +1,25 @@
+variables:
+  PNAME: $CI_PROJECT_NAMESPACE.$CI_PROJECT_NAME
+
+stages:
+  - test
+
+cache:
+  untracked: true
+  paths:
+    - node_modules/
+    - vendor/
+
+test:
+  stage: test
+  image: golang:latest
+  script:
+    - go test -race -v -test.short -coverprofile=coverage.out -timeout=20s $(go list ./... | grep -v /vendor/) -json > report.json
+    - ls -l
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - report.json
+      - coverage.out
+  only:
+    - master
