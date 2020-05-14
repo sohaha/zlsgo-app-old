@@ -7,3 +7,4 @@
 /app_*
 zzz-watch.yaml
 zzz-stress.yml
+build/
