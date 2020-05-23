@@ -14,6 +14,7 @@ test:
   stage: test
   image: golang:latest
   script:
+    - GOPROXY=https://goproxy.cn go mod tidy
     - go test -race -v -test.short -coverprofile=coverage.out -timeout=20s $(go list ./... | grep -v /vendor/) -json > report.json
     - ls -l
   artifacts:
