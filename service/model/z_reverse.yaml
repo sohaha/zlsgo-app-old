@@ -31,5 +31,17 @@ targets:
         func (m *migrate) Migrate{{TableMapper .Name}}() {
           m.tables = append(m.tables, &{{TableMapper .Name}}{})
         }
+
+      // validation rules
+      var rule{{TableMapper .Name}} = make(map[string]zvalid.Engine)
+
+      func init() {
+      	// init validRule
+      	// ruleAuthUsers["username"] = zvalid.New().SetAlias("用户名").Required().HasLetter()
+      }
+
+      func (t {{TableMapper .Name}}) ValidRule(fields ...string) map[string]zvalid.Engine {
+        return getValidRule(&rule{{TableMapper .Name}}, fields...)
+      }
       {{end}}
     # template_path: ./service/model/z_dao.tmpl

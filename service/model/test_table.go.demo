@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type TestTable struct {
+type Test struct {
 	Id int `json:"id" xorm:"autoincr not null pk INTEGER comment('主键')"`
 
 	Text string `json:"text" xorm:"varchar(255) default('The is string') comment('文本')"`
@@ -22,6 +22,18 @@ type TestTable struct {
 }
 
 // 表迁移
-func (m *migrate) MigrateTestTable() {
-	m.tables = append(m.tables, &TestTable{})
+func (m *migrate) MigrateTest() {
+	m.tables = append(m.tables, &Test{})
+}
+
+// 验证规则
+var ruleTest = make(map[string]zvalid.Engine)
+
+func init() {
+	// ruleTest["text"] = zvalid.New().SetAlias("文本").Required().HasLetter()
+}
+
+
+func (t Test) ValidRule(fields ...string) map[string]zvalid.Engine {
+	return getValidRule(&ruleTest, fields...)
 }

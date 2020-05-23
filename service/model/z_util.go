@@ -3,6 +3,8 @@ package model
 import (
 	"bytes"
 	"time"
+
+	"github.com/sohaha/zlsgo/zvalid"
 )
 
 type (
@@ -25,4 +27,18 @@ func (j jsonTime) MarshalJSON() ([]byte, error) {
 	res.WriteString(j.String())
 	res.WriteString("\"")
 	return res.Bytes(), nil
+}
+
+func getValidRule(rules *map[string]zvalid.Engine, fields ...string) map[string]zvalid.Engine {
+	validRules := *rules
+	if len(fields) == 0 {
+		return validRules
+	}
+	rule := make(map[string]zvalid.Engine)
+	for _, k := range fields {
+		if v, ok := validRules[k]; ok {
+			rule[k] = v
+		}
+	}
+	return rule
 }
