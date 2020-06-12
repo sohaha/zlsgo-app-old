@@ -94,21 +94,25 @@ func initConf() {
 	setDefaultConf(cfg)
 	err := cfg.Read()
 	zutil.CheckErr(err, true)
-	err = cfg.Unmarshal(&data)
+	err = cfg.Unmarshal(&data.value)
 	zutil.CheckErr(err, true)
 }
 
 // 设置开发模式
 func setDebugMode() {
-	if !data.Base.Debug && EnvDebug {
-		data.Base.Debug = true
+	if !Base().Debug && EnvDebug {
+		SetConfData(func(data *ConfigValue) {
+			data.Base.Debug = true
+		})
 	}
 }
 
 func setWatchConf() {
-	if data.Base.Watch {
+	if Base().Watch {
 		cfg.ConfigChange(func(e fsnotify.Event) {
+			data.Lock()
 			_ = cfg.Unmarshal(&data)
+			data.Unlock()
 			if len(reloadConfFn) > 0 {
 				for i := range reloadConfFn {
 					go reloadConfFn[i]()
@@ -120,11 +124,17 @@ func setWatchConf() {
 
 func setLogger() {
 	Log.ResetFlags(zlog.BitTime | zlog.BitLevel)
-	if data.Base.Debug {
+	if Base().Debug {
 		Log.SetLogLevel(zlog.LogDump)
 	} else {
 		Log.SetLogLevel(zlog.LogSuccess)
 	}
+}
+
+func SetConfData(fn func(data *ConfigValue)) {
+	data.Lock()
+	defer data.Unlock()
+	fn(data.value)
 }
 
 func SetReloadConf(fn func()) {

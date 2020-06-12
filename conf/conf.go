@@ -1,12 +1,18 @@
 package conf
 
 import (
+	"sync"
+
 	"github.com/sohaha/gconf"
 )
 
 type (
 	// 配置文件结构体
 	config struct {
+		sync.RWMutex
+		value *ConfigValue
+	}
+	ConfigValue struct {
 		Base     base
 		Database db
 		Web      web
@@ -14,20 +20,28 @@ type (
 )
 
 func Base() base {
-	return data.Base
+	data.RLock()
+	defer data.RUnlock()
+	return data.value.Base
 }
 
 func Db() db {
-	return data.Database
+	data.RLock()
+	defer data.RUnlock()
+	return data.value.Database
 }
 
 func Web() web {
-	return data.Web
+	data.RLock()
+	defer data.RUnlock()
+	return data.value.Web
 }
 
 //noinspection GoUnusedExportedFunction
-func Data() config {
-	return data
+func Data() ConfigValue {
+	data.RLock()
+	defer data.RUnlock()
+	return *data.value
 }
 
 // 设置初始化配置
