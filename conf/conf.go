@@ -1,3 +1,9 @@
+/*
+ * @Author: seekwe
+ * @Date: 2020-06-23 19:16:25
+ * @Last Modified by:: seekwe
+ * @Last Modified time: 2020-06-23 19:17:32
+ */
 package conf
 
 import (
@@ -47,7 +53,7 @@ func Data() ConfigValue {
 // 设置初始化配置
 func setDefaultConf(cfg *gconf.Confhub) {
 	// 基础配置
-	cfg.SetDefault("base.name", "App")
+	cfg.SetDefault("base.project", "App")
 	cfg.SetDefault("base.debug", false)
 
 	// web 配置
