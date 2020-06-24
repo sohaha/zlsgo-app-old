@@ -8,3 +8,5 @@
 zzz-watch.yaml
 zzz-stress.yml
 build/
+tmp/
+logs/

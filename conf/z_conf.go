@@ -2,6 +2,7 @@ package conf
 
 import (
 	"fmt"
+	"path/filepath"
 	"sync"
 
 	"github.com/fsnotify/fsnotify"
@@ -14,9 +15,10 @@ import (
 
 type (
 	base struct {
-		Name  string `mapstructure:"project"`
-		Debug bool   // 开启调试模式
-		Watch bool   // 监听配置文件变化
+		Name   string `mapstructure:"project"`
+		Debug  bool   // 开启调试模式
+		Watch  bool   // 监听配置文件变化
+		Logdir string // 日志目录
 	}
 
 	web struct {
@@ -26,8 +28,8 @@ type (
 		Key        string // 证书
 		Cert       string // 证书
 		Debug      bool   // 开启调试模式
-		Pprof      bool   // 开启pprof
-		PprofToken string // PprofToken
+		Pprof      bool   // 开启 pprof
+		PprofToken string // pprof Token
 	}
 
 	// 数据库配置
@@ -70,32 +72,37 @@ type (
 	}
 )
 
+const FileName = "conf.yml"
+
 var (
 	Log          = zlog.New("[App] ")
 	data         config
 	cfg          *gconf.Confhub
 	onec         sync.Once
+	onecInit     sync.Once
 	reloadConfFn []func()
 	EnvPort      = ""
 	EnvDebug     = false
 )
 
 func Init() {
+	Read()
 	onec.Do(func() {
-		initConf()
 		setDebugMode()
 		setWatchConf()
-		setLogger()
 	})
 }
 
-func initConf() {
-	cfg = gconf.New("conf.yml")
-	setDefaultConf(cfg)
-	err := cfg.Read()
-	zutil.CheckErr(err, true)
-	err = cfg.Unmarshal(&data.value)
-	zutil.CheckErr(err, true)
+func Read() {
+	onecInit.Do(func() {
+		cfg = gconf.New(FileName)
+		setDefaultConf(cfg)
+		err := cfg.Read()
+		zutil.CheckErr(err, true)
+		err = cfg.Unmarshal(&data.value)
+		zutil.CheckErr(err, true)
+		setLogger()
+	})
 }
 
 // 设置开发模式
@@ -128,6 +135,9 @@ func setLogger() {
 		Log.SetLogLevel(zlog.LogDump)
 	} else {
 		Log.SetLogLevel(zlog.LogSuccess)
+	}
+	if Base().Logdir != "" {
+		Log.SetSaveFile(filepath.Join(Base().Logdir, "base.log"), true)
 	}
 }
 

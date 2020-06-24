@@ -2,6 +2,8 @@ package router
 
 import (
 	"app/conf"
+	"app/service/middleware"
+
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zpprof"
 	"github.com/sohaha/zlsgo/zutil"
@@ -46,7 +48,7 @@ func Init() {
 	Engine.SetAddr(webPort)
 
 	// 注册全局中间件
-	registerMiddleware(Engine)
+	middleware.RegisterMiddleware(Engine)
 
 	// 注册路由
 	registerController(Engine)

@@ -1,4 +1,4 @@
-package router
+package middleware
 
 import (
 	"strings"
@@ -8,7 +8,7 @@ import (
 	_ "github.com/sohaha/zlsgo/znet/limiter"
 )
 
-func registerMiddleware(r *znet.Engine) {
+func RegisterMiddleware(r *znet.Engine) {
 	// 异常处理
 	r.Use(znet.Recovery(r, func(c *znet.Context, err error) {
 		if c.Engine.IsDebug() {

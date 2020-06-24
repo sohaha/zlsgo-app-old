@@ -4,7 +4,9 @@ import (
 	"app/conf"
 	"app/service"
 	"app/service/router"
+
 	"github.com/sohaha/zlsgo/zcli"
+	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zlsgo/zutil"
 )
 
@@ -15,6 +17,7 @@ var (
 
 func main() {
 	// 设置应用信息
+	zcli.Name = "ZlsApp"
 	zcli.Logo = `
  ____ __   ____   __  ____ ____
 (__  |  ) / ___) / _\(  _ (  _ \
@@ -22,7 +25,9 @@ func main() {
 (____)____(____/\_/\_(__) (__) `
 	zcli.Version = "1.0.0"
 
-	err := zcli.LaunchServiceRun("ZlsApp", "", run)
+	zcli.Add("init", "Initial configuration", &InitCli{})
+
+	err := zcli.LaunchServiceRun(zcli.Name, "", run)
 
 	zutil.CheckErr(err, true)
 }
@@ -37,4 +42,18 @@ func run() {
 
 	// 启动 Web 服务
 	router.Run()
+}
+
+type InitCli struct{}
+
+func (i InitCli) Flags(*zcli.Subcommand) {}
+
+func (i InitCli) Run([]string) {
+	// 配置初始化
+	conf.Read()
+	if zfile.FileExist(conf.FileName) {
+		conf.Log.Success("配置文件初始化成功")
+	} else {
+		conf.Log.Error("配置文件初始化失败")
+	}
 }
