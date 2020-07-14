@@ -49,6 +49,10 @@ type InitCli struct{}
 func (i InitCli) Flags(*zcli.Subcommand) {}
 
 func (i InitCli) Run([]string) {
+	if zfile.FileExist(conf.FileName) {
+		conf.Log.Warn("配置文件已存在")
+		return
+	}
 	// 配置初始化
 	conf.Read()
 	if zfile.FileExist(conf.FileName) {

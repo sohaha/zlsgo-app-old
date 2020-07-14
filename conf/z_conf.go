@@ -85,6 +85,10 @@ var (
 	EnvDebug     = false
 )
 
+func init() {
+	Log.ResetFlags(zlog.BitLevel)
+}
+
 func Init() {
 	Read()
 	onec.Do(func() {
