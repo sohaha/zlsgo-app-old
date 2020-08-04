@@ -1,4 +1,4 @@
-package web
+package controller
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ import (
 // Home Home 控制器
 type Home struct{}
 
-func (*Home) GetHome(c *znet.Context) {
+func (*Home) Get(c *znet.Context) {
 	c.ApiJSON(200, "服务正常", map[string]interface{}{
 		"time": ztime.Now(),
 		"pid":  os.Getpid(),
