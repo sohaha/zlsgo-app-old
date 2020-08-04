@@ -1,26 +1,15 @@
 package task
 
 import (
-	"reflect"
-
 	"github.com/sohaha/zlsgo/ztime/cron"
+	"github.com/sohaha/zlsgo/zutil"
 )
 
-type cornTask struct {
-}
+type cornTask struct{}
 
 func Init() {
-	object := reflect.ValueOf(&cornTask{})
-	taskLen := object.NumMethod()
-	if taskLen == 0 {
-		return
-	}
 	corntabObj := cron.New()
-	for i := 0; i < taskLen; i++ {
-		v := object.Method(i)
-		v.Call([]reflect.Value{
-			reflect.ValueOf(corntabObj),
-		})
-	}
+	err := zutil.RunAllMethod(&cornTask{}, corntabObj)
+	zutil.CheckErr(err)
 	corntabObj.Run()
 }

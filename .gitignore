@@ -10,3 +10,5 @@ zzz-stress.yml
 build/
 tmp/
 logs/
+test/web/*
+!test/web/*.go

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"app/conf"
-	"app/service"
-	"app/service/router"
+	"app/compose"
+	"app/compose/initialize"
+	"app/web/router"
 
 	"github.com/sohaha/zlsgo/zcli"
 	"github.com/sohaha/zlsgo/zfile"
@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	port  = zcli.SetVar("port", "Web port").String()
-	debug = zcli.SetVar("debug", "Debug mode").Bool()
+	port  = zcli.SetVar("port", "Web 服务端口").String()
+	debug = zcli.SetVar("debug", "开启调试模式").Bool()
 )
 
 func main() {
@@ -24,8 +24,8 @@ func main() {
 / _// (_/\___ \/    \) __/) __/
 (____)____(____/\_/\_(__) (__) `
 	zcli.Version = "1.0.0"
-
-	zcli.Add("init", "Initial configuration", &InitCli{})
+	zcli.Lang = "zh"
+	zcli.Add("init", "生成配置", &InitCli{})
 
 	err := zcli.LaunchServiceRun(zcli.Name, "", run)
 
@@ -34,30 +34,37 @@ func main() {
 
 func run() {
 	// 设置终端执行参数
-	conf.EnvDebug = *debug
-	conf.EnvPort = *port
+	compose.EnvDebug = *debug
+	compose.EnvPort = *port
 
 	// 初始化
-	service.InitEngine()
+	initialize.InitEngine()
 
 	// 启动 Web 服务
 	router.Run()
 }
 
-type InitCli struct{}
+type InitCli struct {
+	Force *bool
+}
 
-func (i InitCli) Flags(*zcli.Subcommand) {}
+func (i *InitCli) Flags(*zcli.Subcommand) {
+	i.Force = zcli.SetVar("force", "覆盖原配置文件").Bool()
+}
 
-func (i InitCli) Run([]string) {
-	if zfile.FileExist(conf.FileName) {
-		conf.Log.Warn("配置文件已存在")
-		return
+func (i *InitCli) Run([]string) {
+	if zfile.FileExist(compose.FileName) {
+		if !*i.Force {
+			compose.Log.Warn("配置文件已存在，如需覆盖原配置请使用 --force")
+			return
+		}
+		zfile.Rmdir(compose.FileName)
 	}
 	// 配置初始化
-	conf.Read()
-	if zfile.FileExist(conf.FileName) {
-		conf.Log.Success("配置文件初始化成功")
+	compose.Read(false)
+	if zfile.FileExist(compose.FileName) {
+		compose.Log.Success("配置文件初始化成功")
 	} else {
-		conf.Log.Error("配置文件初始化失败")
+		compose.Log.Error("配置文件初始化失败")
 	}
 }

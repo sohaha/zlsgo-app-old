@@ -1,19 +1,15 @@
-package service
+package initialize
 
 import (
-	"app/conf"
-	"app/service/model"
-	"app/service/router"
+	"app/compose"
 	"app/service/task"
+	"app/web/router"
 	"github.com/sohaha/zlsgo/zfile"
 )
 
 func InitEngine() {
-	// 初始化配置
-	conf.Init()
-
-	// 初始化数据库
-	model.Init()
+	// 初始化组合
+	compose.Init()
 
 	// 初始化定时任务
 	task.Init()

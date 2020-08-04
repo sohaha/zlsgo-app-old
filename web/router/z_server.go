@@ -1,15 +1,15 @@
 package router
 
 import (
-	"app/conf"
-	"app/service/middleware"
+	"app/compose"
+	"app/web/middleware"
 
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zpprof"
 	"github.com/sohaha/zlsgo/zutil"
 )
 
-type ControllerSt struct {
+type StController struct {
 }
 
 // Engine 路由服务
@@ -27,23 +27,23 @@ func Run() {
 // Init 初始化路由
 func Init() {
 	// 复用日志对象
-	Engine.Log = conf.Log
+	Engine.Log = compose.Log
 
 	// 设置开发模式
-	if conf.Base().Debug && conf.Web().Debug {
+	if compose.BaseConf().Debug && compose.WebConf().Debug {
 		Engine.SetMode(znet.DebugMode)
 		// conf.Log.Discard()
 	}
 
 	// 性能分析
-	if conf.Web().Pprof {
-		zpprof.Register(Engine, conf.Web().PprofToken)
+	if compose.WebConf().Pprof {
+		zpprof.Register(Engine, compose.WebConf().PprofToken)
 	}
 
 	// 绑定端口
-	webPort := conf.EnvPort
+	webPort := compose.EnvPort
 	if webPort == "" {
-		webPort = conf.Web().Port
+		webPort = compose.WebConf().Port
 	}
 	Engine.SetAddr(webPort)
 
@@ -63,16 +63,16 @@ func Init() {
 	})
 
 	// 设置 HTTPS
-	if conf.Web().Tls && conf.Web().TlsPort != "" {
-		Engine.AddAddr(":"+conf.Web().TlsPort, znet.TlsCfg{
+	if compose.WebConf().Tls && compose.WebConf().TlsPort != "" {
+		Engine.AddAddr(":"+compose.WebConf().TlsPort, znet.TlsCfg{
 			// http 重定向 https
 			HTTPAddr: webPort,
-			Key:      conf.Web().Key,
-			Cert:     conf.Web().Cert, // or domain.crt
+			Key:      compose.WebConf().Key,
+			Cert:     compose.WebConf().Cert, // or domain.crt
 		})
 	}
 }
 
 func registerController(r *znet.Engine) {
-	_ = zutil.RunAllMethod(&ControllerSt{}, r)
+	_ = zutil.RunAllMethod(&StController{}, r)
 }

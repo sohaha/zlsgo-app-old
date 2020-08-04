@@ -1,14 +1,13 @@
-package api_test
+package web_test
 
 import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
-	"app/service"
-	"app/service/router"
+	"app/compose/initialize"
+	"app/web/router"
 	. "github.com/sohaha/zlsgo"
 	"github.com/sohaha/zlsgo/zjson"
 	"github.com/sohaha/zlsgo/znet"
@@ -24,15 +23,14 @@ func request(method, url string, body io.Reader) *httptest.ResponseRecorder {
 }
 
 func TestMain(m *testing.M) {
+	// 清除数据
+	defer initialize.Clear()
 	// 初始化
-	service.InitEngine()
+	initialize.InitEngine()
 	// 获取服务
 	net = router.Engine
 	// 运行测试
-	s := m.Run()
-	// 清除数据
-	service.Clear()
-	os.Exit(s)
+	m.Run()
 }
 
 func TestHome(t *testing.T) {
