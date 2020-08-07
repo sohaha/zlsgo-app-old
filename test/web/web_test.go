@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"app/compose/initialize"
+	"app/module/initialize"
 	"app/web/router"
 	. "github.com/sohaha/zlsgo"
 	"github.com/sohaha/zlsgo/zjson"

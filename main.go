@@ -1,8 +1,8 @@
 package main
 
 import (
-	"app/compose"
-	"app/compose/initialize"
+	"app/module"
+	"app/module/initialize"
 	"app/web/router"
 
 	"github.com/sohaha/zlsgo/zcli"
@@ -34,8 +34,8 @@ func main() {
 
 func run() {
 	// 设置终端执行参数
-	compose.EnvDebug = *debug
-	compose.EnvPort = *port
+	module.EnvDebug = *debug
+	module.EnvPort = *port
 
 	// 初始化
 	initialize.InitEngine()
@@ -53,18 +53,18 @@ func (i *InitCli) Flags(*zcli.Subcommand) {
 }
 
 func (i *InitCli) Run([]string) {
-	if zfile.FileExist(compose.FileName) {
+	if zfile.FileExist(module.FileName) {
 		if !*i.Force {
-			compose.Log.Warn("配置文件已存在，如需覆盖原配置请使用 --force")
+			module.Log.Warn("配置文件已存在，如需覆盖原配置请使用 --force")
 			return
 		}
-		zfile.Rmdir(compose.FileName)
+		zfile.Rmdir(module.FileName)
 	}
 	// 配置初始化
-	compose.Read(false)
-	if zfile.FileExist(compose.FileName) {
-		compose.Log.Success("配置文件初始化成功")
+	module.Read(false)
+	if zfile.FileExist(module.FileName) {
+		module.Log.Success("配置文件初始化成功")
 	} else {
-		compose.Log.Error("配置文件初始化失败")
+		module.Log.Error("配置文件初始化失败")
 	}
 }

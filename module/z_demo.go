@@ -1,4 +1,4 @@
-package compose
+package module
 
 import (
 	"github.com/sohaha/gconf"

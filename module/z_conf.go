@@ -1,4 +1,4 @@
-package compose
+package module
 
 import (
 	"path/filepath"
@@ -124,11 +124,12 @@ func setDebugMode() {
 // }
 
 func setLogger() {
-	Log.ResetFlags(zlog.BitTime | zlog.BitLevel)
 	if BaseConf().Debug {
 		Log.SetLogLevel(zlog.LogDump)
+		Log.ResetFlags(zlog.BitTime | zlog.BitLevel | zlog.BitShortFile)
 	} else {
 		Log.SetLogLevel(zlog.LogSuccess)
+		Log.ResetFlags(zlog.BitTime | zlog.BitLevel)
 	}
 	if BaseConf().Logdir != "" {
 		Log.SetSaveFile(filepath.Join(BaseConf().Logdir, "app.log"), true)

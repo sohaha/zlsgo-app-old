@@ -1,15 +1,16 @@
 package initialize
 
 import (
-	"app/compose"
-	"app/service/task"
+	"app/module"
+	"app/module/task"
 	"app/web/router"
 	"github.com/sohaha/zlsgo/zfile"
 )
 
+// InitEngine 初始化模块
 func InitEngine() {
 	// 初始化组合
-	compose.Init()
+	module.Init()
 
 	// 初始化定时任务
 	task.Init()
@@ -18,7 +19,7 @@ func InitEngine() {
 	router.Init()
 }
 
+// Clear 移除生成的配置文件
 func Clear() {
-	// 移除生成的配置文件
 	zfile.Rmdir("conf.yml")
 }
