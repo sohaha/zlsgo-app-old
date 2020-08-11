@@ -35,7 +35,7 @@ var (
 
 func (*stCompose) RedisDefaultConf(cfg *gconf.Confhub) {
 	for k, v := range map[string]interface{}{
-		"host":     "localhost",
+		"host":     "127.0.0.1",
 		"port":     "6379",
 		"password": "",
 		// "db":       1,

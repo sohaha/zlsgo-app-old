@@ -3,9 +3,9 @@ package module
 import (
 	"fmt"
 	"strings"
-
+	
 	"github.com/sohaha/gconf"
-
+	
 	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zlsgo/zvalid"
 )
@@ -24,7 +24,7 @@ type (
 		Postgres           postgres
 		Sqlite3            sqlite
 	}
-
+	
 	// mysql mysql配置参数
 	mysql struct {
 		Host       string
@@ -66,7 +66,7 @@ var (
 		"mysql.port":       "3306",
 		"mysql.dbname":     "dbname",
 		"mysql.user":       "root",
-		"mysql.password":   "",
+		"mysql.password":   "root",
 		"mysql.parameters": "charset=utf8mb4&parseTime=True&loc=Local",
 		// "sqlite.path":     "./db.sqlite",g
 	}
