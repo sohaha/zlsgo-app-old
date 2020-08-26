@@ -85,6 +85,10 @@ func readComposeConf() {
 	zutil.CheckErr(err)
 	confLock.Lock()
 	defer confLock.Unlock()
+	// fix: viper default config invalid
+	for key, v := range cfg.GetAll() {
+		cfg.Core.Set(key, v)
+	}
 	err = zutil.RunAssignMethod(&stCompose{}, func(methodName string) bool {
 		return strings.HasSuffix(methodName, "ReadConf")
 	}, cfg)
