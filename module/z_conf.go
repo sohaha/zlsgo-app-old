@@ -15,10 +15,11 @@ import (
 type (
 	stCompose  struct{}
 	stBaseConf struct {
-		Name   string `mapstructure:"project"`
-		Debug  bool   // 开启调试模式
-		Watch  bool   // 监听配置文件变化
-		Logdir string // 日志目录
+		Name        string `mapstructure:"project"`
+		Debug       bool   `mapstructure:"debug"`        // 开启调试模式
+		Watch       bool   `mapstructure:"watch"`        // 监听配置文件变化
+		LogDir      string `mapstructure:"log_dir"`      // 日志目录
+		LogPosition bool   `mapstructure:"log_position"` // 调试下打印日志显示输出位置
 	}
 )
 
@@ -93,6 +94,11 @@ func readComposeConf() {
 		return strings.HasSuffix(methodName, "ReadConf")
 	}, cfg)
 	zutil.CheckErr(err)
+	// Update the current configuration to the configuration file
+	err = cfg.Core.WriteConfig()
+	if err != nil {
+		Log.Warn(err)
+	}
 }
 
 // 模块配置
@@ -130,13 +136,17 @@ func setDebugMode() {
 func setLogger() {
 	if BaseConf().Debug {
 		Log.SetLogLevel(zlog.LogDump)
-		Log.ResetFlags(zlog.BitTime | zlog.BitLevel | zlog.BitShortFile)
+		flags := zlog.BitTime | zlog.BitLevel
+		if baseConf.LogPosition {
+			flags = flags | zlog.BitLongFile
+		}
+		Log.ResetFlags(flags)
 	} else {
 		Log.SetLogLevel(zlog.LogSuccess)
 		Log.ResetFlags(zlog.BitTime | zlog.BitLevel)
 	}
-	if BaseConf().Logdir != "" {
-		Log.SetSaveFile(filepath.Join(BaseConf().Logdir, "app.log"), true)
+	if BaseConf().LogDir != "" {
+		Log.SetSaveFile(filepath.Join(BaseConf().LogDir, "app.log"), true)
 	}
 }
 
@@ -152,12 +162,11 @@ func SetConfData(fn func()) {
 
 func (*stCompose) BaseDefaultConf(cfg *gconf.Confhub) {
 	// 基础配置
-	for k, v := range map[string]interface{}{
-		"debug":  false,
-		"logdir": "",
-	} {
-		cfg.SetDefault(baseConf.ConfName()+"."+k, v)
-	}
+	cfg.SetDefault(baseConf.ConfName(), map[string]interface{}{
+		"debug":        false,
+		"log_dir":      "",
+		"log_position": true,
+	})
 }
 
 // noinspection GoExportedFuncWithUnexportedType
@@ -177,4 +186,10 @@ func GetConfAll() map[string]interface{} {
 	confLock.RLock()
 	defer confLock.RUnlock()
 	return cfg.GetAll()
+}
+
+// GetConfInstance 获取配置实例
+// noinspection ALL
+func GetConfInstance() *gconf.Confhub {
+	return cfg
 }

@@ -34,14 +34,12 @@ var (
 )
 
 func (*stCompose) RedisDefaultConf(cfg *gconf.Confhub) {
-	for k, v := range map[string]interface{}{
+	cfg.SetDefault(redisConf.ConfName(), map[string]interface{}{
 		"host":     "127.0.0.1",
 		"port":     "6379",
 		"password": "",
 		// "db":       1,
-	} {
-		cfg.SetDefault(redisConf.ConfName()+"."+k, v)
-	}
+	})
 }
 
 func (*stCompose) RedisReadConf(cfg *gconf.Confhub) error {
@@ -55,8 +53,6 @@ func (*stCompose) RedisDone() {
 	Redis = c
 }
 
-var c = context.Background()
-
 func conn(RedisConfig stRedisConf) (*redis.Client, error) {
 	cli := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", RedisConfig.Host, RedisConfig.Port),
@@ -65,11 +61,10 @@ func conn(RedisConfig stRedisConf) (*redis.Client, error) {
 		// IdleTimeout: time.Second * 60,
 		// MaxRetries:  2,
 	})
-	ping := cli.Ping(c)
+	ping := cli.Ping(context.Background())
 	err := ping.Err()
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect redis, got error %w", err)
+		return nil, fmt.Errorf("failed to connect redis, %w", err)
 	}
-
 	return cli, nil
 }

@@ -3,9 +3,9 @@ package module
 import (
 	"fmt"
 	"strings"
-	
+
 	"github.com/sohaha/gconf"
-	
+
 	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zlsgo/zvalid"
 )
@@ -14,7 +14,7 @@ type (
 	// 数据库配置
 	stDatabaseConf struct {
 		Debug              bool
-		DBType             string
+		DBType             string `mapstructure:"db_type"`
 		MaxLifetime        int
 		MaxOpenConns       int
 		MaxIdleConns       int
@@ -24,7 +24,7 @@ type (
 		Postgres           postgres
 		Sqlite3            sqlite
 	}
-	
+
 	// mysql mysql配置参数
 	mysql struct {
 		Host       string
@@ -61,14 +61,14 @@ var (
 	databaseDefaultInitConf = map[string]interface{}{
 		"prefix":           "z_",
 		"debug":            false,
-		"dbtype":           "mysql",
+		"db_type":          "mysql",
 		"mysql.host":       "127.0.0.1",
 		"mysql.port":       "3306",
 		"mysql.dbname":     "dbname",
 		"mysql.user":       "root",
 		"mysql.password":   "root",
 		"mysql.parameters": "charset=utf8mb4&parseTime=True&loc=Local",
-		// "sqlite.path":     "./db.sqlite",g
+		// "sqlite.path":     "./db.sqlite",
 	}
 )
 

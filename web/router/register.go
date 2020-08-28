@@ -2,6 +2,7 @@ package router
 
 import (
 	"app/web/controller"
+
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zutil"
 )
@@ -12,5 +13,6 @@ func (*StController) RegHome(r *znet.Engine) {
 
 	err := r.BindStruct("/", homeController)
 	zutil.CheckErr(err)
+
 	// r.GET("/", homeController.Home)
 }
