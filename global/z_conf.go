@@ -1,4 +1,4 @@
-package module
+package global
 
 import (
 	"path/filepath"
@@ -15,8 +15,8 @@ import (
 type (
 	stCompose  struct{}
 	stBaseConf struct {
-		Name        string `mapstructure:"project"`
-		Debug       bool   `mapstructure:"debug"`        // 开启调试模式
+		Name        string `mapstructure:"project"`      // 项目名称
+		Debug       bool   `mapstructure:"debug"`        // 开启全局调试模式
 		Watch       bool   `mapstructure:"watch"`        // 监听配置文件变化
 		LogDir      string `mapstructure:"log_dir"`      // 日志目录
 		LogPosition bool   `mapstructure:"log_position"` // 调试下打印日志显示输出位置

@@ -1,6 +1,6 @@
 // +build sqlite
 
-package module
+package global
 
 import (
 	"github.com/sohaha/zlsgo/zfile"

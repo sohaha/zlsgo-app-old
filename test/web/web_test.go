@@ -6,11 +6,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"app/module/initialize"
-	"app/web/router"
 	. "github.com/sohaha/zlsgo"
 	"github.com/sohaha/zlsgo/zjson"
 	"github.com/sohaha/zlsgo/znet"
+
+	"app/global/initialize"
+	"app/web/router"
 )
 
 var net *znet.Engine

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"app/module"
-	"app/module/initialize"
+	"app/global"
+	"app/global/initialize"
 	"app/web/router"
 
 	"github.com/sohaha/zlsgo/zcli"
@@ -19,13 +19,16 @@ func main() {
 	// 设置应用信息
 	zcli.Name = "ZlsApp"
 	zcli.Logo = `
- ____ __   ____   __  ____ ____
-(__  |  ) / ___) / _\(  _ (  _ \
-/ _// (_/\___ \/    \) __/) __/
-(____)____(____/\_/\_(__) (__) `
+   _____                   
+  /  _  \  ______  ______  
+ /  /_\  \ \____ \ \____ \ 
+/    |    \|  |_> >|  |_> >
+\____|__  /|   __/ |   __/ 
+        \/ |__|    |__|     `
 	zcli.Version = "1.0.0"
 	zcli.Lang = "zh"
-	zcli.Add("init", "生成配置", &InitCli{})
+	zcli.SetLangText("zh", "init", "生成配置")
+	zcli.Add("init", zcli.GetLangText("init", "Init config file"), &InitCli{})
 
 	err := zcli.LaunchServiceRun(zcli.Name, "", run)
 
@@ -34,8 +37,8 @@ func main() {
 
 func run() {
 	// 设置终端执行参数
-	module.EnvDebug = *debug
-	module.EnvPort = *port
+	global.EnvDebug = *debug
+	global.EnvPort = *port
 
 	// 初始化
 	initialize.InitEngine()
@@ -53,18 +56,18 @@ func (i *InitCli) Flags(*zcli.Subcommand) {
 }
 
 func (i *InitCli) Run([]string) {
-	if zfile.FileExist(module.FileName) {
+	if zfile.FileExist(global.FileName) {
 		if !*i.Force {
-			module.Log.Warn("配置文件已存在，如需覆盖原配置请使用 --force")
+			global.Log.Warn("配置文件已存在，如需覆盖原配置请使用 --force")
 			return
 		}
-		zfile.Rmdir(module.FileName)
+		zfile.Rmdir(global.FileName)
 	}
 	// 配置初始化
-	module.Read(false)
-	if zfile.FileExist(module.FileName) {
-		module.Log.Success("配置文件初始化成功")
+	global.Read(false)
+	if zfile.FileExist(global.FileName) {
+		global.Log.Success("配置文件初始化成功")
 	} else {
-		module.Log.Error("配置文件初始化失败")
+		global.Log.Error("配置文件初始化失败")
 	}
 }

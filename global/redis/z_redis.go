@@ -1,13 +1,14 @@
 package redis
 
 import (
-	"app/module"
 	"context"
+
+	"app/global"
 )
 
 // Subscribe 订阅
 func Subscribe(handle func(channel, payload string), channels ...string) error {
-	rdb := module.Redis
+	rdb := global.Redis
 	pubsub := rdb.Subscribe(context.Background(), channels...)
 	ch := pubsub.Channel()
 	go func() {
@@ -20,5 +21,5 @@ func Subscribe(handle func(channel, payload string), channels ...string) error {
 
 // Publish 发布
 func Publish(channel string, message interface{}) error {
-	return module.Redis.Publish(context.Background(), channel, message).Err()
+	return global.Redis.Publish(context.Background(), channel, message).Err()
 }

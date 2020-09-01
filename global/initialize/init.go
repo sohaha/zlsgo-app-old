@@ -1,8 +1,8 @@
 package initialize
 
 import (
-	"app/module"
-	"app/module/task"
+	"app/global"
+	"app/global/task"
 	"app/web/router"
 	"github.com/sohaha/zlsgo/zfile"
 )
@@ -10,7 +10,7 @@ import (
 // InitEngine 初始化模块
 func InitEngine() {
 	// 初始化组合
-	module.Init()
+	global.Init()
 
 	// 初始化定时任务
 	task.Init()
