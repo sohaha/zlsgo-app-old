@@ -193,3 +193,11 @@ func GetConfAll() map[string]interface{} {
 func GetConfInstance() *gconf.Confhub {
 	return cfg
 }
+
+// Recover 回收处理
+func Recover() {
+	err := zutil.RunAssignMethod(&stCompose{}, func(methodName string) bool {
+		return strings.HasSuffix(methodName, "Recover")
+	})
+	zutil.CheckErr(err)
+}

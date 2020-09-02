@@ -31,7 +31,6 @@ func main() {
 	zcli.Add("init", zcli.GetLangText("init", "Init config file"), &InitCli{})
 
 	err := zcli.LaunchServiceRun(zcli.Name, "", run)
-
 	zutil.CheckErr(err, true)
 }
 
