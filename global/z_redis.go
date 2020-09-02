@@ -7,6 +7,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/sohaha/gconf"
 
+	"github.com/sohaha/zlsgo/zlog"
 	"github.com/sohaha/zlsgo/zutil"
 )
 
@@ -35,7 +36,7 @@ var (
 
 func (*stCompose) RedisDefaultConf(cfg *gconf.Confhub) {
 	cfg.SetDefault(redisConf.ConfName(), map[string]interface{}{
-		"host":     "127.0.0.1",
+		"host":     "",
 		"port":     "6379",
 		"password": "",
 		// "db":       1,
@@ -48,6 +49,10 @@ func (*stCompose) RedisReadConf(cfg *gconf.Confhub) error {
 }
 
 func (*stCompose) RedisDone() {
+	if redisConf.Host == "" {
+		Log.Debug(zlog.ColorTextWrap(zlog.ColorYellow, "No Redis"))
+		return
+	}
 	c, err := conn(redisConf)
 	zutil.CheckErr(err)
 	Redis = c

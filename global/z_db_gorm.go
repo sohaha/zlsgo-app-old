@@ -32,7 +32,10 @@ func init() {
 func (*stCompose) GormDone() {
 	dbType := DatabaseConf().DBType
 	zutil.CheckErr(validDb())
-
+	if dbType == "none" {
+		Log.Debug(zlog.ColorTextWrap(zlog.ColorYellow, "No database"))
+		return
+	}
 	LogLevel := logger.Silent
 	if baseConf.Debug && databaseConf.Debug {
 		LogLevel = zutil.IfVal(databaseConf.Debug, logger.Info, logger.Warn).(logger.LogLevel)
@@ -60,10 +63,6 @@ func (*stCompose) GormDone() {
 	var ok bool
 	DB, ok = gormDriverMap[dbType]
 	if !ok {
-		if dbType == "none" {
-			Log.Debug(zlog.ColorTextWrap(zlog.ColorYellow, "No database"))
-			return
-		}
 		zutil.CheckErr(fmt.Errorf("not supported: %s", dbType))
 		return
 	}

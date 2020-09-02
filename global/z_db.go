@@ -61,7 +61,7 @@ var (
 	databaseDefaultInitConf = map[string]interface{}{
 		"prefix":           "z_",
 		"debug":            false,
-		"db_type":          "mysql",
+		"db_type":          "none",
 		"mysql.host":       "127.0.0.1",
 		"mysql.port":       "3306",
 		"mysql.dbname":     "dbname",
