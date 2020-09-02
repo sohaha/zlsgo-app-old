@@ -1,10 +1,11 @@
 package initialize
 
 import (
+	"github.com/sohaha/zlsgo/zfile"
+
 	"app/global"
 	"app/global/task"
 	"app/web/router"
-	"github.com/sohaha/zlsgo/zfile"
 )
 
 // InitEngine 初始化模块

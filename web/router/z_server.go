@@ -21,6 +21,10 @@ func init() {
 
 // Run 启动服务
 func Run() {
+	znet.ShutdownDone = func() {
+		// 设置程序关闭前回收操作
+		global.Recover()
+	}
 	znet.Run()
 }
 
