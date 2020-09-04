@@ -44,13 +44,6 @@ func Init() {
 		zpprof.Register(Engine, global.WebConf().PprofToken)
 	}
 
-	// 绑定端口
-	webPort := global.EnvPort
-	if webPort == "" {
-		webPort = global.WebConf().Port
-	}
-	Engine.SetAddr(webPort)
-
 	// 注册全局中间件
 	middleware.RegisterMiddleware(Engine)
 
@@ -66,14 +59,22 @@ func Init() {
 		c.String(404, "NotFound")
 	})
 
+	// 绑定端口
+	webPort := global.EnvPort
+	if webPort == "" {
+		webPort = global.WebConf().Port
+	}
+
 	// 设置 HTTPS
 	if global.WebConf().Tls && global.WebConf().TlsPort != "" {
-		Engine.AddAddr(":"+global.WebConf().TlsPort, znet.TlsCfg{
+		Engine.SetAddr(global.WebConf().TlsPort, znet.TlsCfg{
 			// http 重定向 https
 			HTTPAddr: webPort,
 			Key:      global.WebConf().Key,
 			Cert:     global.WebConf().Cert, // or domain.crt
 		})
+	} else {
+		Engine.SetAddr(webPort)
 	}
 }
 
