@@ -1,6 +1,5 @@
-// +build ignore
-
-package main
+// Package enct provides ...
+package entc
 
 import (
 	e "github.com/facebook/ent/entc"
@@ -8,13 +7,11 @@ import (
 	"github.com/facebook/ent/schema/field"
 	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zlsgo/zlog"
-	"log"
 )
 
-func main() {
+func Generate() {
 	for _, v := range []string{
 		zfile.RealPath("./ent/schema"),
-		zfile.RealPath("./schema"),
 	} {
 		if !zfile.DirExist(v) {
 			continue
@@ -27,5 +24,4 @@ func main() {
 			zlog.Fatal("running ent codegen:", err)
 		}
 	}
-
 }

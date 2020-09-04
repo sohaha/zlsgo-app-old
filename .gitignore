@@ -12,3 +12,5 @@ tmp/
 logs/
 test/web/*
 !test/web/*.go
+ent/*
+!ent/schema/*
