@@ -12,9 +12,9 @@ import (
 )
 
 func main() {
-	log.Println(66)
 	for _, v := range []string{
 		zfile.RealPath("./ent/schema"),
+		zfile.RealPath("./schema"),
 	} {
 		if !zfile.DirExist(v) {
 			continue
