@@ -19,7 +19,7 @@ func main() {
 			continue
 		}
 		err := e.Generate(v, &gen.Config{
-			Header: "// Your Custom Header",
+			Header: "// 自动生成代码，不要修改🙅🏻",
 			Target: zfile.RealPathMkdir("./ent-model"),
 			IDType: &field.TypeInfo{Type: field.TypeInt},
 		})
