@@ -14,6 +14,9 @@ func init() {
 }
 
 func (*stGormDriver) GetSqlite(conf func() *gorm.Config) {
+	if DatabaseConf().DBType != "sqlite" {
+		return
+	}
 	var err error
 	gormDriverMap["sqlite"], err = gorm.Open(sqliteDriver.Open(zfile.RealPath(DatabaseConf().Sqlite3.Path)), conf())
 	zutil.CheckErr(err)

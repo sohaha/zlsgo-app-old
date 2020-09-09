@@ -105,12 +105,18 @@ func dbMigrateData(data map[string]func(DB *gorm.DB) error) (err error) {
 }
 
 func (*stGormDriver) GetMysql(conf func() *gorm.Config) {
+	if DatabaseConf().DBType != "mysql" {
+		return
+	}
 	var err error
 	gormDriverMap["mysql"], err = gorm.Open(mysqlDriver.Open(DatabaseConf().MySQL.DSN()), conf())
 	zutil.CheckErr(err)
 }
 
 func (*stGormDriver) GetPostgres(conf func() *gorm.Config) {
+	if DatabaseConf().DBType != "postgres" {
+		return
+	}
 	var err error
 	gormDriverMap["postgres"], err = gorm.Open(postgresDriver.Open(DatabaseConf().Postgres.DSN()), conf())
 	zutil.CheckErr(err)
