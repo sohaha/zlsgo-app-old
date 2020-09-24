@@ -38,7 +38,6 @@ func run() {
 	// 设置终端执行参数
 	global.EnvDebug = *debug
 	global.EnvPort = *port
-
 	// 初始化
 	initialize.InitEngine()
 

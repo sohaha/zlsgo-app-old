@@ -58,7 +58,9 @@ func Init() {
 		}
 		c.String(404, "NotFound")
 	})
-
+	Engine.PanicHandler(func(c *znet.Context, err error) {
+		c.String(500, err.Error())
+	})
 	// 绑定端口
 	webPort := global.EnvPort
 	if webPort == "" {
