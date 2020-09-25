@@ -62,6 +62,12 @@ func Read(init bool) {
 			readComposeConf()
 			if init {
 				initCompose()
+			} else {
+				// Update the current configuration to the configuration file
+				err := cfg.Core.WriteConfig()
+				if err != nil {
+					Log.Warn(err)
+				}
 			}
 			setLogger()
 		}, func(e interface{}) {
@@ -94,11 +100,6 @@ func readComposeConf() {
 		return strings.HasSuffix(methodName, "ReadConf")
 	}, cfg)
 	zutil.CheckErr(err)
-	// Update the current configuration to the configuration file
-	err = cfg.Core.WriteConfig()
-	if err != nil {
-		Log.Warn(err)
-	}
 }
 
 // 模块配置

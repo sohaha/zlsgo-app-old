@@ -50,17 +50,9 @@ type InitCli struct {
 }
 
 func (i *InitCli) Flags(*zcli.Subcommand) {
-	i.Force = zcli.SetVar("force", "覆盖原配置文件").Bool()
 }
 
 func (i *InitCli) Run([]string) {
-	if zfile.FileExist(global.FileName) {
-		if !*i.Force {
-			global.Log.Warn("配置文件已存在，如需覆盖原配置请使用 --force")
-			return
-		}
-		zfile.Rmdir(global.FileName)
-	}
 	// 配置初始化
 	global.Read(false)
 	if zfile.FileExist(global.FileName) {

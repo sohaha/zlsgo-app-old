@@ -1,4 +1,4 @@
-package app
+package main
 
-//go:generate echo "create"
+// generate ent
 //go:generate go run ent.go
