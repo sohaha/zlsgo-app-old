@@ -8,12 +8,14 @@ import (
 	e "github.com/facebook/ent/entc"
 	"github.com/facebook/ent/entc/gen"
 	"github.com/facebook/ent/schema/field"
+
+	"app/global"
 	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zlsgo/zlog"
 )
 
 func main() {
-	// global.Read(false)
+	global.Read(false)
 	for _, v := range []string{
 		zfile.RealPath("./ent/schema"),
 		zfile.RealPath("./schema"),

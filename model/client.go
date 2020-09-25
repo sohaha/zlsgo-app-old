@@ -9,6 +9,7 @@ import (
 
 	"app/model/migrate"
 
+	"app/model/authuser"
 	"app/model/example"
 
 	"github.com/facebook/ent/dialect"
@@ -20,6 +21,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// AuthUser is the client for interacting with the AuthUser builders.
+	AuthUser *AuthUserClient
 	// Example is the client for interacting with the Example builders.
 	Example *ExampleClient
 }
@@ -35,6 +38,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.AuthUser = NewAuthUserClient(c.config)
 	c.Example = NewExampleClient(c.config)
 }
 
@@ -66,9 +70,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	}
 	cfg := config{driver: tx, log: c.log, debug: c.debug, hooks: c.hooks}
 	return &Tx{
-		ctx:     ctx,
-		config:  cfg,
-		Example: NewExampleClient(cfg),
+		ctx:      ctx,
+		config:   cfg,
+		AuthUser: NewAuthUserClient(cfg),
+		Example:  NewExampleClient(cfg),
 	}, nil
 }
 
@@ -83,15 +88,16 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	}
 	cfg := config{driver: &txDriver{tx: tx, drv: c.driver}, log: c.log, debug: c.debug, hooks: c.hooks}
 	return &Tx{
-		config:  cfg,
-		Example: NewExampleClient(cfg),
+		config:   cfg,
+		AuthUser: NewAuthUserClient(cfg),
+		Example:  NewExampleClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Example.
+//		AuthUser.
 //		Query().
 //		Count(ctx)
 //
@@ -113,7 +119,96 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.AuthUser.Use(hooks...)
 	c.Example.Use(hooks...)
+}
+
+// AuthUserClient is a client for the AuthUser schema.
+type AuthUserClient struct {
+	config
+}
+
+// NewAuthUserClient returns a client for the AuthUser from the given config.
+func NewAuthUserClient(c config) *AuthUserClient {
+	return &AuthUserClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `authuser.Hooks(f(g(h())))`.
+func (c *AuthUserClient) Use(hooks ...Hook) {
+	c.hooks.AuthUser = append(c.hooks.AuthUser, hooks...)
+}
+
+// Create returns a create builder for AuthUser.
+func (c *AuthUserClient) Create() *AuthUserCreate {
+	mutation := newAuthUserMutation(c.config, OpCreate)
+	return &AuthUserCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// BulkCreate returns a builder for creating a bulk of AuthUser entities.
+func (c *AuthUserClient) CreateBulk(builders ...*AuthUserCreate) *AuthUserCreateBulk {
+	return &AuthUserCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AuthUser.
+func (c *AuthUserClient) Update() *AuthUserUpdate {
+	mutation := newAuthUserMutation(c.config, OpUpdate)
+	return &AuthUserUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AuthUserClient) UpdateOne(au *AuthUser) *AuthUserUpdateOne {
+	mutation := newAuthUserMutation(c.config, OpUpdateOne, withAuthUser(au))
+	return &AuthUserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AuthUserClient) UpdateOneID(id int) *AuthUserUpdateOne {
+	mutation := newAuthUserMutation(c.config, OpUpdateOne, withAuthUserID(id))
+	return &AuthUserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AuthUser.
+func (c *AuthUserClient) Delete() *AuthUserDelete {
+	mutation := newAuthUserMutation(c.config, OpDelete)
+	return &AuthUserDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *AuthUserClient) DeleteOne(au *AuthUser) *AuthUserDeleteOne {
+	return c.DeleteOneID(au.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *AuthUserClient) DeleteOneID(id int) *AuthUserDeleteOne {
+	builder := c.Delete().Where(authuser.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AuthUserDeleteOne{builder}
+}
+
+// Query returns a query builder for AuthUser.
+func (c *AuthUserClient) Query() *AuthUserQuery {
+	return &AuthUserQuery{config: c.config}
+}
+
+// Get returns a AuthUser entity by its id.
+func (c *AuthUserClient) Get(ctx context.Context, id int) (*AuthUser, error) {
+	return c.Query().Where(authuser.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AuthUserClient) GetX(ctx context.Context, id int) *AuthUser {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AuthUserClient) Hooks() []Hook {
+	return c.hooks.AuthUser
 }
 
 // ExampleClient is a client for the Example schema.

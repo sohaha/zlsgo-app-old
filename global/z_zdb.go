@@ -5,6 +5,9 @@ import (
 
 	"github.com/sohaha/zdb"
 	dbmysql "github.com/sohaha/zdb/Driver/mysql"
+
+	"app/schema"
+	"github.com/sohaha/zlsgo/zlog"
 	"github.com/sohaha/zlsgo/zutil"
 
 	// "github.com/sohaha/zdb/Driver/postgres"
@@ -39,6 +42,8 @@ func (*stCompose) DBDone() {
 
 	DB = dbConf.DB()
 
+	schema.Prefix = conf.Prefix
+	zlog.Debug(schema.Prefix)
 	err = ent.InitClient(DB, dbType)
 	zutil.CheckErr(err)
 }

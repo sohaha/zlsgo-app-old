@@ -209,6 +209,30 @@ func DenyMutationOperationRule(op model.Op) MutationRule {
 	return OnMutationOperation(rule, op)
 }
 
+// The AuthUserQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type AuthUserQueryRuleFunc func(context.Context, *model.AuthUserQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f AuthUserQueryRuleFunc) EvalQuery(ctx context.Context, q model.Query) error {
+	if q, ok := q.(*model.AuthUserQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *model.AuthUserQuery", q)
+}
+
+// The AuthUserMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type AuthUserMutationRuleFunc func(context.Context, *model.AuthUserMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f AuthUserMutationRuleFunc) EvalMutation(ctx context.Context, m model.Mutation) error {
+	if m, ok := m.(*model.AuthUserMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *model.AuthUserMutation", m)
+}
+
 // The ExampleQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type ExampleQueryRuleFunc func(context.Context, *model.ExampleQuery) error

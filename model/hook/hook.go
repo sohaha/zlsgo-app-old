@@ -8,6 +8,19 @@ import (
 	"fmt"
 )
 
+// The AuthUserFunc type is an adapter to allow the use of ordinary
+// function as AuthUser mutator.
+type AuthUserFunc func(context.Context, *model.AuthUserMutation) (model.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AuthUserFunc) Mutate(ctx context.Context, m model.Mutation) (model.Value, error) {
+	mv, ok := m.(*model.AuthUserMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *model.AuthUserMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The ExampleFunc type is an adapter to allow the use of ordinary
 // function as Example mutator.
 type ExampleFunc func(context.Context, *model.ExampleMutation) (model.Value, error)
