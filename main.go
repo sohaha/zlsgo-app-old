@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+
 	"app/global"
 	"app/global/initialize"
 	"app/web/router"
@@ -54,18 +56,28 @@ func (i *InitCli) Flags(*zcli.Subcommand) {
 }
 
 func (i *InitCli) Run([]string) {
+	var err error
+
+	defer func() {
+		if err != nil {
+			global.Log.Error(err)
+		}
+	}()
+
 	if zfile.FileExist(global.FileName) {
 		if !*i.Force {
-			global.Log.Warn("配置文件已存在，如需覆盖原配置请使用 --force")
+			global.Log.Warn("如需覆盖原配置请使用 --force")
+			err = global.SaveConf()
+			global.Log.Success("配置文件更新成功")
 			return
 		}
 		zfile.Rmdir(global.FileName)
 	}
 	// 配置初始化
-	global.Read(false)
-	if zfile.FileExist(global.FileName) {
-		global.Log.Success("配置文件初始化成功")
+	global.ReadConf(false)
+	if !zfile.FileExist(global.FileName) {
+		err = errors.New("配置文件生成失败")
 	} else {
-		global.Log.Error("配置文件初始化失败")
+		global.Log.Success("配置文件生成成功")
 	}
 }

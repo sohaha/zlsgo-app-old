@@ -24,15 +24,19 @@ func AutoMigrateTable() []interface{} {
 	}
 }
 
-func AutoMigrateData() map[string]func(DB *gorm.DB) error {
-	data := map[string]func(DB *gorm.DB) error{}
+func AutoMigrateData() (data []func() (key string, exec func(db *gorm.DB) error)) {
 
 	// 需要自动创建初始化执行的操作，key 是唯一
-	// 🙅不要修改历史数据！不要修改历史数据！不要修改历史数据！
+	// 🙅 不要修改历史数据！不要修改历史数据！不要修改历史数据！
 
-	data["initDemo"] = func(DB *gorm.DB) error {
-		return nil
-	}
+	data = append(data, func() (string, func(db *gorm.DB) error) {
+		return "first auto migrate data", func(db *gorm.DB) error {
+			db.Create(&MigrateLogs{
+				Name: "AutoMigrateData",
+			})
+			return nil
+		}
+	})
 
 	return data
 }

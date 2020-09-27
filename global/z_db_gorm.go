@@ -1,90 +1,92 @@
 package global
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 	"time"
 
-	mysqlDriver "gorm.io/driver/mysql"
-	postgresDriver "gorm.io/driver/postgres"
+	"github.com/sohaha/zlsgo/zlog"
+	"github.com/sohaha/zlsgo/zutil"
+	gormmysql "gorm.io/driver/mysql"
+	gormpostgres "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 
 	"app/model"
-
-	"github.com/sohaha/zlsgo/zlog"
-	"github.com/sohaha/zlsgo/zutil"
-)
-
-type (
-	stGormDriver struct{}
 )
 
 var (
 	DB            *gorm.DB
-	gormDriverMap = map[string]*gorm.DB{}
+	gormDriverMap = map[string]func(sqlDB *sql.DB) gorm.Dialector{}
 )
 
-func init() {
+func (*dbDriver) GormMysql(conf stDatabaseConf) {
+	gormDriverMap["mysql"] = func(sqlDB *sql.DB) gorm.Dialector {
+		return gormmysql.New(gormmysql.Config{
+			Conn: sqlDB,
+		})
+	}
 }
 
-func (*stCompose) GormDone() {
-	dbType := DatabaseConf().DBType
-	zutil.CheckErr(validDb())
-	if dbType == "none" {
-		Log.Debug(zlog.ColorTextWrap(zlog.ColorYellow, "No database"))
-		return
+func (*dbDriver) GormPostgres(conf stDatabaseConf) {
+	gormDriverMap["mysql"] = func(sqlDB *sql.DB) gorm.Dialector {
+		return gormpostgres.New(gormpostgres.Config{
+			Conn: sqlDB,
+		})
 	}
+}
+
+func gormInit(dbType string, sqlDB *sql.DB) (err error) {
 	LogLevel := logger.Silent
 	if baseConf.Debug && databaseConf.Debug {
 		LogLevel = zutil.IfVal(databaseConf.Debug, logger.Info, logger.Warn).(logger.LogLevel)
 	}
-
-	err := zutil.RunAllMethod(&stGormDriver{}, func() *gorm.Config {
-		return &gorm.Config{
-			PrepareStmt: true,
-			Logger: logger.New(
-				Log,
-				logger.Config{
-					SlowThreshold: time.Second,
-					LogLevel:      LogLevel,
-					Colorful:      true,
-				},
-			),
-			NamingStrategy: schema.NamingStrategy{
-				TablePrefix:   databaseConf.Prefix,
-				SingularTable: true,
+	gormConfig := &gorm.Config{
+		PrepareStmt: true,
+		Logger: logger.New(
+			Log,
+			logger.Config{
+				SlowThreshold: time.Second,
+				LogLevel:      LogLevel,
+				Colorful:      true,
 			},
-		}
-	})
-	zutil.CheckErr(err)
+		),
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix:   databaseConf.Prefix,
+			SingularTable: true,
+		},
+	}
 
-	var ok bool
-	DB, ok = gormDriverMap[dbType]
+	dialector, ok := gormDriverMap[dbType]
 	if !ok {
-		zutil.CheckErr(fmt.Errorf("not supported: %s", dbType))
+		err = fmt.Errorf("not supported: %s", dbType)
 		return
 	}
 
-	sqlDB, err := DB.DB()
-	if err == nil {
-		err = sqlDB.Ping()
-	}
+	DB, err = gorm.Open(dialector(sqlDB), gormConfig)
 	if err != nil {
 		err = fmt.Errorf("failed to connect database, got error %w\n", err)
+		return
 	}
-	zutil.CheckErr(err)
 
 	model.BindDB(DB)
-	zutil.CheckErr(DB.AutoMigrate(model.AutoMigrateTable()...))
-	zutil.CheckErr(dbMigrateData(model.AutoMigrateData()))
+
+	err = DB.AutoMigrate(model.AutoMigrateTable()...)
+	if err != nil {
+		return
+	}
+	err = dbMigrateData(model.AutoMigrateData())
+	return
 }
 
-func dbMigrateData(data map[string]func(DB *gorm.DB) error) (err error) {
+func dbMigrateData(data []func() (key string, exec func(db *gorm.DB) error)) (err error) {
 	var ignore []string
-	// 会是随机
-	for k, v := range data {
+
+	for _, d := range data {
+		k, v := d()
+
 		currentMigrate := &model.MigrateLogs{Name: k}
 		if currentMigrate.Exist() {
 			ignore = append(ignore, k)
@@ -102,22 +104,4 @@ func dbMigrateData(data map[string]func(DB *gorm.DB) error) (err error) {
 		Log.Warnf(zlog.ColorTextWrap(zlog.ColorWhite, "ignore migrate: [ %s ]\n"), strings.Join(ignore, ","))
 	}
 	return
-}
-
-func (*stGormDriver) GetMysql(conf func() *gorm.Config) {
-	if DatabaseConf().DBType != "mysql" {
-		return
-	}
-	var err error
-	gormDriverMap["mysql"], err = gorm.Open(mysqlDriver.Open(DatabaseConf().MySQL.DSN()), conf())
-	zutil.CheckErr(err)
-}
-
-func (*stGormDriver) GetPostgres(conf func() *gorm.Config) {
-	if DatabaseConf().DBType != "postgres" {
-		return
-	}
-	var err error
-	gormDriverMap["postgres"], err = gorm.Open(postgresDriver.Open(DatabaseConf().Postgres.DSN()), conf())
-	zutil.CheckErr(err)
 }

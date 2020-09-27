@@ -11,7 +11,7 @@ import (
 // InitEngine 初始化模块
 func InitEngine() {
 	// 初始化组合
-	global.Init()
+	global.InitConf()
 
 	// 初始化定时任务
 	task.Init()

@@ -3,21 +3,15 @@
 package global
 
 import (
+	"database/sql"
+
 	"github.com/sohaha/zlsgo/zfile"
-	"github.com/sohaha/zlsgo/zutil"
-	sqliteDriver "gorm.io/driver/sqlite"
+	gormsqlite "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-func init() {
-	databaseDefaultInitConf["sqlite.path"] = "./db.sqlite"
-}
-
-func (*stGormDriver) GetSqlite(conf func() *gorm.Config) {
-	if DatabaseConf().DBType != "sqlite" {
-		return
+func (*dbDriver) GormSqlite(conf stDatabaseConf) {
+	gormDriverMap["sqlite"] = func(sqlDB *sql.DB) gorm.Dialector {
+		return gormsqlite.Open(zfile.RealPath(DatabaseConf().Sqlite.Path))
 	}
-	var err error
-	gormDriverMap["sqlite"], err = gorm.Open(sqliteDriver.Open(zfile.RealPath(DatabaseConf().Sqlite3.Path)), conf())
-	zutil.CheckErr(err)
 }

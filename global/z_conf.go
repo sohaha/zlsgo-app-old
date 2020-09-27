@@ -27,6 +27,7 @@ func (b *stBaseConf) ConfName() string {
 	return "base"
 }
 
+// FileName 配置文件名
 const FileName = "conf.yml"
 
 // noinspection GoUnusedGlobalVariable
@@ -46,15 +47,17 @@ func init() {
 	Log.ResetFlags(zlog.BitLevel | zlog.BitTime)
 }
 
-func Init() {
-	Read(true)
+// InitConf 初始化配置
+func InitConf() {
+	ReadConf(true)
 	onec.Do(func() {
 		setDebugMode()
 		// setWatchConf()
 	})
 }
 
-func Read(init bool) {
+// ReadConf 读取配置
+func ReadConf(init bool) {
 	onecInit.Do(func() {
 		zutil.Try(func() {
 			cfg = gconf.New(FileName)
@@ -70,6 +73,13 @@ func Read(init bool) {
 			}
 		})
 	})
+}
+
+// SaveConf 保存当前配置
+func SaveConf() error {
+	ReadConf(false)
+	// Update the current configuration to the configuration file
+	return cfg.Core.WriteConfig()
 }
 
 // 设置初始化模块
@@ -94,11 +104,6 @@ func readComposeConf() {
 		return strings.HasSuffix(methodName, "ReadConf")
 	}, cfg)
 	zutil.CheckErr(err)
-	// Update the current configuration to the configuration file
-	err = cfg.Core.WriteConfig()
-	if err != nil {
-		Log.Warn(err)
-	}
 }
 
 // 模块配置
@@ -165,7 +170,7 @@ func (*stCompose) BaseDefaultConf(cfg *gconf.Confhub) {
 	cfg.SetDefault(baseConf.ConfName(), map[string]interface{}{
 		"debug":        false,
 		"log_dir":      "",
-		"log_position": true,
+		"log_position": false,
 	})
 }
 
