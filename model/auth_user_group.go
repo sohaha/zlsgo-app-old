@@ -1,8 +1,10 @@
 package model
 
 import (
-	"fmt"
+	"strconv"
+	"time"
 
+	"github.com/sohaha/zlsgo/zcache"
 	"gorm.io/gorm"
 )
 
@@ -19,24 +21,26 @@ func (g AuthUserGroup) All(groups *[]AuthUserGroup) *gorm.DB {
 	return db.Where(&AuthUserGroup{Status: g.Status}).Find(&groups)
 }
 
+var ruleCache = zcache.New("ruleCache")
+
 func (g AuthUserGroup) GetRules() (rules []AuthUserRules) {
-	var relas []AuthUserRulesRela
-	rule := AuthUserRulesRela{GroupID: g.ID}
+	currentRule, err := ruleCache.MustGet(strconv.Itoa(int(g.ID)), func(set func(data interface{}, lifeSpan time.Duration, interval ...bool)) (err error) {
+		var relas []AuthUserRulesRela
+		db.Model(&AuthUserRulesRela{}).Where(map[string]interface{}{"group_id": g.ID, "status": 1}).Select("rule_id").Find(&relas)
+		var ids []uint
 
-	db.Model(&rule).Where(&rule).Select("rule_id").Find(&relas)
-	var ids []uint
+		for _, v := range relas {
+			ids = append(ids, v.RuleID)
+		}
+		db.Model(&AuthUserRules{}).Where("id in (?)", ids).Find(&rules)
 
-	for _, v := range relas {
-		ids = append(ids, v.RuleID)
+		set(rules, 60*10, true)
+		return nil
+	})
+	if err != nil {
+		return
 	}
-	db.Model(&AuthUserRules{}).Where("id in (?)", ids).Find(&rules)
-	fmt.Println(ids, rules)
-
-	return
-
-	// // gorm.rule.Model
-	// return db.Model(&AuthUserGroup{}).Where("id = ?", g.ID).Association("Rules").Find(&r)
-	// return db.Model(&AuthUserRules{}).Where("").Joins("left join AuthUserRulesRela").Find(&r)
+	return currentRule.([]AuthUserRules)
 }
 
 func (*migrate) CreateAuthUserGroup() {

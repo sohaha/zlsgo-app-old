@@ -27,7 +27,7 @@ func (*migrate) CreateAuthUserRulesRela() {
 				},
 				{
 					RuleID:  3,
-					GroupID: 3,
+					GroupID: 0,
 					Status:  1,
 				},
 			}

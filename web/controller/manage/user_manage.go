@@ -42,3 +42,8 @@ func (*UserManage) PostUser(c *znet.Context) {
 
 	c.ApiJSON(200, "创建用户完成", user.ID)
 }
+
+// DeleteUser 删除用户
+func (*UserManage) DeleteUser(c *znet.Context) {
+
+}
