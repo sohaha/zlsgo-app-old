@@ -15,3 +15,4 @@ func (*dbDriver) GormSqlite(conf stDatabaseConf) {
 		return gormsqlite.Open(zfile.RealPath(DatabaseConf().Sqlite.Path))
 	}
 }
+

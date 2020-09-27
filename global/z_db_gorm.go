@@ -31,7 +31,7 @@ func (*dbDriver) GormMysql(conf stDatabaseConf) {
 }
 
 func (*dbDriver) GormPostgres(conf stDatabaseConf) {
-	gormDriverMap["mysql"] = func(sqlDB *sql.DB) gorm.Dialector {
+	gormDriverMap["postgres"] = func(sqlDB *sql.DB) gorm.Dialector {
 		return gormpostgres.New(gormpostgres.Config{
 			Conn: sqlDB,
 		})
@@ -73,10 +73,12 @@ func gormInit(dbType string, sqlDB *sql.DB) (err error) {
 
 	model.BindDB(DB)
 
-	err = DB.AutoMigrate(model.AutoMigrateTable()...)
+	tables := model.AutoMigrateTable()
+	err = DB.Migrator().AutoMigrate(tables...)
 	if err != nil {
 		return
 	}
+
 	err = dbMigrateData(model.AutoMigrateData())
 	return
 }
@@ -97,7 +99,7 @@ func dbMigrateData(data []func() (key string, exec func(db *gorm.DB) error)) (er
 			err = fmt.Errorf("migrate Error: [ %s ] %s", k, err.Error())
 			return
 		}
-		currentMigrate.Insert()
+		err = currentMigrate.Insert().Error
 	}
 
 	if len(ignore) > 0 {
