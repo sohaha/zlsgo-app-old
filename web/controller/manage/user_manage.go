@@ -2,6 +2,7 @@ package manage
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zvalid"
@@ -46,4 +47,20 @@ func (*UserManage) PostUser(c *znet.Context) {
 // DeleteUser 删除用户
 func (*UserManage) DeleteUser(c *znet.Context) {
 
+}
+
+// GetUserLists 获取用户列表
+func (*UserManage) GetUserLists(c *znet.Context) {
+	pagesize,_ := strconv.Atoi(c.DefaultFormOrQuery("pagesize","10"))
+	page,_ := strconv.Atoi(c.DefaultFormOrQuery("page","1"))
+	pp := model.Page{
+		Curpage: uint(page),
+		Pagesize:uint(pagesize),
+	}
+	users := (&model.AuthUser{}).Lists(&pp)
+	c.Log.Debug(users)
+	c.ApiJSON(200, "用户列表", map[string]interface{}{
+		"items": users,
+		"page":  pp,
+	})
 }

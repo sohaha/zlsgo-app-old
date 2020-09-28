@@ -4,16 +4,19 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/sohaha/zlsgo/zcache"
 	"gorm.io/gorm"
+
+	"github.com/sohaha/zlsgo/zcache"
 )
 
 type AuthUserGroup struct {
-	Name   string `gorm:"type:varbinary(100);default:''"`
-	Remark string `gorm:"type:varbinary(250);default:''"`
-	Status uint8  `gorm:"type:int(2);default:1"`
-	// Rules  []AuthUserRules `gorm111:"many2many:auto_group_rule;"`
-	gorm.Model
+	Name      string         `gorm:"type:varbinary(100);default:''"`
+	Remark    string         `gorm:"type:varbinary(250);default:''"`
+	Status    uint8          `gorm:"type:int(2);default:1"`
+	ID        uint           `gorm:"primarykey" json:"id,omitempty"`
+	CreatedAt JSONTime       `gorm:"column:create_time;" json:"create_time"`
+	UpdatedAt JSONTime       `gorm:"column:update_time;" json:"update_time"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 // All 获取全部记录
@@ -59,17 +62,13 @@ func (*migrate) CreateAuthUserGroup() {
 					Name:   "管理员",
 					Remark: "我是一个管理员",
 					Status: 1,
-					Model: gorm.Model{
-						ID: 1,
-					},
+					ID:     1,
 				},
 				{
 					Name:   "编辑员",
 					Remark: "我是一个编辑员",
 					Status: 1,
-					Model: gorm.Model{
-						ID: 2,
-					},
+					ID:     2,
 				},
 			}
 			db.Create(data)
