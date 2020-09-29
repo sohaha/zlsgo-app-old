@@ -5,9 +5,9 @@ import (
 )
 
 type AuthUserRulesRela struct {
-	RuleID    uint `gorm:"column:rule_id;type:int(2)"`
-	GroupID   uint
-	sort      uint16
+	RuleID    uint           `gorm:"column:rule_id;type:int(2)"`
+	GroupID   uint           `json:"group_id"`
+	Sort      uint16         `json:"sort"`
 	Status    uint8          `gorm:"type:int(2);default:1"`
 	ID        uint           `gorm:"primarykey" json:"id,omitempty"`
 	CreatedAt JSONTime       `gorm:"column:create_time;" json:"create_time"`
@@ -30,11 +30,6 @@ func (*migrate) CreateAuthUserRulesRela() {
 				}, {
 					RuleID:  4,
 					GroupID: 1,
-					Status:  1,
-				},
-				{
-					RuleID:  3,
-					GroupID: 0,
 					Status:  1,
 				},
 			}

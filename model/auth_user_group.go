@@ -49,14 +49,6 @@ func (g AuthUserGroup) GetRules() (rules []AuthUserRules) {
 func (*migrate) CreateAuthUserGroup() {
 	migrateData = append(migrateData, func() (string, func(db *gorm.DB) error) {
 		return "CreateAuthUserGroup", func(db *gorm.DB) error {
-			// 添加一个 id 为 0 的用户为游客
-			db.Create(&AuthUserGroup{
-				Name:   "游客",
-				Remark: "我是一个游客",
-				Status: 1,
-			})
-			db.Model(&AuthUserGroup{}).Where("id = ?", 1).Update("id", 0)
-
 			data := []AuthUserGroup{
 				{
 					Name:   "管理员",

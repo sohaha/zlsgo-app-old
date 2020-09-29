@@ -12,13 +12,14 @@ import (
 // AuthUser 管理员
 type AuthUser struct {
 	ID        uint           `gorm:"primarykey" json:"id,omitempty"`
-	Username  string         `json:"username"`
-	Password  string         `json:"-"`
+	Username  string         `gorm:"comment:用户名" json:"username"`
+	Password  string         `gorm:"comment:用户密码" json:"-"`
 	Key       string         `json:"-"`
 	Nickname  string         `json:"nickname"`
 	Email     string         `json:"email"`
 	Avatar    string         `json:"avatar"`
 	Status    uint8          `gorm:"default:1" json:"status"`
+	Remark    string         `gorm:"column:remark;default:'';comment:用户备注" json:"remark"`
 	GroupID   uint           `gorm:"column:group_id" json:"group_id"`
 	IsSuper   bool           `gorm:"column:is_super;default:0;" json:"is_super"`
 	CreatedAt JSONTime       `gorm:"column:create_time;" json:"create_time"`
@@ -37,16 +38,29 @@ func (*migrate) CreateAuthUser() {
 		password := "admin666" // zstring.Rand(6)
 		encryptPassword, _ := zvalid.Text(password).EncryptPassword().String()
 		return "CreateAuthUser", func(db *gorm.DB) error {
-			db.Create(&AuthUser{
-				Username: "admin",
-				Password: encryptPassword,
-				Key:      "",
-				Nickname: "管理员",
-				Email:    "admin@qq.com",
-				Avatar:   "",
-				GroupID:  1,
-				Status:   1,
-				IsSuper:  true,
+			db.Create([]AuthUser{
+				{
+					Username: "manage",
+					Password: encryptPassword,
+					Key:      "",
+					Nickname: "超级管理员",
+					Email:    "manage@qq.com",
+					Avatar:   "",
+					GroupID:  1,
+					Status:   1,
+					IsSuper:  true,
+				},
+				{
+					Username: "admin",
+					Password: encryptPassword,
+					Key:      "",
+					Nickname: "管理员",
+					Email:    "admin@qq.com",
+					Avatar:   "",
+					GroupID:  1,
+					Status:   1,
+					IsSuper:  false,
+				},
 			})
 			return nil
 		}

@@ -1,4 +1,4 @@
-package utils
+package web
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/sohaha/zlsgo/zstring"
 )
 
-func AddJSON(json []byte, data interface{}, more ...map[string]interface{}) []byte {
+func addJSON(json []byte, data interface{}, more ...map[string]interface{}) []byte {
 	json, _ = zjson.SetBytes(json, "data", data)
 	if len(more) > 0 {
 		for _, d := range more {
@@ -20,10 +20,10 @@ func AddJSON(json []byte, data interface{}, more ...map[string]interface{}) []by
 	return json
 }
 
-func ApiJSON(c *znet.Context, code int, msg string, data interface{}, more ...map[string]interface{}) error {
+func ApiJSON(c *znet.Context, code int, msg string, data interface{}, more ...map[string]interface{}) {
 	raw := zstring.String2Bytes(fmt.Sprintf(`{"code":%d,"msg":"%s"}`, code, msg))
-	json := AddJSON(raw, data, more...)
+	json := addJSON(raw, data, more...)
 	c.SetContentType(znet.ContentTypeJSON)
 	c.Byte(200, json)
-	return nil
+	return
 }

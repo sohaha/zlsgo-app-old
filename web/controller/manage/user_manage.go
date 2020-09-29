@@ -53,14 +53,14 @@ func (*UserManage) DeleteUser(c *znet.Context) {
 func (*UserManage) GetUserLists(c *znet.Context) {
 	pagesize,_ := strconv.Atoi(c.DefaultFormOrQuery("pagesize","10"))
 	page,_ := strconv.Atoi(c.DefaultFormOrQuery("page","1"))
-	pp := model.Page{
+	p := model.Page{
 		Curpage: uint(page),
 		Pagesize:uint(pagesize),
 	}
-	users := (&model.AuthUser{}).Lists(&pp)
-	c.Log.Debug(users)
+	users := (&model.AuthUser{}).Lists(&p)
+
 	c.ApiJSON(200, "用户列表", map[string]interface{}{
 		"items": users,
-		"page":  pp,
+		"page":  p,
 	})
 }

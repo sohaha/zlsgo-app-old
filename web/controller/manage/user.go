@@ -1,7 +1,7 @@
 package manage
 
 import (
-	"app/utils"
+	"app/web"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zvalid"
 
@@ -15,8 +15,8 @@ func (*Basic) PostGetToken(c *znet.Context) {
 
 	v := c.ValidRule()
 	err := zvalid.Batch(
-		zvalid.BatchVar(&user.Username, v.Verifi(c.DefaultPostForm("user", ""), "用户名").Required()),
-		zvalid.BatchVar(&user.Password, v.Verifi(c.DefaultPostForm("pass", ""), "用户密码").Required()),
+		zvalid.BatchVar(&user.Username, v.Verifi(c.DefaultFormOrQuery("user", ""), "用户名").Required()),
+		zvalid.BatchVar(&user.Password, v.Verifi(c.DefaultFormOrQuery("pass", ""), "用户密码").Required()),
 	)
 	ip := c.GetClientIP()
 	ua := c.GetHeader("User-Agent")
@@ -26,7 +26,7 @@ func (*Basic) PostGetToken(c *znet.Context) {
 		return
 	}
 
-	_ = utils.ApiJSON(c, 200, "Done", user, map[string]interface{}{
+	web.ApiJSON(c, 200, "Done", user, map[string]interface{}{
 		"token": token,
 	})
 }
@@ -40,7 +40,7 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 		Userid: user.ID,
 	}
 	t.Last()
-	_ = utils.ApiJSON(c, 200, "Done", user, map[string]interface{}{
+	web.ApiJSON(c, 200, "Done", user, map[string]interface{}{
 		"last":    t,
 		"systems": map[string]interface{}{},
 	})
@@ -62,7 +62,6 @@ func (*Basic) PostClearToken(c *znet.Context) {
 	t, ok := c.Value("token")
 	if ok {
 		t.(*model.AuthUserToken).UpdateStatus()
-		c.Log.Debug(t)
 	}
-	_ = utils.ApiJSON(c, 200, "退出完成", nil)
+	web.ApiJSON(c, 200, "退出完成", nil)
 }
