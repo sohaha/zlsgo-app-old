@@ -23,16 +23,16 @@ type AuthUserToken struct {
 }
 
 // tokenKen token 加密 Key
-var tokenKen = []byte("zls")
+var tokenKen = "zls"
 
 func (t *AuthUserToken) CreateToken() (token string) {
-	now := time.Now().Unix()
-	token = fmt.Sprintf("%d|%s|%d", t.Userid, t.IP, now)
-	ecrypt, err := zstring.AesEcrypt(zstring.String2Bytes(token), tokenKen)
+	now := time.Now().UnixNano()
+	token = fmt.Sprintf("%d|%s|%d|%s", t.Userid, t.IP, now, zstring.Rand(4))
+	ecrypt, err := zstring.AesEnCryptString(token, tokenKen)
 	if err != nil {
 		return
 	}
-	t.Token = zstring.Bytes2String(zstring.Base64Encode(ecrypt))
+	t.Token = ecrypt
 	tx := db.Model(&t).Create(t)
 	if tx.Error != nil {
 		return ""

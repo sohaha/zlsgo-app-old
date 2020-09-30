@@ -27,6 +27,9 @@ type AuthUser struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// 默认管理员密码
+const DefManagePassword = "admin666"
+
 func (u *AuthUser) Lists(pp *Page) (users []AuthUser) {
 	_, _ = FindPage(context.Background(), db.Where(u).Model(u).Order("id desc"), pp, &users)
 	return
@@ -34,8 +37,7 @@ func (u *AuthUser) Lists(pp *Page) (users []AuthUser) {
 
 func (*migrate) CreateAuthUser() {
 	migrateData = append(migrateData, func() (string, func(db *gorm.DB) error) {
-		// 默认管理员密码
-		password := "admin666" // zstring.Rand(6)
+		password := DefManagePassword // zstring.Rand(6)
 		encryptPassword, _ := zvalid.Text(password).EncryptPassword().String()
 		return "CreateAuthUser", func(db *gorm.DB) error {
 			db.Create([]AuthUser{

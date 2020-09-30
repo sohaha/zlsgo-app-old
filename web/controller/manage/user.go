@@ -18,15 +18,19 @@ func (*Basic) PostGetToken(c *znet.Context) {
 		zvalid.BatchVar(&user.Username, v.Verifi(c.DefaultFormOrQuery("user", ""), "用户名").Required()),
 		zvalid.BatchVar(&user.Password, v.Verifi(c.DefaultFormOrQuery("pass", ""), "用户密码").Required()),
 	)
-	ip := c.GetClientIP()
-	ua := c.GetHeader("User-Agent")
-	token, err = user.Login(ip, ua)
 	if err != nil {
 		c.ApiJSON(211, err.Error(), nil)
 		return
 	}
+	ip := c.GetClientIP()
+	ua := c.GetHeader("User-Agent")
+	token, err = user.Login(ip, ua)
+	if err != nil {
+		c.ApiJSON(212, err.Error(), nil)
+		return
+	}
 
-	web.ApiJSON(c, 200, "Done", user, map[string]interface{}{
+	web.ApiJSON(c, 200, "登录成功", user, map[string]interface{}{
 		"token": token,
 	})
 }
@@ -40,7 +44,7 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 		Userid: user.ID,
 	}
 	t.Last()
-	web.ApiJSON(c, 200, "Done", user, map[string]interface{}{
+	web.ApiJSON(c, 200, "用户详情", user, map[string]interface{}{
 		"last":    t,
 		"systems": map[string]interface{}{},
 	})

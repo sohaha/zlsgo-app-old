@@ -20,13 +20,16 @@ var net *znet.Engine
 type stBody struct {
 	Body        io.Reader
 	ContentType string
+	Header      map[string]string
 }
 
 func request(method, url string, body *stBody) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(method, url, body.Body)
-	if body.ContentType != "" {
-		req.Header.Set("Content-Type", body.ContentType)
+	if body.Header != nil {
+		for k, v := range body.Header {
+			req.Header.Set(k, v)
+		}
 	}
 	net.ServeHTTP(w, req)
 	return w
