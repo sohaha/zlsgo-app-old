@@ -161,5 +161,6 @@ func (*stCompose) DBDone() {
 	SqlDB = dbConf.DB()
 
 	err = gormInit(dbType, SqlDB)
+
 	zutil.CheckErr(err)
 }
