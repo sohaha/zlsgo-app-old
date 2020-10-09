@@ -1,8 +1,6 @@
 package manage
 
 import (
-	"strings"
-
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zstring"
 
@@ -59,7 +57,7 @@ func Authority() func(c *znet.Context) {
 	}
 	return func(c *znet.Context) {
 		method := c.Request.Method
-		path := strings.TrimLeft(c.Request.URL.Path, "/")
+		path := c.Request.URL.Path
 
 		user := &model.AuthUser{}
 		token := &model.AuthUserToken{}

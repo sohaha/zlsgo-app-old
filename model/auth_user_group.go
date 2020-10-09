@@ -103,13 +103,13 @@ func (*migrate) CreateAuthUserGroup() {
 			data := []AuthUserGroup{
 				{
 					Name:   "管理员",
-					Remark: "我是一个管理员",
+					Remark: "管理员",
 					Status: 1,
 					ID:     1,
 				},
 				{
 					Name:   "编辑员",
-					Remark: "我是一个编辑员",
+					Remark: "编辑员",
 					Status: 1,
 					ID:     2,
 				},
