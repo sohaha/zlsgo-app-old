@@ -65,6 +65,7 @@ func Init() {
 		if Engine.IsDebug() {
 			errMsg = err.Error()
 		}
+		Engine.Log.Stack(errMsg)
 		if c.IsAjax() {
 			c.ApiJSON(500, "panic", errMsg)
 			return

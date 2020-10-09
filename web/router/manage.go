@@ -1,10 +1,13 @@
 package router
 
 import (
+	"github.com/sohaha/zstatic"
+
 	"app/global"
 	"app/web/controller/manage"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/znet/cors"
+	"github.com/sohaha/zlsgo/znet/gzip"
 	"github.com/sohaha/zlsgo/zutil"
 )
 
@@ -15,11 +18,20 @@ func (*StController) RegManage(r *znet.Engine) {
 		return
 	}
 
+	g := gzip.Default()
+
+	prefix := "manage"
+	fileserver := zstatic.NewFileserver("resource/manage")
+	r.GET(prefix, func(c *znet.Context) {
+		c.Redirect(prefix + "/")
+	})
+	r.GET(prefix+"/{file:.*}", fileserver, g)
+
 	r.Group("/ZlsManage/", func(r *znet.Engine) {
 		corsHandler := cors.New(&cors.Config{
 			Headers: []string{"Origin", "No-Cache", "X-Requested-With", "If-Modified-Since", "Pragma", "Last-Modified", "Cache-Control", "Expires", "Content-Type", "Access-Control-Allow-Origin", "token"},
 		})
-		r.Use(corsHandler)
+		r.Use(corsHandler, g)
 		r.OPTIONS("*", func(c *znet.Context) {})
 
 		r.Use(manage.Authority())

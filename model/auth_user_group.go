@@ -2,6 +2,7 @@ package model
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -19,6 +20,14 @@ type AuthUserGroup struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+type (
+	RuleCollation struct {
+		AdoptRoute     map[string][]string
+		InterceptRoute map[string][]string
+		Marks          []string
+	}
+)
+
 // All 获取全部记录
 func (g AuthUserGroup) All(groups *[]AuthUserGroup) *gorm.DB {
 	return db.Where(&AuthUserGroup{Status: g.Status}).Find(&groups)
@@ -26,6 +35,7 @@ func (g AuthUserGroup) All(groups *[]AuthUserGroup) *gorm.DB {
 
 var ruleCache = zcache.New("ruleCache")
 
+// GetRules 获取规则列表
 func (g AuthUserGroup) GetRules() (rules []AuthUserRules) {
 	currentRule, err := ruleCache.MustGet(strconv.Itoa(int(g.ID)), func(set func(data interface{}, lifeSpan time.Duration, interval ...bool)) (err error) {
 		var relas []AuthUserRulesRela
@@ -44,6 +54,47 @@ func (g AuthUserGroup) GetRules() (rules []AuthUserRules) {
 		return
 	}
 	return currentRule.([]AuthUserRules)
+}
+
+// GetRuleCollation 获取整理后的规则列表
+func (g AuthUserGroup) GetRuleCollation() (s *RuleCollation) {
+	rules := g.GetRules()
+	if len(rules) == 0 {
+		return
+	}
+	// 有必要可以升级成树
+	s = &RuleCollation{
+		AdoptRoute:     map[string][]string{},
+		InterceptRoute: map[string][]string{},
+		Marks:          []string{},
+	}
+	setData := func(methods []string, route string, v AuthUserRules) {
+		for _, m := range methods {
+			if v.Status == AuthUserRulesStatusIntercept {
+				s.InterceptRoute[m] = append(s.InterceptRoute[m], route)
+			} else if v.Status == AuthUserRulesStatusAdopt {
+				s.AdoptRoute[m] = append(s.AdoptRoute[m], route)
+			}
+		}
+	}
+	// 判断当前路由权限
+	for _, v := range rules {
+		if v.Type == 1 {
+			routes := strings.Split(v.Mark, AuthUserRulesMarkSeparator)
+			for i := range routes {
+				var methods []string
+				if method := v.Methods; method != "" {
+					methods = []string{method}
+				} else {
+					methods = []string{"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"}
+				}
+				setData(methods, routes[i], v)
+			}
+		} else {
+			s.Marks = append(s.Marks, v.Mark)
+		}
+	}
+	return s
 }
 
 func (*migrate) CreateAuthUserGroup() {
