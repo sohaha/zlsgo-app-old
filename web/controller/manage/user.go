@@ -1,6 +1,7 @@
 package manage
 
 import (
+	"app/logic"
 	"app/web"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zvalid"
@@ -40,13 +41,22 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 	if u, ok := c.Value("user"); ok {
 		user = u.(*model.AuthUser)
 	}
+
 	t := &model.AuthUserToken{
 		Userid: user.ID,
 	}
+	// 上次登录信息
 	t.Last()
+
+	systems := map[string]interface{}{}
+	// 有系统管理权限需要打印系统信息
+	if VerifPermissionMark(c, "systems", true) {
+		systems = logic.GetServerInfo()
+	}
+
 	web.ApiJSON(c, 200, "用户详情", user, map[string]interface{}{
 		"last":    t,
-		"systems": map[string]interface{}{},
+		"systems": systems,
 	})
 }
 

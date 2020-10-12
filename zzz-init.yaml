@@ -1,0 +1,4 @@
+command:
+  - go mod tidy
+  - win@ go build -o tmpApp.exe && tmpApp.exe init && del tmpApp.exe
+  - mac|linux@ go build -o tmpApp && ./tmpApp init && rm ./tmpApp

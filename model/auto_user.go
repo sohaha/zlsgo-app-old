@@ -63,6 +63,17 @@ func (*migrate) CreateAuthUser() {
 					Status:   1,
 					IsSuper:  false,
 				},
+				{
+					Username: "edit",
+					Password: encryptPassword,
+					Key:      "",
+					Nickname: "编辑",
+					Email:    "edit@qq.com",
+					Avatar:   "",
+					GroupID:  2,
+					Status:   1,
+					IsSuper:  false,
+				},
 			})
 			return nil
 		}

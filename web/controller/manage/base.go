@@ -7,55 +7,76 @@ import (
 	"app/model"
 )
 
-var (
-	rule   = map[uint]*[]model.AuthUserRules{}
-	groups []model.AuthUserGroup
-)
+// VerifRoutingPermission 路由权限验证
+func VerifRoutingPermission(currentPath, method string, rules *model.RuleCollation) (adopt bool) {
+	routes := rules.AdoptRoute[method]
+	for i := range routes {
+		if zstring.Match(currentPath, routes[i]) {
+			adopt = true
+			break
+		}
+	}
 
-func verifRule(currentPath string, rules []model.AuthUserRules) (adopt bool) {
-	// 判断当前路由需要权限不
-	for _, v := range rules {
-		if v.Type == 1 {
-			if adopt {
-				continue
+	if adopt {
+		routes = rules.InterceptRoute[method]
+		for i := range routes {
+			if zstring.Match(currentPath, routes[i]) {
+				return false
 			}
-			// 路由类型 进行模糊匹配
-			if zstring.Match(currentPath, v.Mark) {
-				adopt = true
-			}
-		} else {
-			// 关键字类型
 		}
 	}
 	return
 }
 
+// VerifPermissionMark 验证是否拥有指定权限标识码
+func VerifPermissionMark(c *znet.Context, mark string, disable ...bool) (adopt bool) {
+	r, ok := c.Value("ruleMarks")
+	if ok {
+		ruleMarks := *r.(*[]string)
+		for _, v := range ruleMarks {
+			if v == mark {
+				return true
+			}
+		}
+	}
+
+	if !adopt {
+		if len(disable) > 0 && disable[0] {
+			return
+		}
+		c.ApiJSON(403, "对不起，无操作权限", nil)
+	}
+	return
+}
+
 func Authority() func(c *znet.Context) {
-	ignoreRules := []model.AuthUserRules{
-		{
-			Type: 1,
-			Mark: "/ZlsManage/UserApi/GetToken.go",
+	ignoreRules := &model.RuleCollation{
+		AdoptRoute: map[string][]string{
+			"POST": {"/ZlsManage/UserApi/GetToken.go"},
 		},
 	}
 	return func(c *znet.Context) {
+		method := c.Request.Method
+		path := c.Request.URL.Path
+
 		user := &model.AuthUser{}
 		token := &model.AuthUserToken{}
+		var ruleMarks []string
 		c.WithValue("user", user)
 		c.WithValue("token", token)
+		c.WithValue("ruleMarks", &ruleMarks)
 
-		path := c.Request.URL.Path
 		t := c.GetHeader("token")
 		if t == "" {
 			t = c.DefaultFormOrQuery("token", "")
 		}
-
 		if t != "" {
 			token.Token = t
 			user.TokenToInfo(token)
 			// 后期可以考虑把用户信息缓存
 		}
 
-		if verifRule(path, ignoreRules) {
+		if VerifRoutingPermission(path, method, ignoreRules) {
 			c.Next()
 			return
 		}
@@ -71,18 +92,18 @@ func Authority() func(c *znet.Context) {
 			return
 		}
 
-		currentRuleArray := (&model.AuthUserGroup{Status: 1, ID: user.GroupID}).GetRules()
-		if len(currentRuleArray) == 0 {
+		// 获取角色的规则
+		currentRule := (&model.AuthUserGroup{Status: 1, ID: user.GroupID}).GetRuleCollation()
+		if currentRule == nil {
 			// 没有对应的权限规则，禁止访问
-			c.ApiJSON(401, "请先当前用户设置权限", nil)
+			c.ApiJSON(403, "请先为当前用户设置权限", nil)
 			return
 		}
-
-		if !verifRule(path, currentRuleArray) {
+		ruleMarks = currentRule.Marks
+		if !VerifRoutingPermission(path, method, currentRule) {
 			c.ApiJSON(403, "对不起，权限不足", nil)
 			return
 		}
-
 		c.Next()
 	}
 }

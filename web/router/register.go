@@ -13,6 +13,4 @@ func (*StController) RegHome(r *znet.Engine) {
 
 	err := r.BindStruct("/", homeController)
 	zutil.CheckErr(err)
-
-	// r.GET("/", homeController.Home)
 }
