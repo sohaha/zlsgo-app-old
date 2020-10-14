@@ -11,15 +11,15 @@ import (
 
 // AuthUserToken 管理员权限密钥
 type AuthUserToken struct {
-	ID        uint           `gorm:"primarykey" json:"id,omitempty"`
-	Userid    uint           `json:"-"`
-	Token     string         `json:"-"`
-	IP        string         `json:"ip"`
-	UA        string         `json:"ua"`
-	Status    uint8          `gorm:"default:1" json:"status,omitempty"`
-	CreatedAt JSONTime       `gorm:"column:create_time;" json:"create_time,omitempty"`
-	UpdatedAt JSONTime       `gorm:"column:update_time;" json:"update_time,omitempty"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	ID        uint           `gorm:"column:id;primaryKey;" json:"id,omitempty"`
+	Userid    uint           `gorm:"column:userid;type:int(11);not null;default:0;comment:管理员Id" json:"userid"`
+	Token     string         `gorm:"column:token;type:varchar(255);not null;default:'';comment:token" json:"token"`
+	IP        string         `gorm:"column:ip;type:varchar(20);not null;default:'';comment:登录IP" json:"ip"`
+	UA        string         `gorm:"column:ua;type:text(0);comment:User Agent" json:"ua"`
+	Status    uint8          `gorm:"column:status;type:tinyint(4);not null;default:1;comment:状态:1正常,2禁止" json:"status"`
+	CreatedAt JSONTime       `gorm:"column:create_time;type:datetime(0);comment:创建时间;" json:"create_time"`
+	UpdatedAt JSONTime       `gorm:"column:update_time;type:datetime(0);comment:更新时间;" json:"update_time"`
+	DeletedAt gorm.DeletedAt `gorm:"type:datetime(0);index;" json:"-"`
 }
 
 // tokenKen token 加密 Key

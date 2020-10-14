@@ -10,14 +10,15 @@ import (
 	"github.com/sohaha/zlsgo/zcache"
 )
 
+// AuthUserGroup 用户角色
 type AuthUserGroup struct {
-	Name      string         `gorm:"type:varbinary(100);default:''"`
-	Remark    string         `gorm:"type:varbinary(250);default:''"`
-	Status    uint8          `gorm:"type:int(2);default:1"`
-	ID        uint           `gorm:"primarykey" json:"id,omitempty"`
-	CreatedAt JSONTime       `gorm:"column:create_time;" json:"create_time"`
-	UpdatedAt JSONTime       `gorm:"column:update_time;" json:"update_time"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	ID        uint           `gorm:"column:id;primaryKey;" json:"id,omitempty"`
+	Name      string         `gorm:"column:name;type:varchar(255);not null;default:'';comment:角色名称;" json:"name"`
+	Status    uint8          `gorm:"column:status;type:tinyint(4);not null;default:1;comment:状态:1正常，2禁止;" json:"status"`
+	Remark    string         `gorm:"column:remark;type:varchar(255);not null;default:'';comment:角色简介;" json:"remark"`
+	CreatedAt JSONTime       `gorm:"column:create_time;type:datetime(0);comment:创建时间;" json:"create_time"`
+	UpdatedAt JSONTime       `gorm:"column:update_time;type:datetime(0);comment:更新时间;" json:"update_time"`
+	DeletedAt gorm.DeletedAt `gorm:"type:datetime(0);index;" json:"-"`
 }
 
 type (

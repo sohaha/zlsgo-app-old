@@ -11,20 +11,20 @@ import (
 
 // AuthUser 管理员
 type AuthUser struct {
-	ID        uint           `gorm:"primarykey" json:"id,omitempty"`
-	Username  string         `gorm:"comment:用户名" json:"username"`
-	Password  string         `gorm:"comment:用户密码" json:"-"`
-	Key       string         `json:"-"`
-	Nickname  string         `json:"nickname"`
-	Email     string         `json:"email"`
-	Avatar    string         `json:"avatar"`
-	Status    uint8          `gorm:"default:1" json:"status"`
-	Remark    string         `gorm:"column:remark;default:'';comment:用户备注" json:"remark"`
-	GroupID   uint           `gorm:"column:group_id" json:"group_id"`
+	ID        uint           `gorm:"column:id;primaryKey;" json:"id,omitempty"`
+	Username  string         `gorm:"column:username;type:varchar(255);not null;default:'';comment:用户名;" json:"username"`
+	Password  string         `gorm:"column:password;type:varchar(255);not null;default:'';comment:用户密码;" json:"-"`
+	Key       string         `gorm:"column:key;type:varchar(255);not null;default:'';comment:密码盐;" json:"-"`
+	Nickname  string         `gorm:"column:nickname;type:varchar(255);not null;default:'';comment:用户昵称;" json:"nickname"`
+	Email     string         `gorm:"column:email;type:varchar(255);not null;default:'';comment:Email;" json:"email"`
+	Remark    string         `gorm:"column:remark;type:varchar(255);not null;default:'';comment:用户简介;" json:"remark"`
+	Avatar    string         `gorm:"column:avatar;type:varchar(255);not null;default:'';comment:头像;" json:"avatar"`
+	Status    uint8          `gorm:"column:status;type:tinyint(4);not null;default:0;comment:状态:-1软删除,0待激活,1正常,2禁止;" json:"status"`
+	GroupID   uint           `gorm:"autoIncrement;column:group_id;type:int(11);not null;default:0;comment:角色Id;" json:"group_id"`
 	IsSuper   bool           `gorm:"column:is_super;default:0;" json:"is_super"`
-	CreatedAt JSONTime       `gorm:"column:create_time;" json:"create_time"`
-	UpdatedAt JSONTime       `gorm:"column:update_time;" json:"update_time"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	CreatedAt JSONTime       `gorm:"column:create_time;type:datetime(0);comment:创建时间;" json:"create_time"`
+	UpdatedAt JSONTime       `gorm:"column:update_time;type:datetime(0);comment:更新时间;" json:"update_time"`
+	DeletedAt gorm.DeletedAt `gorm:"type:datetime(0);index;" json:"-"`
 }
 
 // 默认管理员密码
