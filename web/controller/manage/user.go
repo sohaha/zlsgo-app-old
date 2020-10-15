@@ -54,9 +54,15 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 		systems = logic.GetServerInfo()
 	}
 
+	groups := []model.AuthUserGroup{}
+	(model.AuthUserGroup{}).All(&groups)
+
 	web.ApiJSON(c, 200, "用户详情", user, map[string]interface{}{
 		"last":    t,
 		"systems": systems,
+		"groups":  groups,
+		"marks":   (model.AuthUserGroup{ID: user.GroupID}).GetMarks(),
+		// menus
 	})
 }
 

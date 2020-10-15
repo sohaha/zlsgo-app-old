@@ -43,6 +43,8 @@ func (*StController) RegManage(r *znet.Engine) {
 
 		zutil.CheckErr(r.BindStruct("/UserManageApi", &manage.UserManage{}))
 
+		zutil.CheckErr(r.BindStruct("/SystemApi", &manage.System{}))
+
 		r.Any("*", func(c *znet.Context) {
 			c.ApiJSON(404, "404", nil)
 		})

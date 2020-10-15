@@ -10,6 +10,11 @@ import (
 	"github.com/sohaha/zlsgo/zcache"
 )
 
+const (
+	TYPE_ROUTER uint8 = 1 // 路由
+	TYPE_MARK   uint8 = 2 // 标识码
+)
+
 // AuthUserGroup 用户角色
 type AuthUserGroup struct {
 	ID        uint           `gorm:"column:id;primaryKey;" json:"id,omitempty"`
@@ -119,4 +124,17 @@ func (*migrate) CreateAuthUserGroup() {
 			return nil
 		}
 	})
+}
+
+// 获取权限标识列表
+func (g AuthUserGroup) GetMarks() []string {
+	currentRules := g.GetRules()
+	res := make([]string, 0)
+	for _, v := range currentRules {
+		if TYPE_MARK == v.Type {
+			res = append(res, v.Mark)
+		}
+	}
+
+	return res;
 }
