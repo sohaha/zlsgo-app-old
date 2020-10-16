@@ -5,7 +5,14 @@ import (
 	"sync"
 )
 
-var Mutex sync.Mutex
+var (
+	Mutex sync.Mutex
+
+	avatarPath          = "./static/avatar"
+	avatarTemPath       = "./static/avatar/tmp"
+	avatarType          = [2]string{".jpg", ".png"}
+	avatarSize    int64 = 2048 // k
+)
 
 // 字节转kb
 func Byte2Kb(byteNum int64) int64 {

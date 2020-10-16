@@ -157,7 +157,6 @@ func (st *ParamPutSystemConfigSt) GetConf() (*ParamPutSystemConfigSt, error) {
 		return nil, err
 	}
 
-	// currentCfg := cfg.GetAll()
 	st.Debug = cfg.Get("base.debug").(bool)
 	st.CdnHost = cfg.Get("project.cdnHost").(string)
 	st.MaintainMode = cfg.Get("base.maintainMode").(bool)

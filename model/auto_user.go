@@ -1,9 +1,13 @@
 package model
 
 import (
+	"app/web/business/manageBusiness"
 	"context"
+	"crypto/md5"
 	"errors"
-
+	"fmt"
+	"github.com/sohaha/zlsgo/znet"
+	"github.com/sohaha/zlsgo/ztype"
 	"gorm.io/gorm"
 
 	"github.com/sohaha/zlsgo/zvalid"
@@ -103,7 +107,7 @@ func (u *AuthUser) UserExist() (bool, error) {
 	if u.Email != "" {
 		where.Email = u.Email
 	}
-	return Exist(context.Background(), db.Where(where).Model(&where))
+	return Exist(context.Background(), db.Where("username = ?", where.Username).Or("email = ?", where.Email).Model(&where))
 }
 
 func (u *AuthUser) TokenToInfo(t *AuthUserToken) {
@@ -134,4 +138,80 @@ func (u *AuthUser) Login(ip string, ua string) (string, error) {
 		return "", errors.New("创建 Token 失败")
 	}
 	return t.Token, nil
+}
+
+func (u *AuthUser) GetUser() {
+	u.Status = 1
+	db.Where(u).Find(&u)
+}
+
+func (u *AuthUser) EmailExist(email string) (bool, error) {
+	return Exist(context.Background(), db.Where("email = ? and id != ?", email, u.ID).Model(&AuthUser{}))
+}
+
+func (u *AuthUser) Update(c *znet.Context, postData manageBusiness.PutUpdateSt, currentUserId uint, isAdmin int, isMe bool) error {
+	editUser := &AuthUser{ID: currentUserId}
+	(editUser).GetUser()
+
+	valid := c.ValidRule()
+	err := c.BindValid(&postData, map[string]zvalid.Engine{
+		"remark": valid.MaxLength(200, "用户简介最多200字符"),
+		"avatar": valid.MaxLength(250, "头像地址不能超过250字符"),
+		"status": valid.EnumInt([]int{1, 2}, "用户状态值错误"),
+		"password": valid.MinLength(3, "密码最少3字符").MaxLength(50, "密码最多50字符").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			if rawValue != postData.Password2 {
+				newErr = errors.New("两次密码不一致")
+			}
+			newValue = rawValue
+			return
+		}).EncryptPassword(),
+		"email": valid.IsMail("Email地址错误").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			if has, _ := editUser.EmailExist(postData.Email); has {
+				return rawValue, errors.New("Email已被使用")
+			}
+			newValue = rawValue
+			return
+		}),
+	})
+	if err != nil {
+		return err
+	}
+
+	idStr := ztype.ToString(currentUserId)
+	md5Id := fmt.Sprintf("%x", md5.Sum([]byte(idStr)))
+	avatarFilename := "user_" + md5Id + ".png"
+
+	updateUser := &AuthUser{
+		Status:   postData.Status,
+		Remark:   postData.Remark,
+		Email:    postData.Email,
+		Nickname: postData.Nickname,
+	}
+
+	// queryFiled := []string{"status", "remark", "email", "nickname"}
+	updateUser.Avatar, _ = manageBusiness.MvAvatar(postData.Avatar, avatarFilename)
+
+	if isAdmin == 1 && postData.Password != "" {
+		updateUser.Password = postData.Password
+	}
+
+	if isAdmin == 1 && !isMe {
+		updateUser.GroupID = postData.GroupId
+	}
+
+	fmt.Println(555)
+	fmt.Printf("%+v\n", postData)
+	fmt.Println(666)
+	fmt.Printf("%+v\n", updateUser)
+
+	uRes := db.Model(&AuthUser{}).Select("status", "remark", "email", "nickname").Where("id = ?", editUser.ID).Updates(updateUser)
+	fmt.Println(999)
+	fmt.Println(uRes.RowsAffected)
+	fmt.Println(uRes.Error)
+
+	return nil
+}
+
+func (u *AuthUser) Aaa() {
+
 }

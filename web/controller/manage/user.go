@@ -3,6 +3,7 @@ package manage
 import (
 	"app/logic"
 	"app/web"
+	"app/web/business/manageBusiness"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zvalid"
 
@@ -67,7 +68,46 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 }
 
 func (*Basic) PutUpdate(c *znet.Context) {
+	u, ok := c.Value("user")
+	if !ok {
+		web.ApiJSON(c, 212, "请登录", nil)
+	}
 
+	var postData manageBusiness.PutUpdateSt
+	if err := c.Bind(&postData); err != nil {
+		web.ApiJSON(c, 201, err.Error(), nil)
+		return
+	}
+
+	uid := u.(*model.AuthUser).ID
+	currentUserId := uid
+	if postData.Id > 0 {
+		currentUserId = postData.Id
+	}
+
+	isAdmin := manageBusiness.IsAdmin(uid)
+	userIsAdmin := manageBusiness.IsAdmin(currentUserId)
+	isMe := currentUserId == uid
+
+	if isMe && 1 != postData.Status {
+		web.ApiJSON(c, 201, "不能禁止自己", nil)
+		return
+	}
+
+	if (currentUserId != uid) && (userIsAdmin == 1) && (postData.Status != 0) {
+		web.ApiJSON(c, 201, "不能更新该账户状态", nil)
+		return
+	}
+
+	// ip := c.GetClientIP()
+	// ua := c.GetHeader("User-Agent")
+
+	if err := u.(*model.AuthUser).Update(c, postData, currentUserId, isAdmin, isMe); err != nil {
+		web.ApiJSON(c, 201, err.Error(), nil)
+		return
+	}
+
+	web.ApiJSON(c, 200, "处理成功", map[string]int{"result": 1})
 }
 
 func (*Basic) PutEditPassword(c *znet.Context) {
