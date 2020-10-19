@@ -36,7 +36,7 @@ type (
 
 // All 获取全部记录
 func (g AuthUserGroup) All(groups *[]AuthUserGroup) *gorm.DB {
-	return db.Where(&AuthUserGroup{Status: g.Status}).Find(&groups)
+	return db.Where(&AuthUserGroup{Status: g.Status}).Order("id desc").Find(&groups)
 }
 
 var ruleCache = zcache.New("ruleCache")

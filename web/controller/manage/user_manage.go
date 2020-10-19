@@ -1,16 +1,33 @@
 package manage
 
 import (
+	"app/web"
+	"app/web/business/manageBusiness"
 	"errors"
-	"strconv"
-
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zvalid"
+	"strconv"
 
 	"app/model"
 )
 
 type UserManage struct {
+}
+
+// GetUserLists 获取用户列表
+func (*UserManage) GetUserLists(c *znet.Context) {
+	pagesize, _ := strconv.Atoi(c.DefaultFormOrQuery("pagesize", "10"))
+	page, _ := strconv.Atoi(c.DefaultFormOrQuery("page", "1"))
+	p := model.Page{
+		Curpage:  uint(page),
+		Pagesize: uint(pagesize),
+	}
+	users := (&model.AuthUser{}).Lists(&p)
+
+	c.ApiJSON(200, "用户列表", map[string]interface{}{
+		"items": users,
+		"page":  p,
+	})
 }
 
 // PostUser 创建用户
@@ -51,22 +68,48 @@ func (*UserManage) PostUser(c *znet.Context) {
 }
 
 // DeleteUser 删除用户
+// php上传参格式 x-www-form-urlencoded
+// go上传参格式 form-data
 func (*UserManage) DeleteUser(c *znet.Context) {
+	u, ok := c.Value("user")
+	if !ok {
+		web.ApiJSON(c, 212, "请登录", nil)
+	}
 
+	id, err := c.Valid(zvalid.New(), "id", "id").Required("id不能为空").Int()
+	if err != nil || id == 0 {
+		c.ApiJSON(200, "删除用户", 0)
+		return
+	}
+
+	switch true {
+	case uint(id) == u.(*model.AuthUser).ID:
+		err = errors.New("不可以删除自己")
+		break
+	case manageBusiness.IsAdmin(uint(id)) == 1:
+		err = errors.New("请移除该用户的超级管理员身份")
+		break
+	}
+
+	if err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	if err := (&model.AuthUser{ID: uint(id)}).Delete(); err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	c.ApiJSON(200, "删除用户", 1)
+	return
 }
 
-// GetUserLists 获取用户列表
-func (*UserManage) GetUserLists(c *znet.Context) {
-	pagesize, _ := strconv.Atoi(c.DefaultFormOrQuery("pagesize", "10"))
-	page, _ := strconv.Atoi(c.DefaultFormOrQuery("page", "1"))
-	p := model.Page{
-		Curpage:  uint(page),
-		Pagesize: uint(pagesize),
-	}
-	users := (&model.AuthUser{}).Lists(&p)
+// GetGroups 获取角色列表
+func (*UserManage) GetGroups(c *znet.Context) {
+	var res []model.AuthUserGroup
+	(&model.AuthUserGroup{}).All(&res)
 
-	c.ApiJSON(200, "用户列表", map[string]interface{}{
-		"items": users,
-		"page":  p,
-	})
+	c.ApiJSON(200, "角色列表", res)
+	return
 }

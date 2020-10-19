@@ -240,3 +240,17 @@ func (u *AuthUser) EditPassword(c *znet.Context, postData manageBusiness.PutEdit
 
 	return nil
 }
+
+func (u *AuthUser) Delete() error {
+	var count int64
+	if db.Model(&AuthUser{}).Where("id > ?", 0).Count(&count); count <= 1 {
+		return errors.New("不予许删除唯一用户")
+	}
+
+	res := db.Delete(&AuthUser{}, u.ID)
+	if res.RowsAffected < 1 {
+		return errors.New("服务繁忙,请重试.")
+	}
+
+	return nil
+}
