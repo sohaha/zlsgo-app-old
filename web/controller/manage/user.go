@@ -136,7 +136,7 @@ func (*Basic) PutEditPassword(c *znet.Context) {
 		web.ApiJSON(c, 201, err.Error(), nil)
 		return
 	}
-	
+
 	userid := u.(*model.AuthUser).ID
 	upUid := postData.UserID
 	if upUid == 0 {
@@ -158,7 +158,24 @@ func (*Basic) PutEditPassword(c *znet.Context) {
 }
 
 func (*Basic) PostUploadAvatar(c *znet.Context) {
+	// *multipart.FileHeader
+	file, _ := c.FormFile("file")
+	if file == nil {
+		web.ApiJSON(c, 211, "请选择图片", nil)
+		return
+	}
 
+	rePath, host, err := manageBusiness.UploadAvatar(file, c.Host())
+	if err != nil {
+		web.ApiJSON(c, 211, err.Error(), nil)
+		return
+	}
+
+	web.ApiJSON(c, 200, "上传成功", map[string]interface{}{
+		"path": rePath,
+		"host": host,
+	})
+	return
 }
 
 func (*Basic) PostClearToken(c *znet.Context) {

@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zstatic"
 
 	"app/global"
@@ -26,6 +27,8 @@ func (*StController) RegManage(r *znet.Engine) {
 		c.Redirect(prefix + "/")
 	})
 	r.GET(prefix+"/{file:.*}", fileserver, g)
+
+	r.Static("/static/", zfile.RealPath("./resource/static"))
 
 	r.Group("/ZlsManage/", func(r *znet.Engine) {
 		corsHandler := cors.New(&cors.Config{
