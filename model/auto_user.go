@@ -149,7 +149,7 @@ func (u *AuthUser) EmailExist(email string) (bool, error) {
 	return Exist(context.Background(), db.Where("email = ? and id != ?", email, u.ID).Model(&AuthUser{}))
 }
 
-func (u *AuthUser) Update(c *znet.Context, postData manageBusiness.PutUpdateSt, currentUserId uint, isAdmin int, isMe bool) error {
+func (u *AuthUser) Update(c *znet.Context, postData manageBusiness.PutUpdateSt, currentUserId uint, isAdmin int, isMe bool) (int64, error) {
 	editUser := &AuthUser{ID: currentUserId}
 	(editUser).GetUser()
 
@@ -174,7 +174,7 @@ func (u *AuthUser) Update(c *znet.Context, postData manageBusiness.PutUpdateSt, 
 		}),
 	})
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	idStr := ztype.ToString(currentUserId)
@@ -186,30 +186,33 @@ func (u *AuthUser) Update(c *znet.Context, postData manageBusiness.PutUpdateSt, 
 		Remark:   postData.Remark,
 		Email:    postData.Email,
 		Nickname: postData.Nickname,
+
+		Password: postData.Password,
+		GroupID:  postData.GroupID,
 	}
 
-	// queryFiled := []string{"status", "remark", "email", "nickname"}
 	updateUser.Avatar, _ = manageBusiness.MvAvatar(postData.Avatar, avatarFilename)
+	queryFiled := []string{"update_time", "status", "avatar", "remark", "email", "nickname"}
 
 	if isAdmin == 1 && postData.Password != "" {
-		updateUser.Password = postData.Password
+		queryFiled = append(queryFiled, "password")
 	}
 
 	if isAdmin == 1 && !isMe {
-		updateUser.GroupID = postData.GroupId
+		queryFiled = append(queryFiled, "group_id")
 	}
 
-	fmt.Println(555)
-	fmt.Printf("%+v\n", postData)
-	fmt.Println(666)
-	fmt.Printf("%+v\n", updateUser)
+	uRes := db.Model(&AuthUser{}).Select(queryFiled).Where("id = ?", editUser.ID).Updates(updateUser)
+	if uRes.RowsAffected < 1 {
+		return 0, errors.New("服务繁忙,请重试.")
+	}
 
-	uRes := db.Model(&AuthUser{}).Select("status", "remark", "email", "nickname").Where("id = ?", editUser.ID).Updates(updateUser)
-	fmt.Println(999)
-	fmt.Println(uRes.RowsAffected)
-	fmt.Println(uRes.Error)
+	res, err := (&AuthUserLogs{Userid: editUser.ID}).UpdatePasswordTip(c)
+	if err != nil {
+		return 0, err
+	}
 
-	return nil
+	return res, nil
 }
 
 func (u *AuthUser) Aaa() {

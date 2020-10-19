@@ -9,14 +9,14 @@ import (
 )
 
 type PutUpdateSt struct {
-	Id        uint    `json:"id"`
-	Status    uint8   `json:"status"`
+	Id        uint   `json:"id"`
+	Status    uint8  `json:"status"`
 	Password  string `json:"password"`
 	Password2 string `json:"password2"`
 	Avatar    string `json:"avatar"`
 	Remark    string `json:"remark"`
 	Email     string `json:"email"`
-	GroupId   uint   `json:"group_id"`
+	GroupID   uint   `json:"group_id"`
 	Nickname  string `json:"nickname"`
 }
 

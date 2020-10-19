@@ -99,10 +99,8 @@ func (*Basic) PutUpdate(c *znet.Context) {
 		return
 	}
 
-	// ip := c.GetClientIP()
-	// ua := c.GetHeader("User-Agent")
-
-	if err := u.(*model.AuthUser).Update(c, postData, currentUserId, isAdmin, isMe); err != nil {
+	_, err := u.(*model.AuthUser).Update(c, postData, currentUserId, isAdmin, isMe)
+	if err != nil {
 		web.ApiJSON(c, 201, err.Error(), nil)
 		return
 	}
