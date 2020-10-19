@@ -29,31 +29,16 @@ type AuthUserLogs struct {
 	DeletedAt gorm.DeletedAt `gorm:"type:datetime(0);index;" json:"-"`
 }
 
-func (c *AuthUserLogs) UpdatePasswordTip(ctx *znet.Context) (int64, error) {
+func (c *AuthUserLogs) UpdatePasswordTip(ctx *znet.Context) error {
 	// 非自己修改了用户密码之后需要记录日志 修改密码之后要重置用户token
-	fmt.Println(11111111111)
 	user, _ := ctx.Value("user")
-
-	/*var (
-		tip    string
-		level  int
-		status int
-	)*/
 	c.OperateID = user.(*AuthUser).ID
 
 	if c.Userid == user.(*AuthUser).ID {
-		/*tip = "修改密码成功"
-		level = LOG_TYPE_NORMAL
-		status = LOG_STATUS_READ*/
-
 		c.Content = "修改密码成功"
 		c.Type = LOG_TYPE_NORMAL
 		c.Status = LOG_STATUS_READ
 	} else {
-		/*tip = fmt.Sprintf("您的密码被[%v]修改!", user.(*AuthUser).Username)
-		level = LOG_TYPE_WARN
-		status = LOG_TYPE_NORMAL*/
-
 		c.Content = fmt.Sprintf("您的密码被[%v]修改!", user.(*AuthUser).Username)
 		c.Type = LOG_TYPE_WARN
 		c.Status = LOG_TYPE_NORMAL
@@ -62,12 +47,10 @@ func (c *AuthUserLogs) UpdatePasswordTip(ctx *znet.Context) (int64, error) {
 	c.title(ctx)
 	res := db.Select([]string{}).Create(&c)
 	if res.RowsAffected < 1 {
-		return 0, errors.New("服务繁忙,请重试.")
+		return errors.New("服务繁忙,请重试.")
 	}
 
-	fmt.Println(user.(*AuthUser))
-
-	return res.RowsAffected, nil
+	return nil
 }
 
 func (c *AuthUserLogs) title(ctx *znet.Context) {

@@ -159,6 +159,10 @@ func (u *AuthUser) Update(c *znet.Context, postData manageBusiness.PutUpdateSt, 
 		"avatar": valid.MaxLength(250, "头像地址不能超过250字符"),
 		"status": valid.EnumInt([]int{1, 2}, "用户状态值错误"),
 		"password": valid.MinLength(3, "密码最少3字符").MaxLength(50, "密码最多50字符").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			if err != nil {
+				newErr = err
+				return
+			}
 			if rawValue != postData.Password2 {
 				newErr = errors.New("两次密码不一致")
 			}
@@ -207,14 +211,32 @@ func (u *AuthUser) Update(c *znet.Context, postData manageBusiness.PutUpdateSt, 
 		return 0, errors.New("服务繁忙,请重试.")
 	}
 
-	res, err := (&AuthUserLogs{Userid: editUser.ID}).UpdatePasswordTip(c)
-	if err != nil {
+	if err = (&AuthUserLogs{Userid: editUser.ID}).UpdatePasswordTip(c); err != nil {
 		return 0, err
 	}
 
-	return res, nil
+	return uRes.RowsAffected, nil
 }
 
-func (u *AuthUser) Aaa() {
+func (u *AuthUser) EditPassword(c *znet.Context, postData manageBusiness.PutEditPasswordSt) error {
+	editUser := &AuthUser{ID: u.ID}
+	(editUser).GetUser()
+	if editUser.Email == "" {
+		return errors.New("用户不存在")
+	}
 
+	if err := zvalid.Text(postData.OldPass, "原密码").CheckPassword(editUser.Password, "原密码错误").Error(); err != nil {
+		return err
+	}
+
+	uRes := db.Model(&AuthUser{}).Select("password").Where("id = ?", editUser.ID).Updates(&AuthUser{Password: postData.Pass})
+	if uRes.RowsAffected < 1 {
+		return errors.New("服务繁忙,请重试.")
+	}
+
+	if err := (&AuthUserLogs{Userid: editUser.ID}).UpdatePasswordTip(c); err != nil {
+		return err
+	}
+
+	return nil
 }

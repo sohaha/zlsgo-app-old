@@ -20,6 +20,13 @@ type PutUpdateSt struct {
 	Nickname  string `json:"nickname"`
 }
 
+type PutEditPasswordSt struct {
+	OldPass string `json:"oldPass"`
+	Pass    string `json:"pass"`
+	Pass2   string `json:"pass2"`
+	UserID  uint   `json:"userid"`
+}
+
 func IsAdmin(userid uint) int {
 	cfg := gconf.New("conf.yml")
 	_ = cfg.Read()

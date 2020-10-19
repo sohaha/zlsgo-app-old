@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -49,4 +50,13 @@ func (t *AuthUserToken) Last() (has bool) {
 func (t *AuthUserToken) UpdateStatus() {
 	t.Status = 0
 	db.Where(&t).Select("status").Updates(t)
+}
+
+func (t *AuthUserToken) ClearAllToken() error {
+	uRes := db.Model(&AuthUserToken{}).Select("status").Where("status = ? and userid = ?", 1, t.Userid).Updates(&AuthUserToken{Status: 2})
+	if uRes.RowsAffected < 1 {
+		return errors.New("服务繁忙,请重试.")
+	}
+
+	return nil
 }

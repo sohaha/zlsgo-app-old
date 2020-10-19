@@ -4,6 +4,7 @@ import (
 	"app/logic"
 	"app/web"
 	"app/web/business/manageBusiness"
+	"errors"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zvalid"
 
@@ -109,7 +110,51 @@ func (*Basic) PutUpdate(c *znet.Context) {
 }
 
 func (*Basic) PutEditPassword(c *znet.Context) {
+	u, ok := c.Value("user")
+	if !ok {
+		web.ApiJSON(c, 212, "请登录", nil)
+	}
 
+	var postData manageBusiness.PutEditPasswordSt
+	valid := c.ValidRule()
+	err := c.BindValid(&postData, map[string]zvalid.Engine{
+		"oldPass": valid.Required("请输入旧密码"),
+		"pass": valid.Required("请输入新密码").MinLength(3, "密码最少3字符").MaxLength(50, "密码最多50字符").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			if err != nil {
+				newErr = err
+				return
+			}
+			if rawValue != c.DefaultPostForm("pass2", "") {
+				newErr = errors.New("两次密码不一致")
+			}
+			newValue = rawValue
+			return
+		}).EncryptPassword(),
+	})
+
+	if err != nil {
+		web.ApiJSON(c, 201, err.Error(), nil)
+		return
+	}
+	
+	userid := u.(*model.AuthUser).ID
+	upUid := postData.UserID
+	if upUid == 0 {
+		upUid = userid
+	}
+	if userid == upUid {
+		if err := (&model.AuthUser{ID: upUid}).EditPassword(c, postData); err != nil {
+			web.ApiJSON(c, 201, err.Error(), nil)
+			return
+		}
+		_ = (&model.AuthUserToken{Userid: upUid}).ClearAllToken()
+
+		web.ApiJSON(c, 200, "修改密码成功", nil)
+		return
+	} else {
+		web.ApiJSON(c, 201, "不能修改其他人密码", nil)
+		return
+	}
 }
 
 func (*Basic) PostUploadAvatar(c *znet.Context) {
