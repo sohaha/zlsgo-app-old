@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 	"time"
@@ -141,4 +142,33 @@ func (g AuthUserGroup) GetMarks() []string {
 
 func (g *AuthUserGroup) GroupInfo() {
 	_ = db.First(&g, g.ID)
+}
+
+func (g *AuthUserGroup) Exist() error {
+	var res *gorm.DB
+	if g.ID == 0 {
+		res = db.Where("name = ?", g.Name).Find(&AuthUserGroup{})
+	} else {
+		res = db.Where("name = ? and id != ?", g.Name, g.ID).Find(&AuthUserGroup{})
+	}
+	if res.RowsAffected == 0 {
+		return nil
+	}
+
+	return errors.New("角色名称已存在")
+}
+
+func (g *AuthUserGroup) Save() error {
+	if g.ID == 0 {
+		if res := db.Create(&g); res.RowsAffected == 0 {
+			return errors.New("保存失败")
+		}
+	} else {
+		res := db.Model(&g).Select([]string{"name", "remark", "update_time"}).Updates(g)
+		if res.RowsAffected == 0 {
+			return errors.New("保存失败")
+		}
+	}
+
+	return nil
 }

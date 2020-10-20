@@ -132,3 +132,94 @@ func (*UserManage) GetGroupInfo(c *znet.Context) {
 		"user_count":   integration.UserCount,
 	})
 }
+
+// 创建角色
+func (*UserManage) PostGroups(c *znet.Context) {
+	var postParam struct {
+		Name   string `json:"name"`
+		Remark string `json:"remark"`
+	}
+
+	valid := c.ValidRule()
+	err := c.BindValid(&postParam, map[string]zvalid.Engine{
+		"name": valid.Required("角色名称不能为空").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			if err != nil {
+				newErr = err
+				return
+			}
+			if err := (&model.AuthUserGroup{Name: rawValue}).Exist(); err != nil {
+				newErr = err
+				return
+			}
+
+			newValue = rawValue
+			return
+		}),
+		"remark": valid.Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			newValue = rawValue
+			return
+		}),
+	})
+
+	if err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	res := &model.AuthUserGroup{Name: postParam.Name, Remark: postParam.Remark}
+	if err := res.Save(); err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	c.ApiJSON(200, "创建新角色", res)
+	return
+}
+
+// 更新角色
+func (*UserManage) PutGroups(c *znet.Context) {
+	var postParam struct {
+		ID     uint   `json:"id"`
+		Name   string `json:"name"`
+		Remark string `json:"remark"`
+	}
+
+	valid := c.ValidRule()
+	err := c.BindValid(&postParam, map[string]zvalid.Engine{
+		"id": valid.Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			newValue = rawValue
+			return
+		}),
+		"name": valid.Required("角色名称不能为空").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			if err != nil {
+				newErr = err
+				return
+			}
+			if err := (&model.AuthUserGroup{Name: rawValue, ID: postParam.ID}).Exist(); err != nil {
+				newErr = err
+				return
+			}
+
+			newValue = rawValue
+			return
+		}),
+		"remark": valid.Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			newValue = rawValue
+			return
+		}),
+	})
+
+	if err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	res := &model.AuthUserGroup{Name: postParam.Name, Remark: postParam.Remark, ID: postParam.ID}
+	if err := res.Save(); err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	c.ApiJSON(200, "更新角色", res)
+	return
+}
