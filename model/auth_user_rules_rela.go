@@ -43,3 +43,31 @@ func (*migrate) CreateAuthUserRulesRela() {
 		}
 	})
 }
+
+type GroupIntegration struct {
+	RuleIds    []uint `json:"rule_ids"`
+	BanRuleIds []uint `json:"ban_rule_ids"`
+	UserCount  int64  `json:"user_count"`
+}
+
+// 整合角色相关数据
+func (rr *AuthUserRulesRela) Integration() *GroupIntegration {
+	lists := []AuthUserRulesRela{}
+	db.Where("group_id = ?", rr.GroupID).Find(&lists)
+
+	groupIntegration := &GroupIntegration{RuleIds: []uint{}, BanRuleIds: []uint{}, UserCount: 0}
+	for _, v := range lists {
+		switch true {
+		case v.Status == 1:
+			groupIntegration.RuleIds = append(groupIntegration.RuleIds, v.RuleID)
+			break
+		case v.Status == 2:
+			groupIntegration.BanRuleIds = append(groupIntegration.BanRuleIds, v.RuleID)
+			break
+		}
+	}
+
+	db.Model(&AuthUser{}).Where("group_id = ?", rr.GroupID).Count(&groupIntegration.UserCount)
+
+	return groupIntegration
+}

@@ -113,3 +113,22 @@ func (*UserManage) GetGroups(c *znet.Context) {
 	c.ApiJSON(200, "角色列表", res)
 	return
 }
+
+// GetGroupInfo 获取角色详情
+func (*UserManage) GetGroupInfo(c *znet.Context) {
+	id, err := c.Valid(zvalid.New(), "id", "id").Required("id不能为空").Int()
+	if err != nil || id == 0 {
+		c.ApiJSON(211, "参数错误", nil)
+		return
+	}
+
+	res := &model.AuthUserGroup{ID: uint(id)}
+	res.GroupInfo()
+	integration := (&model.AuthUserRulesRela{GroupID: res.ID}).Integration()
+
+	web.ApiJSON(c, 200, "角色详情", res, map[string]interface{}{
+		"rule_ids":     integration.RuleIds,
+		"ban_rule_ids": integration.BanRuleIds,
+		"user_count":   integration.UserCount,
+	})
+}

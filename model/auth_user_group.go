@@ -136,5 +136,9 @@ func (g AuthUserGroup) GetMarks() []string {
 		}
 	}
 
-	return res;
+	return res
+}
+
+func (g *AuthUserGroup) GroupInfo() {
+	_ = db.First(&g, g.ID)
 }
