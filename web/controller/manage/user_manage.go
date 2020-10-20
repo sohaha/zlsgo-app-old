@@ -223,3 +223,171 @@ func (*UserManage) PutGroups(c *znet.Context) {
 	c.ApiJSON(200, "更新角色", res)
 	return
 }
+
+// 删除角色
+func (*UserManage) DeleteGroups(c *znet.Context) {
+	c.ApiJSON(211, "暂不支持", nil)
+	return
+}
+
+// 获取权限规则列表
+func (*UserManage) GetRules(c *znet.Context) {
+	key, _ := c.Valid(c.ValidRule(), "key", "key").String()
+	res := (&model.AuthUserRules{Title: key, Mark: key}).Lists()
+
+	resInterface := []map[string]interface{}{}
+	for _, v := range res {
+		resInterface = append(resInterface, map[string]interface{}{
+			"id":     v.ID,
+			"title":  v.Title,
+			"mark":   v.Mark,
+			"status": v.Status,
+			"type":   v.Type,
+			"remark": v.Remark,
+		})
+	}
+
+	c.ApiJSON(200, "权限规则列表", resInterface)
+	return
+}
+
+// 添加权限规则
+func (*UserManage) PostRules(c *znet.Context) {
+	var postParam struct {
+		Title  string `json:"title"`
+		Mark   string `json:"mark"`
+		Type   uint8  `json:"type"`
+		Remark string `json:"remark"`
+	}
+
+	valid := c.ValidRule()
+	err := c.BindValid(&postParam, map[string]zvalid.Engine{
+		"title": valid.Required("名称不能为空").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			if err != nil {
+				newErr = err
+				return
+			}
+			newValue = rawValue
+			return
+		}),
+		"mark": valid.Required("标识不能为空").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			if err != nil {
+				newErr = err
+				return
+			}
+
+			newValue = rawValue
+			if err := (&model.AuthUserRules{Mark: newValue}).MarkExist(); err != nil {
+				newErr = err
+				return
+			}
+
+			return
+		}),
+		"type": valid.Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			newValue = rawValue
+			return
+		}),
+		"remark": valid.Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			newValue = rawValue
+			return
+		}),
+	})
+
+	if err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	res := &model.AuthUserRules{Title: postParam.Title, Mark: postParam.Mark, Type: postParam.Type, Remark: postParam.Remark}
+	if err := (res).Insert(); err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	c.ApiJSON(200, "权限规则列表", map[string]interface{}{"id": res.ID})
+	return
+}
+
+// 编辑权限规则
+func (*UserManage) PutRules(c *znet.Context) {
+	var postParam struct {
+		ID     uint   `json:"id"`
+		Title  string `json:"title"`
+		Mark   string `json:"mark"`
+		Remark string `json:"remark"`
+	}
+
+	valid := c.ValidRule()
+	err := c.BindValid(&postParam, map[string]zvalid.Engine{
+		"id": valid.Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			newValue = rawValue
+			return
+		}),
+		"title": valid.Required("名称不能为空").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			if err != nil {
+				newErr = err
+				return
+			}
+			newValue = rawValue
+			return
+		}),
+		"mark": valid.Required("标识不能为空").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			if err != nil {
+				newErr = err
+				return
+			}
+
+			newValue = rawValue
+			if err := (&model.AuthUserRules{Mark: newValue, ID: postParam.ID}).MarkExist(); err != nil {
+				newErr = err
+				return
+			}
+
+			return
+		}),
+		"remark": valid.Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			newValue = rawValue
+			return
+		}),
+	})
+
+	if err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	res := &model.AuthUserRules{ID: postParam.ID, Title: postParam.Title, Mark: postParam.Mark, Remark: postParam.Remark}
+	if err := res.Update(); err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	c.ApiJSON(200, "权限规则列表", map[string]interface{}{
+		"mark":   res.Mark,
+		"remark": res.Remark,
+		"res":    1.,
+		"title":  res.Title,
+	})
+	return
+}
+
+// 删除权限规则
+func (*UserManage) DeleteRules(c *znet.Context) {
+	id, err := c.Valid(c.ValidRule().Required(), "id", "id").Int()
+	if err != nil {
+		c.ApiJSON(200, "删除权限规则", 0)
+		return
+	}
+
+	if err := (&model.AuthUserRules{ID: uint(id)}).Delete(); err != nil {
+		c.ApiJSON(200, "删除权限规则", 0)
+		return
+	}
+
+	c.ApiJSON(200, "删除权限规则", 1)
+	return
+}
+
+// 更新用户规则权限
+func (*UserManage) PutUpdateUserRuleStatus(c *znet.Context) {}

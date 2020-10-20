@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"gorm.io/gorm"
 )
 
@@ -54,4 +55,55 @@ func (*migrate) CreateAuthUserRules() {
 			return nil
 		}
 	})
+}
+
+func (r *AuthUserRules) Lists() []AuthUserRules {
+	var res []AuthUserRules
+
+	tx := db.Select([]string{"mark", "id", "status", "title", "type", "remark"}).Order("sort desc, id desc")
+	if r.Title != "" {
+		tx.Where("title like ? or mark like ?", "%"+r.Title+"%", "%"+r.Mark+"%")
+	}
+	tx.Find(&res)
+
+	return res
+}
+
+func (r *AuthUserRules) MarkExist() error {
+	var res *gorm.DB
+	if r.ID == 0 {
+		res = db.Where("mark = ?", r.Mark).Find(&AuthUserRules{})
+	} else {
+		res = db.Where("mark = ? and id != ?", r.Mark, r.ID).Find(&AuthUserRules{})
+	}
+	if res.RowsAffected == 0 {
+		return nil
+	}
+
+	return errors.New("标识规则已存在")
+}
+
+func (r *AuthUserRules) Insert() error {
+	if res := db.Create(&r); res.RowsAffected == 0 {
+		return errors.New("服务繁忙,请重试.")
+	}
+
+	return nil
+}
+
+func (r *AuthUserRules) Update() error {
+	res := db.Model(&r).Select([]string{"update_time", "title", "mark", "remark"}).Updates(r)
+	if res.RowsAffected == 0 {
+		return errors.New("服务繁忙,请重试.")
+	}
+
+	return nil
+}
+
+func (r *AuthUserRules) Delete() error {
+	if res := db.Delete(&r, r.ID); res.RowsAffected == 0 {
+		return errors.New("服务繁忙,请重试.")
+	}
+
+	return nil
 }
