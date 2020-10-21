@@ -1,7 +1,15 @@
 package model
 
 import (
+	"context"
+	"errors"
 	"gorm.io/gorm"
+)
+
+const (
+	RELA_STATUS_NORMAL = 1
+	RELA_STATUS_BAN    = 2
+	RELA_STATUS_IGNORE = 3
 )
 
 // AuthUserRules 角色权限规则对应
@@ -70,4 +78,25 @@ func (rr *AuthUserRulesRela) Integration() *GroupIntegration {
 	db.Model(&AuthUser{}).Where("group_id = ?", rr.GroupID).Count(&groupIntegration.UserCount)
 
 	return groupIntegration
+}
+
+// 更新用户规则
+func (rr *AuthUserRulesRela) UpdateUserRuleStatus() (*AuthUserRulesRela, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	ctxDB := db.WithContext(ctx)
+	findRes := AuthUserRulesRela{}
+	ctxDB.Where("group_id = ? and rule_id = ?", rr.GroupID, rr.RuleID).First(&findRes)
+	if findRes.ID == 0 {
+		if res := db.Create(&rr); res.RowsAffected == 0 {
+			return &findRes, errors.New("更新失败")
+		}
+	} else {
+		rr.ID = findRes.ID
+		if res := db.Model(&rr).Select([]string{"update_time", "rule_id", "group_id", "status", "sort"}).Updates(rr); res.RowsAffected == 0 {
+			return &findRes, errors.New("更新失败")
+		}
+	}
+	cancel()
+
+	return &findRes, nil
 }

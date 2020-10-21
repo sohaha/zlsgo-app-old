@@ -390,4 +390,82 @@ func (*UserManage) DeleteRules(c *znet.Context) {
 }
 
 // 更新用户规则权限
-func (*UserManage) PutUpdateUserRuleStatus(c *znet.Context) {}
+func (*UserManage) PutUpdateUserRuleStatus(c *znet.Context) {
+	var postParam struct {
+		ID     uint   `json:"id"`
+		Gid    uint   `json:"gid"`
+		Status uint8  `json:"status"`
+		Sort   uint16 `json:"sort"`
+	}
+
+	valid := c.ValidRule()
+	err := c.BindValid(&postParam, map[string]zvalid.Engine{
+		"id": valid.Required("角色权限不能为空").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			if err != nil {
+				newErr = err
+				return
+			}
+			newValue = rawValue
+			return
+		}),
+		"status": valid.Required("状态不能为空").EnumInt([]int{model.RELA_STATUS_NORMAL, model.RELA_STATUS_BAN, model.RELA_STATUS_IGNORE}, "非正常状态码").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			if err != nil {
+				newErr = err
+				return
+			}
+			newValue = rawValue
+			return
+		}),
+		"sort": valid.MinInt(0, "排序范围为0-255").MaxInt(255, "排序范围为0-255").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			if err != nil {
+				newErr = err
+				return
+			}
+			newValue = rawValue
+			return
+		}),
+		"gid": valid.Required("用户组不能为空").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			if err != nil {
+				newErr = err
+				return
+			}
+			newValue = rawValue
+			return
+		}),
+	})
+
+	if err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	res := &model.AuthUserRulesRela{RuleID: postParam.ID, GroupID: postParam.Gid, Status: postParam.Status, Sort: postParam.Sort}
+	has, err := res.UpdateUserRuleStatus()
+	if err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	re := map[string]interface{}{}
+	if has.ID == 0 {
+		re = map[string]interface{}{
+			"group_id":    res.GroupID,
+			"rule_id":     res.RuleID,
+			"status":      res.Status,
+			"sort":        res.Sort,
+			"update_time": res.UpdatedAt,
+			"create_time": res.CreatedAt,
+		}
+	} else {
+		re = map[string]interface{}{
+			"status":      res.Status,
+			"sort":        res.Sort,
+			"update_time": res.UpdatedAt,
+		}
+	}
+
+	c.ApiJSON(200, "权限规则列表", []interface{}{
+		re,
+	})
+	return
+}
