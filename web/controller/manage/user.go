@@ -11,8 +11,10 @@ import (
 	"app/model"
 )
 
+// 后台-用户接口
 type Basic struct{}
 
+// PostGetToken 用户登录
 func (*Basic) PostGetToken(c *znet.Context) {
 	var user, token = model.AuthUser{}, ""
 
@@ -38,6 +40,7 @@ func (*Basic) PostGetToken(c *znet.Context) {
 	})
 }
 
+// GetUseriInfo 用户详情
 func (*Basic) GetUseriInfo(c *znet.Context) {
 	user := &model.AuthUser{}
 	if u, ok := c.Value("user"); ok {
@@ -68,10 +71,11 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 	})
 }
 
+// PutUpdate 更新用户资料
 func (*Basic) PutUpdate(c *znet.Context) {
-	u, ok := c.Value("user")
-	if !ok {
-		web.ApiJSON(c, 212, "请登录", nil)
+	user := &model.AuthUser{}
+	if u, ok := c.Value("user"); ok {
+		user = u.(*model.AuthUser)
 	}
 
 	var postData manageBusiness.PutUpdateSt
@@ -80,7 +84,7 @@ func (*Basic) PutUpdate(c *znet.Context) {
 		return
 	}
 
-	uid := u.(*model.AuthUser).ID
+	uid := user.ID
 	currentUserId := uid
 	if postData.Id > 0 {
 		currentUserId = postData.Id
@@ -100,7 +104,7 @@ func (*Basic) PutUpdate(c *znet.Context) {
 		return
 	}
 
-	_, err := u.(*model.AuthUser).Update(c, postData, currentUserId, isAdmin, isMe)
+	_, err := user.Update(c, postData, currentUserId, isAdmin, isMe)
 	if err != nil {
 		web.ApiJSON(c, 201, err.Error(), nil)
 		return
@@ -109,10 +113,11 @@ func (*Basic) PutUpdate(c *znet.Context) {
 	web.ApiJSON(c, 200, "处理成功", map[string]int{"result": 1})
 }
 
+// PutEditPassword 修改用户密码
 func (*Basic) PutEditPassword(c *znet.Context) {
-	u, ok := c.Value("user")
-	if !ok {
-		web.ApiJSON(c, 212, "请登录", nil)
+	user := &model.AuthUser{}
+	if u, ok := c.Value("user"); ok {
+		user = u.(*model.AuthUser)
 	}
 
 	var postData manageBusiness.PutEditPasswordSt
@@ -137,7 +142,7 @@ func (*Basic) PutEditPassword(c *znet.Context) {
 		return
 	}
 
-	userid := u.(*model.AuthUser).ID
+	userid := user.ID
 	upUid := postData.UserID
 	if upUid == 0 {
 		upUid = userid
@@ -157,6 +162,7 @@ func (*Basic) PutEditPassword(c *znet.Context) {
 	}
 }
 
+// PostUploadAvatar 上传用户头像
 func (*Basic) PostUploadAvatar(c *znet.Context) {
 	// *multipart.FileHeader
 	file, _ := c.FormFile("file")
@@ -178,6 +184,7 @@ func (*Basic) PostUploadAvatar(c *znet.Context) {
 	return
 }
 
+// PostClearToken 清除用户Token
 func (*Basic) PostClearToken(c *znet.Context) {
 	t, ok := c.Value("token")
 	if ok {

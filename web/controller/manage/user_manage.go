@@ -11,6 +11,7 @@ import (
 	"app/model"
 )
 
+// 后台-用户管理接口
 type UserManage struct {
 }
 
@@ -32,6 +33,10 @@ func (*UserManage) GetUserLists(c *znet.Context) {
 
 // PostUser 创建用户
 func (*UserManage) PostUser(c *znet.Context) {
+	if !VerifPermissionMark(c, "system") {
+		return
+	}
+
 	var user struct {
 		model.AuthUser
 		Password string `json:"password"`
@@ -71,9 +76,13 @@ func (*UserManage) PostUser(c *znet.Context) {
 // php上传参格式 x-www-form-urlencoded
 // go上传参格式 form-data
 func (*UserManage) DeleteUser(c *znet.Context) {
-	u, ok := c.Value("user")
-	if !ok {
-		web.ApiJSON(c, 212, "请登录", nil)
+	if !VerifPermissionMark(c, "system") {
+		return
+	}
+
+	user := &model.AuthUser{}
+	if u, ok := c.Value("user"); ok {
+		user = u.(*model.AuthUser)
 	}
 
 	id, err := c.Valid(zvalid.New(), "id", "id").Required("id不能为空").Int()
@@ -83,7 +92,7 @@ func (*UserManage) DeleteUser(c *znet.Context) {
 	}
 
 	switch true {
-	case uint(id) == u.(*model.AuthUser).ID:
+	case uint(id) == user.ID:
 		err = errors.New("不可以删除自己")
 		break
 	case manageBusiness.IsAdmin(uint(id)) == 1:
@@ -107,6 +116,10 @@ func (*UserManage) DeleteUser(c *znet.Context) {
 
 // GetGroups 获取角色列表
 func (*UserManage) GetGroups(c *znet.Context) {
+	if !VerifPermissionMark(c, "system") {
+		return
+	}
+
 	var res []model.AuthUserGroup
 	(&model.AuthUserGroup{}).All(&res)
 
@@ -116,6 +129,10 @@ func (*UserManage) GetGroups(c *znet.Context) {
 
 // GetGroupInfo 获取角色详情
 func (*UserManage) GetGroupInfo(c *znet.Context) {
+	if !VerifPermissionMark(c, "system") {
+		return
+	}
+
 	id, err := c.Valid(zvalid.New(), "id", "id").Required("id不能为空").Int()
 	if err != nil || id == 0 {
 		c.ApiJSON(211, "参数错误", nil)
@@ -133,8 +150,12 @@ func (*UserManage) GetGroupInfo(c *znet.Context) {
 	})
 }
 
-// 创建角色
+// PostGroups 创建角色
 func (*UserManage) PostGroups(c *znet.Context) {
+	if !VerifPermissionMark(c, "system") {
+		return
+	}
+
 	var postParam struct {
 		Name   string `json:"name"`
 		Remark string `json:"remark"`
@@ -176,8 +197,12 @@ func (*UserManage) PostGroups(c *znet.Context) {
 	return
 }
 
-// 更新角色
+// PutGroups 更新角色
 func (*UserManage) PutGroups(c *znet.Context) {
+	if !VerifPermissionMark(c, "system") {
+		return
+	}
+
 	var postParam struct {
 		ID     uint   `json:"id"`
 		Name   string `json:"name"`
@@ -224,14 +249,22 @@ func (*UserManage) PutGroups(c *znet.Context) {
 	return
 }
 
-// 删除角色
+// DeleteGroups 删除角色
 func (*UserManage) DeleteGroups(c *znet.Context) {
+	if !VerifPermissionMark(c, "system") {
+		return
+	}
+
 	c.ApiJSON(211, "暂不支持", nil)
 	return
 }
 
-// 获取权限规则列表
+// GetRules 获取权限规则列表
 func (*UserManage) GetRules(c *znet.Context) {
+	if !VerifPermissionMark(c, "system") {
+		return
+	}
+
 	key, _ := c.Valid(c.ValidRule(), "key", "key").String()
 	res := (&model.AuthUserRules{Title: key, Mark: key}).Lists()
 
@@ -251,8 +284,12 @@ func (*UserManage) GetRules(c *znet.Context) {
 	return
 }
 
-// 添加权限规则
+// PostRules 添加权限规则
 func (*UserManage) PostRules(c *znet.Context) {
+	if !VerifPermissionMark(c, "system") {
+		return
+	}
+
 	var postParam struct {
 		Title  string `json:"title"`
 		Mark   string `json:"mark"`
@@ -309,8 +346,12 @@ func (*UserManage) PostRules(c *znet.Context) {
 	return
 }
 
-// 编辑权限规则
+// PutRules 编辑权限规则
 func (*UserManage) PutRules(c *znet.Context) {
+	if !VerifPermissionMark(c, "system") {
+		return
+	}
+
 	var postParam struct {
 		ID     uint   `json:"id"`
 		Title  string `json:"title"`
@@ -372,8 +413,12 @@ func (*UserManage) PutRules(c *znet.Context) {
 	return
 }
 
-// 删除权限规则
+// DeleteRules 删除权限规则
 func (*UserManage) DeleteRules(c *znet.Context) {
+	if !VerifPermissionMark(c, "system") {
+		return
+	}
+
 	id, err := c.Valid(c.ValidRule().Required(), "id", "id").Int()
 	if err != nil {
 		c.ApiJSON(200, "删除权限规则", 0)
@@ -389,8 +434,12 @@ func (*UserManage) DeleteRules(c *znet.Context) {
 	return
 }
 
-// 更新用户规则权限
+// PutUpdateUserRuleStatus 更新用户规则权限
 func (*UserManage) PutUpdateUserRuleStatus(c *znet.Context) {
+	if !VerifPermissionMark(c, "system") {
+		return
+	}
+
 	var postParam struct {
 		ID     uint   `json:"id"`
 		Gid    uint   `json:"gid"`

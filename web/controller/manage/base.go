@@ -52,7 +52,8 @@ func VerifPermissionMark(c *znet.Context, mark string, disable ...bool) (adopt b
 func Authority() func(c *znet.Context) {
 	ignoreRules := &model.RuleCollation{
 		AdoptRoute: map[string][]string{
-			"POST": {"/ZlsManage/UserApi/GetToken.go"},
+			"POST": {"/ZlsManage/UserApi/GetToken.go", "/ZlsManage/UserApi/ClearToken.go"},
+			"GET":  {"/ZlsManage/SystemApi/Logs.go", "/ZlsManage/SystemApi/UnreadMessageCount.go"},
 		},
 	}
 	return func(c *znet.Context) {

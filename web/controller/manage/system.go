@@ -15,10 +15,11 @@ import (
 	"time"
 )
 
+// 后台-系统接口
 type System struct {
 }
 
-// 查看用户日志
+// GetLogs 查看用户日志
 func (*System) GetLogs(c *znet.Context) {
 	pagesize, _ := strconv.Atoi(c.DefaultFormOrQuery("pagesize", "10"))
 	page, _ := strconv.Atoi(c.DefaultFormOrQuery("page", "1"))
@@ -41,7 +42,7 @@ func (*System) GetLogs(c *znet.Context) {
 	})
 }
 
-// 未读日志总数
+// GetUnreadMessageCount 未读日志总数
 func (*System) GetUnreadMessageCount(c *znet.Context) {
 	lastId, _ := strconv.Atoi(c.DefaultFormOrQuery("id", "0"))
 
@@ -52,7 +53,7 @@ func (*System) GetUnreadMessageCount(c *znet.Context) {
 	return
 }
 
-// 更新日志状态
+// PutMessageStatus 更新日志状态
 func (*System) PutMessageStatus(c *znet.Context) {
 	idsMap, _ := c.GetPostFormMap("ids")
 
@@ -70,8 +71,12 @@ func (*System) PutMessageStatus(c *znet.Context) {
 	return
 }
 
-// 系统日志
+// GetSystemLogs 系统日志
 func (*System) GetSystemLogs(c *znet.Context) {
+	if !VerifPermissionMark(c, "systems") {
+		return
+	}
+
 	var postData manageBusiness.GetSystemLogsSt
 	tempRule := c.ValidRule()
 	err := zvalid.Batch(
@@ -134,8 +139,12 @@ func (*System) GetSystemLogs(c *znet.Context) {
 	return
 }
 
-// 删除系统日志文件
+// DeleteSystemLogs 删除系统日志文件
 func (*System) DeleteSystemLogs(c *znet.Context) {
+	if !VerifPermissionMark(c, "systems") {
+		return
+	}
+
 	var PostData manageBusiness.DeleteSystemLogsSt
 
 	temRule := c.ValidRule().Required()
@@ -184,8 +193,12 @@ func (*System) DeleteSystemLogs(c *znet.Context) {
 	return
 }
 
-// 读取系统配置
+// GetSystemConfig 读取系统配置
 func (*System) GetSystemConfig(c *znet.Context) {
+	if !VerifPermissionMark(c, "systems") {
+		return
+	}
+
 	var paramPutSystemConfigSt manageBusiness.ParamPutSystemConfigSt
 	res, err := paramPutSystemConfigSt.GetConf()
 	if err != nil {
@@ -196,8 +209,12 @@ func (*System) GetSystemConfig(c *znet.Context) {
 	c.ApiJSON(200, "读取系统配置", res)
 }
 
-// 更新系统配置
+// PutSystemConfig 更新系统配置
 func (*System) PutSystemConfig(c *znet.Context) {
+	if !VerifPermissionMark(c, "systems") {
+		return
+	}
+
 	var paramPutSystemConfigSt manageBusiness.ParamPutSystemConfigSt
 	tempRule := c.ValidRule()
 	err := zvalid.Batch(
@@ -218,5 +235,9 @@ func (*System) PutSystemConfig(c *znet.Context) {
 	c.ApiJSON(200, "更新系统配置", true)
 }
 
-// 获取系统菜单列表
-func (*System) GetMenu(c *znet.Context) {}
+// GetMenu 获取系统菜单列表
+func (*System) GetMenu(c *znet.Context) {
+	if !VerifPermissionMark(c, "systems") {
+		return
+	}
+}
