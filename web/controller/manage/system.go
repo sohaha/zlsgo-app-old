@@ -5,11 +5,14 @@ import (
 	"app/web/business/manageBusiness"
 	"fmt"
 	"github.com/sohaha/zlsgo/zfile"
+	"github.com/sohaha/zlsgo/zlog"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zvalid"
 	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type System struct {
@@ -39,14 +42,37 @@ func (*System) GetLogs(c *znet.Context) {
 }
 
 // 未读日志总数
-func (*System) GetUnreadMessageCount(c *znet.Context) {}
+func (*System) GetUnreadMessageCount(c *znet.Context) {
+	lastId, _ := strconv.Atoi(c.DefaultFormOrQuery("id", "0"))
+
+	u, _ := c.Value("user")
+	userid := u.(*model.AuthUser).ID
+
+	c.ApiJSON(200, "未读日志", (&model.AuthUserLogs{Userid: userid, ID: uint(lastId)}).UnreadMessageCount())
+	return
+}
 
 // 更新日志状态
-func (*System) PutMessageStatus(c *znet.Context) {}
+func (*System) PutMessageStatus(c *znet.Context) {
+	idsMap, _ := c.GetPostFormMap("ids")
+
+	u, _ := c.Value("user")
+	uid := u.(*model.AuthUser).ID
+
+	ids := []int{}
+	for _, v := range idsMap {
+		i, _ := strconv.Atoi(v)
+		ids = append(ids, i)
+	}
+
+	count := (&model.AuthUserLogs{Userid: uid}).UpdateMessageStatus(ids)
+	c.ApiJSON(200, "日志标记已读", count)
+	return
+}
 
 // 系统日志
 func (*System) GetSystemLogs(c *znet.Context) {
-	var postData manageBusiness.ParamGetSystemLogsSt
+	var postData manageBusiness.GetSystemLogsSt
 	tempRule := c.ValidRule()
 	err := zvalid.Batch(
 		zvalid.BatchVar(&postData.Name, c.Valid(tempRule, "name", "文件名称")),
@@ -109,7 +135,54 @@ func (*System) GetSystemLogs(c *znet.Context) {
 }
 
 // 删除系统日志文件
-func (*System) DeleteSystemLogs(c *znet.Context) {}
+func (*System) DeleteSystemLogs(c *znet.Context) {
+	var PostData manageBusiness.DeleteSystemLogsSt
+
+	temRule := c.ValidRule().Required()
+	err := zvalid.Batch(
+		zvalid.BatchVar(&PostData.Name, c.Valid(temRule, "name", "文件名称")),
+		zvalid.BatchVar(&PostData.Type, c.Valid(temRule, "type", "文件夹名称")),
+	)
+
+	if err != nil {
+		zlog.Error("参数错误: ", PostData)
+		c.ApiJSON(200, "删除系统日志", false)
+		return
+	}
+
+	rmLogPath := zfile.RealPath("./" + PostData.Type + "/" + PostData.Name)
+	// 因为当天日志一直被占用 无法删除
+	// 又因为日志生成都是日期组成所以..
+	nowDate := time.Now().Format("2006-01-02")
+	zlog.Error("当前时间: ", nowDate)
+	if PostData.Name == nowDate {
+		zlog.Error("删除文件得时间和参数输入的时间相等,所以直接清空内容.")
+		f, _ := os.Create(rmLogPath)
+		f.Close()
+		c.ApiJSON(200, "删除系统日志", true)
+		return
+	}
+
+	_, err = os.Lstat(rmLogPath)
+	zlog.Error("文件是否存在: ", err)
+	if err == nil {
+		// f, _ := os.Open(rmLogPath)
+		// f.Close()
+		err = os.Remove(rmLogPath)
+		if err != nil {
+			zlog.Error("删除文件失败: ", err)
+			c.ApiJSON(200, "删除系统日志", false)
+			return
+		}
+
+		zlog.Error("删除文件成功")
+		c.ApiJSON(200, "删除系统日志", true)
+		return
+	}
+
+	c.ApiJSON(200, "删除系统日志", false)
+	return
+}
 
 // 读取系统配置
 func (*System) GetSystemConfig(c *znet.Context) {

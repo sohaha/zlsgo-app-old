@@ -9,11 +9,19 @@ import (
 	"os"
 )
 
-type ParamGetSystemLogsSt struct {
-	Name        string
-	Type        string
-	CurrentLine int
-}
+type (
+	GetSystemLogsSt struct {
+		Name        string
+		Type        string
+		CurrentLine int
+	}
+
+	DeleteSystemLogsSt struct {
+		Name        string
+		Type        string
+		CurrentLine int
+	}
+)
 
 // 返回log目录列表
 func GetTmpLogDir() []string {

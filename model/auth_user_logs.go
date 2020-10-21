@@ -87,3 +87,15 @@ func (c *AuthUserLogs) Lists(pp *Page) (logs []LogListsModel) {
 	_, _ = FindPage(context.Background(), db.Model(c).Select("auth_user_logs.*", "auth_user.username as username").Where(wCond, wParams...).Joins("LEFT JOIN auth_user ON auth_user.id = auth_user_logs.operate_id").Order("auth_user_logs.id desc"), pp, &logs)
 	return
 }
+
+func (c *AuthUserLogs) UnreadMessageCount() (count int64) {
+	db.Model(&AuthUserLogs{}).Where("id > ? and userid = ? and status = ?", c.ID, c.Userid, LOG_STATUS_NOT).Count(&count)
+	return
+}
+
+func (c *AuthUserLogs) UpdateMessageStatus(ids []int) uint {
+	c.Status = LOG_STATUS_READ
+	res := db.Model(&AuthUserLogs{}).Select([]string{"update_time", "status"}).Where("id IN ? and userid = ?", ids, c.Userid).Updates(c)
+
+	return uint(res.RowsAffected)
+}

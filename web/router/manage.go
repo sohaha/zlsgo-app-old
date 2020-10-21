@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/sohaha/zlsgo/zfile"
+	"github.com/sohaha/zlsgo/zlog"
 	"github.com/sohaha/zstatic"
 
 	"app/global"
@@ -29,6 +30,11 @@ func (*StController) RegManage(r *znet.Engine) {
 	r.GET(prefix+"/{file:.*}", fileserver, g)
 
 	r.Static("/static/", zfile.RealPath("./resource/static"))
+
+	// set 日志记录
+	// logPath := zfile.RealPathMkdir("./logs/"+time.Now().Format("2006"), true)
+	logPath := zfile.RealPathMkdir("./logs", true)
+	zlog.SetSaveFile(logPath, true)
 
 	r.Group("/ZlsManage/", func(r *znet.Engine) {
 		corsHandler := cors.New(&cors.Config{
