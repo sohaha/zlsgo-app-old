@@ -1,17 +1,48 @@
 package manage
 
 import (
+	"app/model"
 	"app/web/business/manageBusiness"
 	"fmt"
 	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zvalid"
 	"io/ioutil"
+	"strconv"
 	"strings"
 )
 
 type System struct {
 }
+
+// 查看用户日志
+func (*System) GetLogs(c *znet.Context) {
+	pagesize, _ := strconv.Atoi(c.DefaultFormOrQuery("pagesize", "10"))
+	page, _ := strconv.Atoi(c.DefaultFormOrQuery("page", "1"))
+	qType, _ := strconv.Atoi(c.DefaultFormOrQuery("type", "0"))
+	qUnread, _ := strconv.Atoi(c.DefaultFormOrQuery("unread", "0"))
+
+	u, _ := c.Value("user")
+	userid := u.(*model.AuthUser).ID
+
+	p := model.Page{
+		Curpage:  uint(page),
+		Pagesize: uint(pagesize),
+	}
+
+	logs := (&model.AuthUserLogs{Userid: userid, Type: uint8(qType), Status: uint8(qUnread)}).Lists(&p)
+
+	c.ApiJSON(200, "用户日志", map[string]interface{}{
+		"items": logs,
+		"page":  p,
+	})
+}
+
+// 未读日志总数
+func (*System) GetUnreadMessageCount(c *znet.Context) {}
+
+// 更新日志状态
+func (*System) PutMessageStatus(c *znet.Context) {}
 
 // 系统日志
 func (*System) GetSystemLogs(c *znet.Context) {
@@ -77,6 +108,9 @@ func (*System) GetSystemLogs(c *znet.Context) {
 	return
 }
 
+// 删除系统日志文件
+func (*System) DeleteSystemLogs(c *znet.Context) {}
+
 // 读取系统配置
 func (*System) GetSystemConfig(c *znet.Context) {
 	var paramPutSystemConfigSt manageBusiness.ParamPutSystemConfigSt
@@ -110,3 +144,6 @@ func (*System) PutSystemConfig(c *znet.Context) {
 
 	c.ApiJSON(200, "更新系统配置", true)
 }
+
+// 获取系统菜单列表
+func (*System) GetMenu(c *znet.Context) {}

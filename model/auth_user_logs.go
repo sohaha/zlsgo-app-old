@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/sohaha/zlsgo/znet"
@@ -62,4 +63,27 @@ func (c *AuthUserLogs) title(ctx *znet.Context) {
 		c.Title = string([]rune(c.Content)[:cLen])
 	}
 	c.Content = fmt.Sprintf("%v\nOperate IP: %v\nUser Agent: %v", c.Content, ctx.GetClientIP(), ctx.GetHeader("User-Agent"))
+}
+
+type LogListsModel struct {
+	AuthUserLogs
+	Username string `json:"username"`
+}
+
+func (c *AuthUserLogs) Lists(pp *Page) (logs []LogListsModel) {
+	wCond := " 1 = 1"
+	wParams := make([]interface{}, 0)
+	wCond += " and auth_user_logs.`userid` = ?"
+	wParams = append(wParams, c.Userid)
+	if c.Type > 0 {
+		wCond += " and auth_user_logs.`type` = ?"
+		wParams = append(wParams, c.Type)
+	}
+	if c.Status > 0 {
+		wCond += " and auth_user_logs.`status` = ?"
+		wParams = append(wParams, LOG_STATUS_NOT)
+	}
+
+	_, _ = FindPage(context.Background(), db.Model(c).Select("auth_user_logs.*", "auth_user.username as username").Where(wCond, wParams...).Joins("LEFT JOIN auth_user ON auth_user.id = auth_user_logs.operate_id").Order("auth_user_logs.id desc"), pp, &logs)
+	return
 }
