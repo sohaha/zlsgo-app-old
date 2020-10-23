@@ -25,3 +25,13 @@ func Byte2Kb(byteNum int64) int64 {
 
 	return int64(math.Ceil(k))
 }
+
+// 判断是否在数组/切片中
+func InArray(items []string, item string) bool {
+	for _, cVal := range items {
+		if cVal == item {
+			return true
+		}
+	}
+	return false
+}

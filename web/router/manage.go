@@ -54,6 +54,8 @@ func (*StController) RegManage(r *znet.Engine) {
 
 		zutil.CheckErr(r.BindStruct("/SystemApi", &manage.System{}))
 
+		zutil.CheckErr(r.BindStruct("/MenuApi", &manage.Menu{}))
+
 		r.Any("*", func(c *znet.Context) {
 			c.ApiJSON(404, "404", nil)
 		})

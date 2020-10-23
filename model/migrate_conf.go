@@ -32,6 +32,8 @@ func AutoMigrateTable() []interface{} {
 		&AuthUserGroup{},
 		&AuthUserRules{},
 		&AuthUserRulesRela{},
+		&AuthGroupMenu{},
+		&Menu{},
 	}
 }
 
