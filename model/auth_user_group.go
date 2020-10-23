@@ -42,17 +42,24 @@ func (g AuthUserGroup) All(groups *[]AuthUserGroup) *gorm.DB {
 
 var ruleCache = zcache.New("ruleCache")
 
+type GetRulesModel struct {
+	AuthUserRules
+	RelaStauts uint8 `json:"rela_stauts"`
+}
+
 // GetRules 获取规则列表
-func (g AuthUserGroup) GetRules() (rules []AuthUserRules) {
+func (g AuthUserGroup) GetRules() (rules []GetRulesModel) {
 	currentRule, err := ruleCache.MustGet(strconv.Itoa(int(g.ID)), func(set func(data interface{}, lifeSpan time.Duration, interval ...bool)) (err error) {
 		var relas []AuthUserRulesRela
-		db.Model(&AuthUserRulesRela{}).Where(map[string]interface{}{"group_id": g.ID, "status": 1}).Select("rule_id").Find(&relas)
+		// db.Model(&AuthUserRulesRela{}).Where(map[string]interface{}{"group_id": g.ID, "status": 1}).Select("rule_id").Find(&relas)
+		db.Model(&AuthUserRulesRela{}).Where(map[string]interface{}{"group_id": g.ID}).Select("rule_id").Find(&relas)
 		var ids []uint
 
 		for _, v := range relas {
 			ids = append(ids, v.RuleID)
 		}
-		db.Model(&AuthUserRules{}).Where("id in (?)", ids).Find(&rules)
+		// db.Model(&AuthUserRules{}).Where("id in (?)", ids).Find(&rules)
+		db.Model(&AuthUserRules{}).Select("auth_user_rules.*", "auth_user_rules_rela.status as rela_stauts").Where("auth_user_rules.id in (?)", ids).Joins("LEFT JOIN auth_user_rules_rela ON auth_user_rules_rela.rule_id = auth_user_rules.id").Scan(&rules)
 
 		set(rules, 60*10, true)
 		return nil
@@ -60,7 +67,7 @@ func (g AuthUserGroup) GetRules() (rules []AuthUserRules) {
 	if err != nil {
 		return
 	}
-	return currentRule.([]AuthUserRules)
+	return currentRule.([]GetRulesModel)
 }
 
 // GetRuleCollation 获取整理后的规则列表
@@ -75,11 +82,11 @@ func (g AuthUserGroup) GetRuleCollation() (s *RuleCollation) {
 		InterceptRoute: map[string][]string{},
 		Marks:          []string{},
 	}
-	setData := func(methods []string, route string, v AuthUserRules) {
+	setData := func(methods []string, route string, v GetRulesModel) {
 		for _, m := range methods {
-			if v.Status == AuthUserRulesStatusIntercept {
+			if v.RelaStauts == AuthUserRulesStatusIntercept {
 				s.InterceptRoute[m] = append(s.InterceptRoute[m], route)
-			} else if v.Status == AuthUserRulesStatusAdopt {
+			} else if v.RelaStauts == AuthUserRulesStatusAdopt {
 				s.AdoptRoute[m] = append(s.AdoptRoute[m], route)
 			}
 		}
@@ -98,7 +105,9 @@ func (g AuthUserGroup) GetRuleCollation() (s *RuleCollation) {
 				setData(methods, routes[i], v)
 			}
 		} else {
-			s.Marks = append(s.Marks, v.Mark)
+			if v.Status == 1 {
+				s.Marks = append(s.Marks, v.Mark)
+			}
 		}
 	}
 	return s
@@ -132,7 +141,7 @@ func (g AuthUserGroup) GetMarks() []string {
 	currentRules := g.GetRules()
 	res := make([]string, 0)
 	for _, v := range currentRules {
-		if TYPE_MARK == v.Type {
+		if TYPE_MARK == v.Type && AuthUserRulesStatusAdopt == v.RelaStauts {
 			res = append(res, v.Mark)
 		}
 	}

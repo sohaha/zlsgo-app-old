@@ -3,6 +3,7 @@ package manage
 import (
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zstring"
+	"strings"
 
 	"app/model"
 )
@@ -23,6 +24,12 @@ func VerifRoutingPermission(currentPath, method string, rules *model.RuleCollati
 			if zstring.Match(currentPath, routes[i]) {
 				return false
 			}
+
+			if !strings.HasSuffix(routes[i], ".go") {
+				if zstring.Match(currentPath, routes[i]+".go") {
+					return false
+				}
+			}
 		}
 	}
 	return
@@ -30,6 +37,15 @@ func VerifRoutingPermission(currentPath, method string, rules *model.RuleCollati
 
 // VerifPermissionMark 验证是否拥有指定权限标识码
 func VerifPermissionMark(c *znet.Context, mark string, disable ...bool) (adopt bool) {
+	user := &model.AuthUser{}
+	if u, ok := c.Value("user"); ok {
+		user = u.(*model.AuthUser)
+	}
+	// 超级管理员无需验证权限
+	if user.IsSuper {
+		return true
+	}
+
 	r, ok := c.Value("ruleMarks")
 	if ok {
 		ruleMarks := *r.(*[]string)
