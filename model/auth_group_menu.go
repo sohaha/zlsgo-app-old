@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"gorm.io/gorm"
 )
 
@@ -30,4 +31,20 @@ func (*migrate) CreateAuthGroupMenu() {
 			return nil
 		}
 	})
+}
+
+func (m *AuthGroupMenu) Update() error {
+	hasInfo := &AuthGroupMenu{}
+	db.Where("groupid = ?", m.GroupID).First(hasInfo)
+	if hasInfo.ID == 0 {
+		if res := db.Create(m); res.RowsAffected == 0 {
+			return errors.New("服务繁忙,请重试.")
+		}
+	} else {
+		if res := db.Model(&m).Select("update_time", "menu").Where("id = ?", hasInfo.ID).Updates(m); res.RowsAffected == 0 {
+			return errors.New("服务繁忙,请重试.")
+		}
+	}
+
+	return nil
 }

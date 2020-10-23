@@ -2,6 +2,7 @@ package manage
 
 import (
 	"app/model"
+	"encoding/json"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zvalid"
 	"strconv"
@@ -17,7 +18,6 @@ func (*Menu) PostUserMenu(c *znet.Context) {
 
 	c.ApiJSON(200, "请求成功", (&model.Menu{}).Lists(uint8(groupid)))
 	return
-
 }
 
 // PostCreate 新增菜单
@@ -90,10 +90,83 @@ func (*Menu) PostDelete(c *znet.Context) {
 }
 
 // PostUpdate 更新菜单
-func (*Menu) PostUpdate(c *znet.Context) {}
+func (*Menu) PostUpdate(c *znet.Context) {
+	var postParam struct {
+		ID         int    `json:"id"`
+		Title      string `json:"title"`
+		Index      string `json:"index"`
+		Icon       string `json:"icon"`
+		Breadcrumb int    `json:"breadcrumb"`
+		Real       int    `json:"real"`
+		Show       int    `json:"show"`
+	}
+
+	valid := c.ValidRule()
+	err := c.BindValid(&postParam, map[string]zvalid.Engine{
+		"id":    valid.Required("菜单id不允许为空"),
+		"title": valid.Trim().Required("菜单名称不能为空"),
+		"index": valid.Trim().Required("路由不能为空"),
+	})
+	if err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	res := &model.Menu{
+		ID:         uint(postParam.ID),
+		Title:      postParam.Title,
+		Index:      postParam.Index,
+		Icon:       postParam.Icon,
+		Breadcrumb: uint8(postParam.Breadcrumb),
+		Real:       uint8(postParam.Real),
+		Show:       uint8(postParam.Show),
+	}
+	if err := res.Update(); err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	c.ApiJSON(200, "处理成功", nil)
+	return
+}
 
 // PostSort 菜单拖拽排序(支持多次拖拽一起排)
-func (*Menu) PostSort(c *znet.Context) {}
+func (*Menu) PostSort(c *znet.Context) {
+	menu := c.DefaultFormOrQuery("menu", "")
+	var postSortMap model.PostSortSt
+	json.Unmarshal([]byte(menu), &postSortMap)
+
+	if err := (&model.Menu{}).MenuSort(postSortMap); err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	c.ApiJSON(200, "处理成功", 1)
+	return
+}
 
 // PostUpdateGroupMenu 角色菜单更新
-func (*Menu) PostUpdateGroupMenu(c *znet.Context) {}
+func (*Menu) PostUpdateGroupMenu(c *znet.Context) {
+	var postParam struct {
+		GroupID int    `json:"groupid"`
+		Menu    string `json:"menu"`
+	}
+
+	valid := c.ValidRule()
+	err := c.BindValid(&postParam, map[string]zvalid.Engine{
+		"groupid": valid.Required("角色id不能为空"),
+		"menu":    valid.Trim().Required("菜单内容不能为空"),
+	})
+	if err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	if err := (&model.AuthGroupMenu{GroupID: uint8(postParam.GroupID), Menu: postParam.Menu}).Update(); err != nil {
+		c.ApiJSON(211, err.Error(), nil)
+		return
+	}
+
+	c.ApiJSON(200, "处理成功", 1)
+	return
+}

@@ -135,3 +135,46 @@ func (m *Menu) Delete() error {
 
 	return nil
 }
+
+func (m *Menu) Update() error {
+	if res := db.Model(&m).Select("update_time", "title", "index", "icon", "breadcrumb", "real", "show").Where("id = ?", m.ID).Updates(m); res.RowsAffected == 0 {
+		return errors.New("服务繁忙,请重试.")
+	}
+
+	return nil
+}
+
+type PostSortSt []struct {
+	ID    int `json:"id"`
+	Child []struct {
+		ID int `json:"id"`
+	} `json:"child,omitempty"`
+}
+
+func (m *Menu) MenuSort(data PostSortSt) error {
+	// TODO
+	// 这里的更新可以优化为同时一个sql更新多条不一样的数据
+	tx := db.Begin()
+	i := 1
+	for _, v := range data {
+		uRes := &Menu{ID: uint(v.ID), Sort: uint8(i)}
+		if res := tx.Model(&m).Select("update_time", "sort").Where("id = ?", uRes.ID).Updates(uRes); res.RowsAffected == 0 {
+			tx.Rollback()
+			return errors.New("服务繁忙,请重试.")
+		}
+		i++
+		if len(v.Child) > 0 {
+			for _, vv := range v.Child {
+				uRes2 := &Menu{ID: uint(vv.ID), Sort: uint8(i)}
+				if res := tx.Model(&m).Select("update_time", "sort").Where("id = ?", uRes2.ID).Updates(uRes2); res.RowsAffected == 0 {
+					tx.Rollback()
+					return errors.New("服务繁忙,请重试.")
+				}
+				i++
+			}
+		}
+	}
+	tx.Commit()
+
+	return nil
+}
