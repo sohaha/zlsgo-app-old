@@ -42,10 +42,12 @@ func (*Menu) PostCreate(c *znet.Context) {
 		return
 	}
 
-	hasInfo := &model.Menu{ID: uint(postParam.Pid)}
-	if hasInfo.Exist(); hasInfo.Title == "" {
-		c.ApiJSON(211, "pid不合法", nil)
-		return
+	if postParam.Pid != 0 {
+		hasInfo := &model.Menu{ID: uint(postParam.Pid)}
+		if hasInfo.Exist(); hasInfo.Title == "" {
+			c.ApiJSON(211, "pid不合法", nil)
+			return
+		}
 	}
 
 	res := &model.Menu{

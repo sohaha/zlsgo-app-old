@@ -121,7 +121,7 @@ func (m *Menu) PidExist() {
 }
 
 func (m *Menu) Create() error {
-	if res := db.Select("pid").Create(&m); res.RowsAffected == 0 {
+	if res := db.Select("title", "index", "icon", "breadcrumb", "real", "show", "pid", "sort").Create(&m); res.RowsAffected == 0 {
 		return errors.New("服务繁忙,请重试.")
 	}
 
@@ -165,8 +165,8 @@ func (m *Menu) MenuSort(data PostSortSt) error {
 		i++
 		if len(v.Child) > 0 {
 			for _, vv := range v.Child {
-				uRes2 := &Menu{ID: uint(vv.ID), Sort: uint8(i)}
-				if res := tx.Model(&m).Select("update_time", "sort").Where("id = ?", uRes2.ID).Updates(uRes2); res.RowsAffected == 0 {
+				uRes2 := &Menu{ID: uint(vv.ID), Sort: uint8(i), Pid: uint8(v.ID)}
+				if res := tx.Model(&m).Select("update_time", "sort", "pid").Where("id = ?", uRes2.ID).Updates(uRes2); res.RowsAffected == 0 {
 					tx.Rollback()
 					return errors.New("服务繁忙,请重试.")
 				}
