@@ -170,6 +170,10 @@ func (u *AuthUser) TokenToInfo(t *AuthUserToken) {
 
 	if t.Userid != 0 {
 		db.Model(&t).Select("update_time").Updates(AuthUserToken{}) // 更新token时间
+		if cfg, _ := (&manageBusiness.ParamPutSystemConfigSt{}).GetConf(); cfg.LoginMode {
+			db.Model(&AuthUserToken{}).Select("update_time, status").Where("userid = ? and id != ? and status != ?", t.Userid, t.ID, TOKEN_DISABLED).Updates(AuthUserToken{Status: TOKEN_DISABLED})
+		}
+
 		db.Where(&AuthUser{ID: t.Userid}).Limit(0).Find(&u)
 	}
 }

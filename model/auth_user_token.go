@@ -54,7 +54,7 @@ func (t *AuthUserToken) Last() (has bool) {
 }
 
 func (t *AuthUserToken) UpdateStatus() {
-	t.Status = 0
+	t.Status = 2
 	db.Where(&t).Select("status").Updates(t)
 }
 
