@@ -135,6 +135,7 @@ type ParamPutSystemConfigSt struct {
 	MaintainMode bool   `json:"maintainMode"`
 	Debug        bool   `json:"debug"`
 	CdnHost      string `json:"cdnHost"`
+	LoginMode    bool   `json:"loginMode"`
 }
 
 func (st *ParamPutSystemConfigSt) SetConf() error {
@@ -151,6 +152,7 @@ func (st *ParamPutSystemConfigSt) SetConf() error {
 	cfg.Set("project.cdnHost", st.CdnHost)
 	cfg.Set("base.maintainMode", st.MaintainMode)
 	cfg.Set("base.ipWhitelist", st.IpWhitelist)
+	cfg.Set("base.loginMode", st.LoginMode)
 	cfg.Write(cfgName)
 
 	Mutex.Unlock()
@@ -165,9 +167,26 @@ func (st *ParamPutSystemConfigSt) GetConf() (*ParamPutSystemConfigSt, error) {
 		return nil, err
 	}
 
-	st.Debug = cfg.Get("base.debug").(bool)
-	st.CdnHost = cfg.Get("project.cdnHost").(string)
-	st.MaintainMode = cfg.Get("base.maintainMode").(bool)
-	st.IpWhitelist = cfg.Get("base.ipWhitelist").(string)
+	cfgDebug := cfg.Get("base.debug")
+	if cfgDebug != nil {
+		st.Debug = cfgDebug.(bool)
+	}
+	cfgCdnHost := cfg.Get("project.cdnHost")
+	if cfgCdnHost != nil {
+		st.CdnHost = cfgCdnHost.(string)
+	}
+	cfgMaintainMode := cfg.Get("base.maintainMode")
+	if cfgMaintainMode != nil {
+		st.MaintainMode = cfgMaintainMode.(bool)
+	}
+	cfgIpWhitelist := cfg.Get("base.ipWhitelist")
+	if cfgIpWhitelist != nil {
+		st.IpWhitelist = cfgIpWhitelist.(string)
+	}
+	cfgLoginMode := cfg.Get("base.loginMode")
+	if cfgLoginMode != nil {
+		st.LoginMode = cfgLoginMode.(bool)
+	}
+
 	return st, nil
 }

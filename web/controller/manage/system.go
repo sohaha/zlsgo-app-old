@@ -222,6 +222,7 @@ func (*System) PutSystemConfig(c *znet.Context) {
 		zvalid.BatchVar(&paramPutSystemConfigSt.MaintainMode, c.Valid(tempRule, "maintainMode", "维护模式")),
 		zvalid.BatchVar(&paramPutSystemConfigSt.Debug, c.Valid(tempRule, "debug", "开发模式")),
 		zvalid.BatchVar(&paramPutSystemConfigSt.CdnHost, c.Valid(tempRule, "cdnHost", "cdn地址")),
+		zvalid.BatchVar(&paramPutSystemConfigSt.LoginMode, c.Valid(tempRule, "loginMode", "登录模式")),
 	)
 	if err != nil {
 		c.ApiJSON(201, err.Error(), nil)
@@ -230,6 +231,11 @@ func (*System) PutSystemConfig(c *znet.Context) {
 	if err := paramPutSystemConfigSt.SetConf(); err != nil {
 		c.ApiJSON(201, err.Error(), nil)
 		return
+	}
+
+	if paramPutSystemConfigSt.LoginMode {
+		t, _ := c.Value("token")
+		t.(*model.AuthUserToken).LoginModeTrue()
 	}
 
 	c.ApiJSON(200, "更新系统配置", true)

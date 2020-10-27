@@ -10,8 +10,11 @@ import (
 	"github.com/sohaha/zlsgo/zstring"
 )
 
-const TOKEN_DISABLED uint8 = 2
-const TOKEN_EFFECTIVE_TIME = "1h" // 有效时间
+const (
+	TOKEN_NORMAL         uint8  = 1
+	TOKEN_DISABLED       uint8  = 2
+	TOKEN_EFFECTIVE_TIME string = "1h" // 有效时间
+)
 
 // AuthUserToken 管理员权限密钥
 type AuthUserToken struct {
@@ -59,6 +62,20 @@ func (t *AuthUserToken) ClearAllToken() error {
 	uRes := db.Model(&AuthUserToken{}).Select("status").Where("status = ? and userid = ?", 1, t.Userid).Updates(&AuthUserToken{Status: 2})
 	if uRes.RowsAffected < 1 {
 		return errors.New("服务繁忙,请重试.")
+	}
+
+	return nil
+}
+
+func (t *AuthUserToken) LoginModeTrue() error {
+	res := []AuthUserToken{}
+	db.Select("MAX(id) as id, userid").Where("userid != ? and status = ?", t.Userid, TOKEN_NORMAL).Group("userid").Find(&res)
+	idMap := []uint{t.ID}
+	for _, v := range res {
+		idMap = append(idMap, v.ID)
+	}
+	if uRes := db.Model(AuthUserToken{}).Where("status = ? and id NOT IN ?", TOKEN_NORMAL, idMap).Updates(AuthUserToken{Status: TOKEN_DISABLED}); uRes.Error != nil {
+		return errors.New("更新失败")
 	}
 
 	return nil
