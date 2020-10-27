@@ -323,7 +323,12 @@ func (*UserManage) PostRules(c *znet.Context) {
 
 			return
 		}),
-		"type": valid.Customize(func(rawValue string, err error) (newValue string, newErr error) {
+		"type": valid.Required("类型不能为空").IsNumber("类型不能为空").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+			if err != nil {
+				newErr = err
+				return
+			}
+
 			newValue = rawValue
 			return
 		}),
