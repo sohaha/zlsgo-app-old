@@ -3,10 +3,13 @@ package manage
 import (
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zstring"
+	"strconv"
 	"strings"
 
 	"app/model"
 )
+
+const GROUP_ADMIN uint = 1
 
 // VerifRoutingPermission 路由权限验证
 func VerifRoutingPermission(currentPath, method string, rules *model.RuleCollation) (adopt bool) {
@@ -87,8 +90,13 @@ func Authority() func(c *znet.Context) {
 		if t == "" {
 			t = c.DefaultFormOrQuery("token", "")
 		}
+
 		if t != "" {
-			token.Token = t
+			idx := strings.Index(t, "_")
+			tokenID, _ := strconv.Atoi(t[0:idx])
+
+			token.ID = uint(tokenID)
+			token.Token = t[idx+1:]
 			user.TokenToInfo(token)
 			// 后期可以考虑把用户信息缓存
 		}

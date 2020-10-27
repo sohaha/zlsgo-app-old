@@ -10,6 +10,9 @@ import (
 	"github.com/sohaha/zlsgo/zstring"
 )
 
+const TOKEN_DISABLED uint8 = 2
+const TOKEN_EFFECTIVE_TIME = "1h" // 有效时间
+
 // AuthUserToken 管理员权限密钥
 type AuthUserToken struct {
 	ID        uint           `gorm:"column:id;primaryKey;" json:"id,omitempty"`

@@ -7,10 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sohaha/zlsgo/znet"
+	"github.com/sohaha/zlsgo/ztime"
 	"github.com/sohaha/zlsgo/ztype"
-	"gorm.io/gorm"
-
 	"github.com/sohaha/zlsgo/zvalid"
+	"gorm.io/gorm"
+	"time"
 )
 
 // AuthUser 管理员
@@ -40,7 +41,17 @@ type ListsModel struct {
 }
 
 func (u *AuthUser) Lists(pp *Page) (users []AuthUser) {
-	_, _ = FindPage(context.Background(), db.Where(u).Model(u).Order("id desc"), pp, &users)
+	wCond := " 1 = 1"
+	wParams := make([]interface{}, 0)
+	if u.ID > 0 {
+		wCond += " and id = ?"
+		wParams = append(wParams, u.ID)
+	}
+	if u.Username != "" {
+		wCond += " and username like ?"
+		wParams = append(wParams, "%"+u.Username+"%")
+	}
+	_, _ = FindPage(context.Background(), db.Where(wCond, wParams...).Model(u).Order("id desc"), pp, &users)
 	return
 }
 
@@ -148,19 +159,29 @@ func (u *AuthUser) UserExist() (bool, error) {
 func (u *AuthUser) TokenToInfo(t *AuthUserToken) {
 	t.Status = 1
 	db.Where(t).Limit(1).Find(&t)
+
+	h, _ := time.ParseDuration(TOKEN_EFFECTIVE_TIME)
+	lastTime, _ := ztime.Parse(ztime.FormatTime(t.UpdatedAt.Time, "Y-m-d H:i:s"))
+	nowTime, _ := ztime.Parse(ztime.Now("Y-m-d H:i:s"))
+	if flag := nowTime.Before(lastTime.Add(1 * h)); !flag { // 接口有效时间
+		db.Model(&t).Select("status", "update_time").Updates(AuthUserToken{Status: TOKEN_DISABLED}) // 让token过期
+		return
+	}
+
 	if t.Userid != 0 {
+		db.Model(&t).Select("update_time").Updates(AuthUserToken{}) // 更新token时间
 		db.Where(&AuthUser{ID: t.Userid}).Limit(0).Find(&u)
 	}
 }
 
-func (u *AuthUser) Login(ip string, ua string) (string, error) {
+func (u *AuthUser) Login(ip string, ua string) (string, uint, error) {
 	password := u.Password
 	db.Model(&u).Where(&AuthUser{Username: u.Username}).Limit(1).Find(&u)
 	if u.ID == 0 {
-		return "", errors.New("用户不存在")
+		return "", 0, errors.New("用户不存在")
 	}
 	if err := zvalid.Text(password, "用户密码").CheckPassword(u.Password).Error(); err != nil {
-		return "", err
+		return "", 0, err
 	}
 
 	t := AuthUserToken{
@@ -170,9 +191,9 @@ func (u *AuthUser) Login(ip string, ua string) (string, error) {
 	}
 	token := t.CreateToken()
 	if token == "" {
-		return "", errors.New("创建 Token 失败")
+		return "", 0, errors.New("创建 Token 失败")
 	}
-	return t.Token, nil
+	return t.Token, t.ID, nil
 }
 
 func (u *AuthUser) GetUser() {

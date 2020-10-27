@@ -23,9 +23,19 @@ func (*UserManage) GetUserLists(c *znet.Context) {
 		Curpage:  uint(page),
 		Pagesize: uint(pagesize),
 	}
-	users := (&model.AuthUser{}).Lists(&p)
-	lists := (&model.AuthUser{}).ListsSub(users)
+	user, authUserQuery := &model.AuthUser{}, &model.AuthUser{}
+	if key := c.DefaultFormOrQuery("key", ""); key != "" {
+		authUserQuery.Username = key
+	}
 
+	if u, ok := c.Value("user"); ok {
+		user = u.(*model.AuthUser)
+	}
+	if !user.IsSuper && user.GroupID != GROUP_ADMIN{
+		authUserQuery.ID = user.ID
+	}
+	users := authUserQuery.Lists(&p)
+	lists := (&model.AuthUser{}).ListsSub(users)
 
 	c.ApiJSON(200, "用户列表", map[string]interface{}{
 		"items": lists,
