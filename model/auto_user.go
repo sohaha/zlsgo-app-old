@@ -34,9 +34,44 @@ type AuthUser struct {
 // 默认管理员密码
 const DefManagePassword = "admin666"
 
+type ListsModel struct {
+	AuthUser
+	Groups []string `json:"groups"`
+}
+
 func (u *AuthUser) Lists(pp *Page) (users []AuthUser) {
 	_, _ = FindPage(context.Background(), db.Where(u).Model(u).Order("id desc"), pp, &users)
 	return
+}
+
+func (u *AuthUser) ListsSub(users []AuthUser) (lists []ListsModel) {
+	groups := []AuthUserGroup{}
+	(&AuthUserGroup{}).All(&groups)
+	kV := map[uint]string{}
+	for _, v := range groups {
+		kV[v.ID] = v.Name
+	}
+
+	getGroups := func(user *AuthUser, pools map[uint]string) (re []string) {
+		if v, flag := pools[user.GroupID]; flag {
+			re = append(re, v)
+		}
+
+		if user.IsSuper {
+			re = append(re, "超级管理员")
+		}
+
+		return
+	}
+
+	for _, user := range users {
+		lists = append(lists, ListsModel{
+			AuthUser: user,
+			Groups:   getGroups(&user, kV),
+		})
+	}
+
+	return lists
 }
 
 func (*migrate) CreateAuthUser() {
@@ -149,7 +184,7 @@ func (u *AuthUser) EmailExist(email string) (bool, error) {
 	return Exist(context.Background(), db.Where("email = ? and id != ?", email, u.ID).Model(&AuthUser{}))
 }
 
-func (u *AuthUser) Update(c *znet.Context, postData manageBusiness.PutUpdateSt, currentUserId uint, isAdmin int, isMe bool) (int64, error) {
+func (u *AuthUser) Update(c *znet.Context, postData manageBusiness.PutUpdateSt, currentUserId uint, editPwdAuth bool) (int64, error) {
 	editUser := &AuthUser{ID: currentUserId}
 	(editUser).GetUser()
 
@@ -198,13 +233,13 @@ func (u *AuthUser) Update(c *znet.Context, postData manageBusiness.PutUpdateSt, 
 	updateUser.Avatar, _ = manageBusiness.MvAvatar(postData.Avatar, avatarFilename)
 	queryFiled := []string{"update_time", "status", "avatar", "remark", "email", "nickname"}
 
-	if isAdmin == 1 && postData.Password != "" {
+	if editPwdAuth && postData.Password != "" {
 		queryFiled = append(queryFiled, "password")
 	}
 
-	if isAdmin == 1 && !isMe {
-		queryFiled = append(queryFiled, "group_id")
-	}
+	// if isAdmin == 1 && !isMe {
+	queryFiled = append(queryFiled, "group_id")
+	// }
 
 	uRes := db.Model(&AuthUser{}).Select(queryFiled).Where("id = ?", editUser.ID).Updates(updateUser)
 	if uRes.RowsAffected < 1 {

@@ -90,7 +90,7 @@ func (*Basic) PutUpdate(c *znet.Context) {
 		currentUserId = postData.Id
 	}
 
-	isAdmin := manageBusiness.IsAdmin(uid)
+	// isAdmin := manageBusiness.IsAdmin(uid)
 	userIsAdmin := manageBusiness.IsAdmin(currentUserId)
 	isMe := currentUserId == uid
 
@@ -104,7 +104,8 @@ func (*Basic) PutUpdate(c *znet.Context) {
 		return
 	}
 
-	_, err := user.Update(c, postData, currentUserId, isAdmin, isMe)
+	// _, err := user.Update(c, postData, currentUserId, isAdmin, isMe)
+	_, err := user.Update(c, postData, currentUserId, VerifPermissionMark(c, "password"))
 	if err != nil {
 		web.ApiJSON(c, 201, err.Error(), nil)
 		return
@@ -190,5 +191,5 @@ func (*Basic) PostClearToken(c *znet.Context) {
 	if ok {
 		t.(*model.AuthUserToken).UpdateStatus()
 	}
-	web.ApiJSON(c, 200, "退出完成", nil)
+	web.ApiJSON(c, 200, "退出完成", true)
 }

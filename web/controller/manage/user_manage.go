@@ -24,9 +24,11 @@ func (*UserManage) GetUserLists(c *znet.Context) {
 		Pagesize: uint(pagesize),
 	}
 	users := (&model.AuthUser{}).Lists(&p)
+	lists := (&model.AuthUser{}).ListsSub(users)
+
 
 	c.ApiJSON(200, "用户列表", map[string]interface{}{
-		"items": users,
+		"items": lists,
 		"page":  p,
 	})
 }
