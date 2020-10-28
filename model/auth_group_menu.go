@@ -153,7 +153,9 @@ func (m *AuthGroupMenu) VuePath(path string) string {
 			return "/main" + path
 		}
 	} else {
-		if !strings.HasPrefix(path, "/main/") {
+		if path == "main" {
+			return "/" + path
+		} else if !strings.HasPrefix(path, "/main/") {
 			return "/main/" + path
 		}
 	}
