@@ -18,6 +18,8 @@ type AuthGroupMenu struct {
 	DeletedAt gorm.DeletedAt `gorm:"type:datetime(0);index;" json:"-"`
 }
 
+var initNum uint = 3
+
 func (*migrate) CreateAuthGroupMenu() {
 	migrateData = append(migrateData, func() (string, func(db *gorm.DB) error) {
 		return "CreateAuthGroupMenu", func(db *gorm.DB) error {
@@ -63,58 +65,42 @@ type Router struct {
 	Children []Router `json:"children"`
 }
 
-func (m *AuthGroupMenu) GroupMenu(user *AuthUser) []Router {
+func (m *AuthGroupMenu) GroupMenu(user *AuthUser) (res []Router) {
 	menuInfo := (&Menu{}).All()
 
 	db.Where("groupid = ?", m.GroupID).Find(&m)
 	menuArr := strings.Split(m.Menu, ",")
-	res := []Router{}
-	initNum := uint(3)
+	push := func(res []Router, v Menu, child []Router, collapse bool) []Router {
+		res = append(res, Router{
+			Name:     v.Title,
+			Path:     m.VuePath(v.Index),
+			Url:      m.VueUrl(v.Show == 1 && collapse, v.Index),
+			Icon:     v.Icon,
+			Real:     v.Real == 1,
+			Show:     v.Show == 1,
+			Collapse: collapse,
+			Children: child,
+		})
+		return res
+	}
 	for _, initRouter := range menuInfo {
 		if initRouter.ID <= initNum && initRouter.Pid == 0 {
 			child, collapse := (&AuthGroupMenu{}).AppendChildRen(initRouter, menuInfo)
-			res = append(res, Router{
-				Name:     initRouter.Title,
-				Path:     initRouter.Index,
-				Url:      m.VueUrl(initRouter.Show == 1 && collapse, initRouter.Index),
-				Icon:     initRouter.Icon,
-				Real:     initRouter.Real == 1,
-				Show:     initRouter.Show == 1,
-				Collapse: collapse,
-				Children: child,
-			})
+			res = push(res, initRouter, child, collapse)
 		}
 	}
 	if user.IsSuper {
 		for _, sysMenu := range menuInfo {
 			if sysMenu.ID > initNum && sysMenu.Pid == 0 {
 				child, collapse := (&AuthGroupMenu{}).AppendChildRen(sysMenu, menuInfo)
-				res = append(res, Router{
-					Name:     sysMenu.Title,
-					Path:     sysMenu.Index,
-					Url:      m.VueUrl(sysMenu.Show == 1 && collapse, sysMenu.Index),
-					Icon:     sysMenu.Icon,
-					Real:     sysMenu.Real == 1,
-					Show:     sysMenu.Show == 1,
-					Collapse: collapse,
-					Children: child,
-				})
+				res = push(res, sysMenu, child, collapse)
 			}
 		}
 	} else {
 		for _, sysMenu := range menuInfo {
 			if sysMenu.ID > initNum && sysMenu.Pid == 0 && manageBusiness.InArray(menuArr, strconv.Itoa(int(sysMenu.ID))) {
 				child, collapse := (&AuthGroupMenu{}).AppendChildRen(sysMenu, menuInfo)
-				res = append(res, Router{
-					Name:     sysMenu.Title,
-					Path:     m.VuePath(sysMenu.Index),
-					Url:      m.VueUrl(sysMenu.Show == 1 && collapse, sysMenu.Index),
-					Icon:     sysMenu.Icon,
-					Real:     sysMenu.Real == 1,
-					Show:     sysMenu.Show == 1,
-					Collapse: collapse,
-					Children: child,
-				})
+				res = push(res, sysMenu, child, collapse)
 			}
 		}
 	}
@@ -123,16 +109,25 @@ func (m *AuthGroupMenu) GroupMenu(user *AuthUser) []Router {
 }
 
 func (m *AuthGroupMenu) AppendChildRen(currentMenu Menu, menuMap []Menu) (res []Router, collapse bool) {
+	push := func(res []Router, v Menu) []Router {
+		res = append(res, Router{
+			Name: v.Title,
+			Path: m.VuePath(v.Index),
+			Url:  m.VueUrl(false, v.Index),
+			Icon: v.Icon,
+			Real: v.Real == 1,
+			Show: v.Show == 1,
+		})
+		return res
+	}
 	for _, v := range menuMap {
-		if currentMenu.ID == uint(v.Pid) {
-			res = append(res, Router{
-				Name: v.Title,
-				Path: m.VuePath(v.Index),
-				Url:  m.VueUrl(false, v.Index),
-				Icon: v.Icon,
-				Real: v.Real == 1,
-				Show: v.Show == 1,
-			})
+		if currentMenu.ID <= initNum && v.ID <= initNum && currentMenu.ID == uint(v.Pid) {
+			res = push(res, v)
+			if v.Show == 1 {
+				collapse = true
+			}
+		} else if currentMenu.ID > initNum && v.ID > initNum && currentMenu.ID == uint(v.Pid) {
+			res = push(res, v)
 			if v.Show == 1 {
 				collapse = true
 			}
