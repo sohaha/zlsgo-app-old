@@ -55,14 +55,15 @@ func (m *AuthGroupMenu) Update() error {
 }
 
 type Router struct {
-	Name     string   `json:"name"`
-	Path     string   `json:"path"`
-	Url      string   `json:"url"`
-	Icon     string   `json:"icon"`
-	Real     bool     `json:"real"`
-	Show     bool     `json:"show"`
-	Collapse bool     `json:"collapse"`
-	Children []Router `json:"children"`
+	Name       string   `json:"name"`
+	Path       string   `json:"path"`
+	Url        string   `json:"url"`
+	Icon       string   `json:"icon"`
+	Breadcrumb bool     `json:"breadcrumb"`
+	Real       bool     `json:"real"`
+	Show       bool     `json:"show"`
+	Collapse   bool     `json:"collapse"`
+	Children   []Router `json:"children"`
 }
 
 func (m *AuthGroupMenu) GroupMenu(user *AuthUser) (res []Router) {
@@ -72,14 +73,15 @@ func (m *AuthGroupMenu) GroupMenu(user *AuthUser) (res []Router) {
 	menuArr := strings.Split(m.Menu, ",")
 	push := func(res []Router, v Menu, child []Router, collapse bool) []Router {
 		res = append(res, Router{
-			Name:     v.Title,
-			Path:     m.VuePath(v.Index),
-			Url:      m.VueUrl(v.Show == 1 && collapse, v.Index),
-			Icon:     v.Icon,
-			Real:     v.Real == 1,
-			Show:     v.Show == 1,
-			Collapse: collapse,
-			Children: child,
+			Name:       v.Title,
+			Path:       m.VuePath(v.Index),
+			Url:        m.VueUrl(v.Show == 1 && collapse, v.Index),
+			Icon:       v.Icon,
+			Breadcrumb: v.Breadcrumb == 1,
+			Real:       v.Real == 1,
+			Show:       v.Show == 1,
+			Collapse:   collapse,
+			Children:   child,
 		})
 		return res
 	}
@@ -111,12 +113,13 @@ func (m *AuthGroupMenu) GroupMenu(user *AuthUser) (res []Router) {
 func (m *AuthGroupMenu) AppendChildRen(currentMenu Menu, menuMap []Menu) (res []Router, collapse bool) {
 	push := func(res []Router, v Menu) []Router {
 		res = append(res, Router{
-			Name: v.Title,
-			Path: m.VuePath(v.Index),
-			Url:  m.VueUrl(false, v.Index),
-			Icon: v.Icon,
-			Real: v.Real == 1,
-			Show: v.Show == 1,
+			Name:       v.Title,
+			Path:       m.VuePath(v.Index),
+			Url:        m.VueUrl(false, v.Index),
+			Icon:       v.Icon,
+			Breadcrumb: v.Breadcrumb == 1,
+			Real:       v.Real == 1,
+			Show:       v.Show == 1,
 		})
 		return res
 	}
