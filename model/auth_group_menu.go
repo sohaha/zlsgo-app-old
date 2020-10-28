@@ -68,30 +68,26 @@ func (m *AuthGroupMenu) GroupMenu(user *AuthUser) []Router {
 
 	db.Where("groupid = ?", m.GroupID).Find(&m)
 	menuArr := strings.Split(m.Menu, ",")
-	res := []Router{
-		{
-			Name:     "后台中心",
-			Path:     "/main",
-			Url:      "pages/main/main.vue",
-			Icon:     "icon-home",
-			Real:     true,
-			Show:     true,
-			Collapse: true,
-			Children: []Router{
-				{
-					Name: "站内消息",
-					Path: "/main/user/logs",
-					Url:  "pages/main/user/logs.vue",
-					Icon: "icon-settings-",
-					Real: true,
-					Show: false,
-				},
-			},
-		},
+	res := []Router{}
+	initNum := uint(3)
+	for _, initRouter := range menuInfo {
+		if initRouter.ID <= initNum && initRouter.Pid == 0 {
+			child, collapse := (&AuthGroupMenu{}).AppendChildRen(initRouter, menuInfo)
+			res = append(res, Router{
+				Name:     initRouter.Title,
+				Path:     initRouter.Index,
+				Url:      m.VueUrl(initRouter.Show == 1 && collapse, initRouter.Index),
+				Icon:     initRouter.Icon,
+				Real:     initRouter.Real == 1,
+				Show:     initRouter.Show == 1,
+				Collapse: collapse,
+				Children: child,
+			})
+		}
 	}
 	if user.IsSuper {
 		for _, sysMenu := range menuInfo {
-			if sysMenu.Pid == 0 {
+			if sysMenu.ID > initNum && sysMenu.Pid == 0 {
 				child, collapse := (&AuthGroupMenu{}).AppendChildRen(sysMenu, menuInfo)
 				res = append(res, Router{
 					Name:     sysMenu.Title,
@@ -107,7 +103,7 @@ func (m *AuthGroupMenu) GroupMenu(user *AuthUser) []Router {
 		}
 	} else {
 		for _, sysMenu := range menuInfo {
-			if sysMenu.Pid == 0 && manageBusiness.InArray(menuArr, strconv.Itoa(int(sysMenu.ID))) {
+			if sysMenu.ID > initNum && sysMenu.Pid == 0 && manageBusiness.InArray(menuArr, strconv.Itoa(int(sysMenu.ID))) {
 				child, collapse := (&AuthGroupMenu{}).AppendChildRen(sysMenu, menuInfo)
 				res = append(res, Router{
 					Name:     sysMenu.Title,
