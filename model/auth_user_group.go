@@ -59,7 +59,7 @@ func (g AuthUserGroup) GetRules() (rules []GetRulesModel) {
 			ids = append(ids, v.RuleID)
 		}
 		// db.Model(&AuthUserRules{}).Where("id in (?)", ids).Find(&rules)
-		db.Model(&AuthUserRules{}).Select("auth_user_rules.*", "auth_user_rules_rela.status as rela_stauts").Where("auth_user_rules.id in (?)", ids).Joins("LEFT JOIN auth_user_rules_rela ON auth_user_rules_rela.rule_id = auth_user_rules.id").Scan(&rules)
+		db.Model(&AuthUserRules{}).Select("auth_user_rules.*", "auth_user_rules_rela.status as rela_stauts").Where("auth_user_rules_rela.group_id = ? and auth_user_rules.id in (?)", g.ID, ids).Joins("LEFT JOIN auth_user_rules_rela ON auth_user_rules_rela.rule_id = auth_user_rules.id").Scan(&rules)
 
 		set(rules, 60*10, true)
 		return nil
