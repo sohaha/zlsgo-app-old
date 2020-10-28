@@ -69,7 +69,7 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 		"systems": systems,
 		"groups":  groups,
 		"marks":   (model.AuthUserGroup{ID: user.GroupID}).GetMarks(),
-		// menus
+		"router":  (&model.AuthGroupMenu{GroupID: uint8(user.GroupID)}).GroupMenu(user),
 	})
 }
 

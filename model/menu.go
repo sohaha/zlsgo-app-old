@@ -178,3 +178,8 @@ func (m *Menu) MenuSort(data PostSortSt) error {
 
 	return nil
 }
+
+func (m *Menu) All() (res []Menu) {
+	db.Model(m).Order("sort asc").Find(&res)
+	return
+}
