@@ -63,6 +63,7 @@ func IsAdmin(userid uint) int {
 
 // 移动临时头像文件到指定目录上
 func MvAvatar(path string, filename string) (newPath string, err error) {
+	path = avatarPrefix + path
 	completePath := zfile.RealPathMkdir(avatarPath, true)
 
 	newAva := completePath + filename
@@ -72,7 +73,10 @@ func MvAvatar(path string, filename string) (newPath string, err error) {
 		return path, nil
 	}
 
-	return "/" + zfile.SafePath(newAva), nil
+	rePath := "/" + zfile.SafePath(newAva)
+	rePath = strings.TrimPrefix(rePath, avatarPrefix)
+
+	return rePath, nil
 }
 
 // 图片上传
