@@ -49,7 +49,23 @@ func (*migrate) CreateAuthUserRules() {
 					Type:   1,
 					Remark: "用户基础权限",
 					Mark:   "/ZlsManage/UserApi*",
+				},{
+					Title:  "系统管理权限2",
+					Type:   2,
+					Remark: "系统管理权限",
+					Mark:   "system",
+				},{
+					Title:  "修改密码权限",
+					Type:   2,
+					Remark: "修改密码权限",
+					Mark:   "password",
+				}, {
+					Title:  "菜单权限",
+					Type:   1,
+					Remark: "系统管理权限",
+					Mark:   "/ZlsManage/MenuApi*",
 				},
+
 			}
 			db.Create(data)
 			return nil
