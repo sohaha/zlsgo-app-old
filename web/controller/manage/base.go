@@ -19,6 +19,13 @@ func VerifRoutingPermission(currentPath, method string, rules *model.RuleCollati
 			adopt = true
 			break
 		}
+
+		if !strings.HasSuffix(routes[i], ".go") {
+			if zstring.Match(currentPath, routes[i]+".go") {
+				adopt = true
+				break
+			}
+		}
 	}
 
 	if adopt {
