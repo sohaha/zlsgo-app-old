@@ -75,7 +75,7 @@ func (*UserManage) PostUser(c *znet.Context) {
 		return
 	}
 
-	err = user.Insert()
+	err = (&user).Insert(user.Password)
 	if err != nil {
 		c.ApiJSON(221, err.Error(), nil)
 		return

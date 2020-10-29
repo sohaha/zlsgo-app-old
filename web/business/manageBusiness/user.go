@@ -63,6 +63,9 @@ func IsAdmin(userid uint) int {
 
 // 移动临时头像文件到指定目录上
 func MvAvatar(path string, filename string) (newPath string, err error) {
+	if path == "" {
+		return "", nil
+	}
 	path = avatarPrefix + path
 	completePath := zfile.RealPathMkdir(avatarPath, true)
 

@@ -130,7 +130,7 @@ func (*migrate) CreateAuthUser() {
 	})
 }
 
-func (u *AuthUser) Insert() error {
+func (u *AuthUser) Insert(pwd string) error {
 	has, err := u.UserExist()
 	if err != nil {
 		return err
@@ -138,6 +138,7 @@ func (u *AuthUser) Insert() error {
 	if has {
 		return errors.New("用户已存在")
 	}
+	u.Password = pwd
 	tx := db.Create(u)
 	if tx.Error != nil {
 		return tx.Error
