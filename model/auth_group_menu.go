@@ -85,23 +85,24 @@ func (m *AuthGroupMenu) GroupMenu(user *AuthUser) (res []Router) {
 		})
 		return res
 	}
+	// 公共菜单栏
 	for _, initRouter := range menuInfo {
 		if initRouter.ID <= initNum && initRouter.Pid == 0 {
 			child, collapse := (&AuthGroupMenu{}).AppendChildRen(initRouter, menuInfo)
 			res = push(res, initRouter, child, collapse)
 		}
 	}
-	if user.IsSuper {
+	if user.IsSuper { // 超级拥有全部菜单栏
 		for _, sysMenu := range menuInfo {
 			if sysMenu.ID > initNum && sysMenu.Pid == 0 {
 				child, collapse := (&AuthGroupMenu{}).AppendChildRen(sysMenu, menuInfo)
 				res = push(res, sysMenu, child, collapse)
 			}
 		}
-	} else {
+	} else { // 根据用户组获取设置的菜单栏
 		for _, sysMenu := range menuInfo {
 			if sysMenu.ID > initNum && sysMenu.Pid == 0 && manageBusiness.InArray(menuArr, strconv.Itoa(int(sysMenu.ID))) {
-				child, collapse := (&AuthGroupMenu{}).AppendChildRen(sysMenu, menuInfo)
+				child, collapse := m.AppendChildRen(sysMenu, menuInfo)
 				res = push(res, sysMenu, child, collapse)
 			}
 		}
@@ -123,14 +124,23 @@ func (m *AuthGroupMenu) AppendChildRen(currentMenu Menu, menuMap []Menu) (res []
 		})
 		return res
 	}
+
 	for _, v := range menuMap {
-		if currentMenu.ID <= initNum && v.ID <= initNum && currentMenu.ID == uint(v.Pid) {
+		if currentMenu.ID <= initNum && v.ID <= initNum && currentMenu.ID == uint(v.Pid) { // 公共
 			res = push(res, v)
 			if v.Show == 1 {
 				collapse = true
 			}
 		} else if currentMenu.ID > initNum && v.ID > initNum && currentMenu.ID == uint(v.Pid) {
-			res = push(res, v)
+			if m.ID > 0 { // 代表不是超级管理员
+				menuRule := strings.Split(m.Menu, ",")
+				if manageBusiness.InArray(menuRule, strconv.Itoa(int(v.ID))) {
+					res = push(res, v)
+				}
+			} else {
+				res = push(res, v)
+			}
+
 			if v.Show == 1 {
 				collapse = true
 			}
