@@ -64,12 +64,15 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 	groups := []model.AuthUserGroup{}
 	(model.AuthUserGroup{}).All(&groups)
 
+	menu := (&model.AuthGroupMenu{GroupID: uint8(user.GroupID)}).GroupMenu(user)
+
 	web.ApiJSON(c, 200, "用户详情", user, map[string]interface{}{
 		"last":    t,
 		"systems": systems,
 		"groups":  groups,
 		"marks":   (model.AuthUserGroup{ID: user.GroupID}).GetMarks(),
-		"router":  (&model.AuthGroupMenu{GroupID: uint8(user.GroupID)}).GroupMenu(user),
+		"router":  (&model.AuthGroupMenu{}).MenuReg(menu),
+		"menu":    menu,
 	})
 }
 

@@ -55,6 +55,7 @@ func (m *AuthGroupMenu) Update() error {
 }
 
 type Router struct {
+	ID         uint     `json:"-"`
 	Name       string   `json:"name"`
 	Path       string   `json:"path"`
 	Url        string   `json:"url"`
@@ -66,6 +67,33 @@ type Router struct {
 	Children   []Router `json:"children"`
 }
 
+func (m *AuthGroupMenu) MenuReg(routers []Router) (res []Router) {
+	rMap := map[uint]bool{}
+	for _, r := range routers {
+		res = append(res, r)
+		rMap[r.ID] = true
+
+		if len(r.Children) > 0 {
+			for _, rc := range r.Children {
+				rMap[rc.ID] = true
+			}
+		}
+	}
+
+	menuInfo := (&Menu{}).All()
+	for _, info := range menuInfo {
+		if _, ok := rMap[m.ID]; !ok {
+			res = append(res, Router{
+				Name: info.Title,
+				Path: m.VuePath(info.Index),
+				Url:  m.VueUrl(false, info.Index),
+			})
+		}
+	}
+
+	return res
+}
+
 func (m *AuthGroupMenu) GroupMenu(user *AuthUser) (res []Router) {
 	menuInfo := (&Menu{}).All()
 
@@ -73,6 +101,7 @@ func (m *AuthGroupMenu) GroupMenu(user *AuthUser) (res []Router) {
 	menuArr := strings.Split(m.Menu, ",")
 	push := func(res []Router, v Menu, child []Router, collapse bool) []Router {
 		res = append(res, Router{
+			ID:         v.ID,
 			Name:       v.Title,
 			Path:       m.VuePath(v.Index),
 			Url:        m.VueUrl(v.Show == 1 && collapse, v.Index),
@@ -114,6 +143,7 @@ func (m *AuthGroupMenu) GroupMenu(user *AuthUser) (res []Router) {
 func (m *AuthGroupMenu) AppendChildRen(currentMenu Menu, menuMap []Menu) (res []Router, collapse bool) {
 	push := func(res []Router, v Menu) []Router {
 		res = append(res, Router{
+			ID:         v.ID,
 			Name:       v.Title,
 			Path:       m.VuePath(v.Index),
 			Url:        m.VueUrl(false, v.Index),

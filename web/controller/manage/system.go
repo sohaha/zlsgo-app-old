@@ -35,6 +35,9 @@ func (*System) GetLogs(c *znet.Context) {
 	}
 
 	logs := (&model.AuthUserLogs{Userid: userid, Type: uint8(qType), Status: uint8(qUnread)}).Lists(&p)
+	if logs == nil {
+		logs = []model.LogListsModel{}
+	}
 
 	c.ApiJSON(200, "用户日志", map[string]interface{}{
 		"items": logs,
