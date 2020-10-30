@@ -10,68 +10,12 @@ import (
 	"github.com/sohaha/zlsgo/zvalid"
 	"io/ioutil"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
 
 // 后台-系统接口
 type System struct {
-}
-
-// GetLogs 查看用户日志
-func (*System) GetLogs(c *znet.Context) {
-	pagesize, _ := strconv.Atoi(c.DefaultFormOrQuery("pagesize", "10"))
-	page, _ := strconv.Atoi(c.DefaultFormOrQuery("page", "1"))
-	qType, _ := strconv.Atoi(c.DefaultFormOrQuery("type", "0"))
-	qUnread, _ := strconv.Atoi(c.DefaultFormOrQuery("unread", "0"))
-
-	u, _ := c.Value("user")
-	userid := u.(*model.AuthUser).ID
-
-	p := model.Page{
-		Curpage:  uint(page),
-		Pagesize: uint(pagesize),
-	}
-
-	logs := (&model.AuthUserLogs{Userid: userid, Type: uint8(qType), Status: uint8(qUnread)}).Lists(&p)
-	if logs == nil {
-		logs = []model.LogListsModel{}
-	}
-
-	c.ApiJSON(200, "用户日志", map[string]interface{}{
-		"items": logs,
-		"page":  p,
-	})
-}
-
-// GetUnreadMessageCount 未读日志总数
-func (*System) GetUnreadMessageCount(c *znet.Context) {
-	lastId, _ := strconv.Atoi(c.DefaultFormOrQuery("id", "0"))
-
-	u, _ := c.Value("user")
-	userid := u.(*model.AuthUser).ID
-
-	c.ApiJSON(200, "未读日志", (&model.AuthUserLogs{Userid: userid, ID: uint(lastId)}).UnreadMessageCount())
-	return
-}
-
-// PutMessageStatus 更新日志状态
-func (*System) PutMessageStatus(c *znet.Context) {
-	idsMap, _ := c.GetPostFormMap("ids")
-
-	u, _ := c.Value("user")
-	uid := u.(*model.AuthUser).ID
-
-	ids := []int{}
-	for _, v := range idsMap {
-		i, _ := strconv.Atoi(v)
-		ids = append(ids, i)
-	}
-
-	count := (&model.AuthUserLogs{Userid: uid}).UpdateMessageStatus(ids)
-	c.ApiJSON(200, "日志标记已读", count)
-	return
 }
 
 // GetSystemLogs 系统日志

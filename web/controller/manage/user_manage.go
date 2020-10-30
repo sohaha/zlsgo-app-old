@@ -45,7 +45,7 @@ func (*UserManage) GetUserLists(c *znet.Context) {
 
 // PostUser 创建用户
 func (*UserManage) PostUser(c *znet.Context) {
-	if !VerifPermissionMark(c, "system") {
+	if !VerifPermissionMark(c, "systems") {
 		return
 	}
 
@@ -88,7 +88,7 @@ func (*UserManage) PostUser(c *znet.Context) {
 // php上传参格式 x-www-form-urlencoded
 // go上传参格式 form-data
 func (*UserManage) DeleteUser(c *znet.Context) {
-	if !VerifPermissionMark(c, "system") {
+	if !VerifPermissionMark(c, "systems") {
 		return
 	}
 
@@ -128,7 +128,7 @@ func (*UserManage) DeleteUser(c *znet.Context) {
 
 // GetGroups 获取角色列表
 func (*UserManage) GetGroups(c *znet.Context) {
-	if !VerifPermissionMark(c, "system") {
+	if !VerifPermissionMark(c, "systems") {
 		return
 	}
 
@@ -141,7 +141,7 @@ func (*UserManage) GetGroups(c *znet.Context) {
 
 // GetGroupInfo 获取角色详情
 func (*UserManage) GetGroupInfo(c *znet.Context) {
-	if !VerifPermissionMark(c, "system") {
+	if !VerifPermissionMark(c, "systems") {
 		return
 	}
 
@@ -164,7 +164,7 @@ func (*UserManage) GetGroupInfo(c *znet.Context) {
 
 // PostGroups 创建角色
 func (*UserManage) PostGroups(c *znet.Context) {
-	if !VerifPermissionMark(c, "system") {
+	if !VerifPermissionMark(c, "systems") {
 		return
 	}
 
@@ -211,7 +211,7 @@ func (*UserManage) PostGroups(c *znet.Context) {
 
 // PutGroups 更新角色
 func (*UserManage) PutGroups(c *znet.Context) {
-	if !VerifPermissionMark(c, "system") {
+	if !VerifPermissionMark(c, "systems") {
 		return
 	}
 
@@ -263,7 +263,7 @@ func (*UserManage) PutGroups(c *znet.Context) {
 
 // DeleteGroups 删除角色
 func (*UserManage) DeleteGroups(c *znet.Context) {
-	if !VerifPermissionMark(c, "system") {
+	if !VerifPermissionMark(c, "systems") {
 		return
 	}
 
@@ -273,7 +273,7 @@ func (*UserManage) DeleteGroups(c *znet.Context) {
 
 // GetRules 获取权限规则列表
 func (*UserManage) GetRules(c *znet.Context) {
-	if !VerifPermissionMark(c, "system") {
+	if !VerifPermissionMark(c, "systems") {
 		return
 	}
 
@@ -298,7 +298,7 @@ func (*UserManage) GetRules(c *znet.Context) {
 
 // PostRules 添加权限规则
 func (*UserManage) PostRules(c *znet.Context) {
-	if !VerifPermissionMark(c, "system") {
+	if !VerifPermissionMark(c, "systems") {
 		return
 	}
 
@@ -365,7 +365,7 @@ func (*UserManage) PostRules(c *znet.Context) {
 
 // PutRules 编辑权限规则
 func (*UserManage) PutRules(c *znet.Context) {
-	if !VerifPermissionMark(c, "system") {
+	if !VerifPermissionMark(c, "systems") {
 		return
 	}
 
@@ -432,7 +432,7 @@ func (*UserManage) PutRules(c *znet.Context) {
 
 // DeleteRules 删除权限规则
 func (*UserManage) DeleteRules(c *znet.Context) {
-	if !VerifPermissionMark(c, "system") {
+	if !VerifPermissionMark(c, "systems") {
 		return
 	}
 
@@ -453,7 +453,7 @@ func (*UserManage) DeleteRules(c *znet.Context) {
 
 // PutUpdateUserRuleStatus 更新用户规则权限
 func (*UserManage) PutUpdateUserRuleStatus(c *znet.Context) {
-	if !VerifPermissionMark(c, "system") {
+	if !VerifPermissionMark(c, "systems") {
 		return
 	}
 
