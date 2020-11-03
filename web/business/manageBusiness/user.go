@@ -71,6 +71,10 @@ func MvAvatar(path string, filename string) (newPath string, err error) {
 
 	newAva := completePath + filename
 
+	if has := strings.HasPrefix(path, "/"); has {
+		path = path[1:]
+	}
+
 	err = os.Rename(zfile.RealPath(path), newAva)
 	if err != nil {
 		return path, nil
