@@ -100,11 +100,13 @@ func Authority() func(c *znet.Context) {
 
 		if t != "" {
 			idx := strings.Index(t, "_")
-			tokenID, _ := strconv.Atoi(t[0:idx])
+			if idx >= 0 {
+				tokenID, _ := strconv.Atoi(t[0:idx])
 
-			token.ID = uint(tokenID)
-			token.Token = t[idx+1:]
-			user.TokenToInfo(token)
+				token.ID = uint(tokenID)
+				token.Token = t[idx+1:]
+				user.TokenToInfo(token)
+			}
 			// 后期可以考虑把用户信息缓存
 		}
 
