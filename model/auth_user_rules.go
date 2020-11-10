@@ -52,8 +52,8 @@ func (*migrate) CreateAuthUserRules() {
 				}, {
 					Title:  "新用户权限",
 					Type:   1,
-					Remark: "用户最基础权限",
-					Mark:   "/ZlsManage/UserManageApi/UserLists\n/ZlsManage/UserApi/Logs\n/ZlsManage/UserApi/EditPassword",
+					Remark: "用户信息\n用户列表\n用户日志\n修改密码\n未读日志",
+					Mark:   "/ZlsManage/UserApi/UseriInfo\n/ZlsManage/UserManageApi/UserLists\n/ZlsManage/UserApi/Logs\n/ZlsManage/UserApi/EditPassword\n/ZlsManage/UserApi/UnreadMessageCount",
 				}, {
 					Title:  "菜单权限",
 					Type:   1,

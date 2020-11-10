@@ -172,6 +172,10 @@ func (g *AuthUserGroup) Save() error {
 		if res := db.Create(&g); res.RowsAffected == 0 {
 			return errors.New("保存失败")
 		}
+
+		if r2 := db.Create(&AuthUserRulesRela{RuleID: 4, GroupID: g.ID}); r2.RowsAffected == 0 {
+			return errors.New("保存失败")
+		}
 	} else {
 		res := db.Model(&g).Select([]string{"name", "remark", "update_time"}).Updates(g)
 		if res.RowsAffected == 0 {
