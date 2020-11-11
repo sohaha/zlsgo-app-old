@@ -18,8 +18,6 @@ type AuthGroupMenu struct {
 	DeletedAt gorm.DeletedAt `gorm:"type:datetime(0);index;" json:"-"`
 }
 
-var initNum uint = 3
-
 func (*migrate) CreateAuthGroupMenu() {
 	migrateData = append(migrateData, func() (string, func(db *gorm.DB) error) {
 		return "CreateAuthGroupMenu", func(db *gorm.DB) error {
@@ -63,125 +61,64 @@ type Router struct {
 	Breadcrumb bool     `json:"breadcrumb"`
 	Real       bool     `json:"real"`
 	Show       bool     `json:"show"`
+	Has        bool     `json:"has"`
 	Collapse   bool     `json:"collapse"`
 	Children   []Router `json:"children"`
 }
 
-func (m *AuthGroupMenu) MenuReg(routers []Router) (res []Router) {
-	rMap := map[uint]bool{}
-	for _, r := range routers {
-		res = append(res, r)
-		rMap[r.ID] = true
-
-		if len(r.Children) > 0 {
-			for _, rc := range r.Children {
-				rMap[rc.ID] = true
-			}
-		}
+func (m *AuthGroupMenu) conv(menu Menu) Router {
+	return Router{
+		Name: menu.Title,
+		Path: m.VuePath(menu.Index),
+		// Url:        m.VueUrl(manageBusiness.InArray(strings.Split(m.Menu, ","), strconv.Itoa(int(menu.ID))), menu.Index),
+		Url:        m.VueUrl(true, menu.Index),
+		Icon:       menu.Icon,
+		Breadcrumb: menu.Breadcrumb == 1,
+		Real:       menu.Real == 1,
+		Show:       menu.Show == 1,
+		Has:        manageBusiness.InArray(append(strings.Split(m.Menu, ","), "1", "2", "3", "4"), strconv.Itoa(int(menu.ID))),
+		Collapse:   false,
+		Children:   []Router{},
 	}
-
-	menuInfo := (&Menu{}).All()
-	for _, info := range menuInfo {
-		if _, ok := rMap[m.ID]; !ok {
-			res = append(res, Router{
-				Name: info.Title,
-				Path: m.VuePath(info.Index),
-				Url:  m.VueUrl(false, info.Index),
-			})
-		}
-	}
-
-	return res
 }
 
-func (m *AuthGroupMenu) GroupMenu(user *AuthUser) (res []Router) {
-	menuInfo := (&Menu{}).All()
+func (m *AuthGroupMenu) getChild(menu Menu, menus []Menu) []Router {
+	re := make([]Router, 0)
+	for _, v := range menus {
+		if v.Pid == uint8(menu.ID) {
+			re = append(re, m.conv(v))
+		}
+	}
 
+	return re
+}
+
+func (m *AuthGroupMenu) MenuInfo() (re []Router) {
+	menuInfo := (&Menu{}).All()
 	db.Where("groupid = ?", m.GroupID).Find(&m)
-	menuArr := strings.Split(m.Menu, ",")
-	push := func(res []Router, v Menu, child []Router, collapse bool) []Router {
-		res = append(res, Router{
-			ID:         v.ID,
-			Name:       v.Title,
-			Path:       m.VuePath(v.Index),
-			Url:        m.VueUrl(v.Show == 1 && collapse, v.Index),
-			Icon:       v.Icon,
-			Breadcrumb: v.Breadcrumb == 1,
-			Real:       v.Real == 1,
-			Show:       v.Show == 1,
-			Collapse:   collapse,
-			Children:   child,
-		})
-		return res
-	}
-	// 公共菜单栏
-	for _, initRouter := range menuInfo {
-		if initRouter.ID <= initNum && initRouter.Pid == 0 {
-			child, collapse := (&AuthGroupMenu{}).AppendChildRen(initRouter, menuInfo)
-			res = push(res, initRouter, child, collapse)
-		}
-	}
-	if user.IsSuper { // 超级拥有全部菜单栏
-		for _, sysMenu := range menuInfo {
-			if sysMenu.ID > initNum && sysMenu.Pid == 0 {
-				child, collapse := (&AuthGroupMenu{}).AppendChildRen(sysMenu, menuInfo)
-				res = push(res, sysMenu, child, collapse)
-			}
-		}
-	} else { // 根据用户组获取设置的菜单栏
-		for _, sysMenu := range menuInfo {
-			if sysMenu.ID > initNum && sysMenu.Pid == 0 && manageBusiness.InArray(menuArr, strconv.Itoa(int(sysMenu.ID))) {
-				child, collapse := m.AppendChildRen(sysMenu, menuInfo)
-				res = push(res, sysMenu, child, collapse)
-			}
-		}
-	}
 
-	return res
-}
-
-func (m *AuthGroupMenu) AppendChildRen(currentMenu Menu, menuMap []Menu) (res []Router, collapse bool) {
-	push := func(res []Router, v Menu) []Router {
-		res = append(res, Router{
-			ID:         v.ID,
-			Name:       v.Title,
-			Path:       m.VuePath(v.Index),
-			Url:        m.VueUrl(false, v.Index),
-			Icon:       v.Icon,
-			Breadcrumb: v.Breadcrumb == 1,
-			Real:       v.Real == 1,
-			Show:       v.Show == 1,
-		})
-		return res
-	}
-
-	for _, v := range menuMap {
-		if currentMenu.ID <= initNum && v.ID <= initNum && currentMenu.ID == uint(v.Pid) { // 公共
-			res = push(res, v)
-			if v.Show == 1 {
-				collapse = true
-			}
-		} else if currentMenu.ID > initNum && v.ID > initNum && currentMenu.ID == uint(v.Pid) {
-			if m.ID > 0 { // 代表不是超级管理员
-				menuRule := strings.Split(m.Menu, ",")
-				if manageBusiness.InArray(menuRule, strconv.Itoa(int(v.ID))) {
-					res = push(res, v)
+	for _, menu := range menuInfo {
+		if menu.Pid == 0 {
+			r := m.conv(menu)
+			r.Children = m.getChild(menu, menuInfo)
+			for _, mm := range r.Children {
+				if mm.Show {
+					r.Collapse = true
 				}
-			} else {
-				res = push(res, v)
+			}
+			if r.Collapse {
+				r.Url = ""
 			}
 
-			if v.Show == 1 {
-				collapse = true
-			}
+			re = append(re, r)
 		}
 	}
 
-	return res, collapse
+	return re
 }
 
 func (m *AuthGroupMenu) VueUrl(show bool, url string) string {
-	if show {
+	if !show {
 		return ""
 	}
 	return "pages/main/" + url + ".vue"

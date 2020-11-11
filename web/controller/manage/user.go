@@ -65,15 +65,14 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 	groups := []model.AuthUserGroup{}
 	(model.AuthUserGroup{}).All(&groups)
 
-	menu := (&model.AuthGroupMenu{GroupID: uint8(user.GroupID)}).GroupMenu(user)
+	menu := (&model.AuthGroupMenu{GroupID: uint8(user.GroupID)}).MenuInfo()
 
 	web.ApiJSON(c, 200, "用户详情", user, map[string]interface{}{
-		"last":   t,
-		"system": systems,
-		"groups": groups,
-		"marks":  (model.AuthUserGroup{ID: user.GroupID}).GetMarks(),
-		"router": (&model.AuthGroupMenu{}).MenuReg(menu),
-		"menu":   menu,
+		"last":    t,
+		"systems": systems,
+		"groups":  groups,
+		"marks":   (model.AuthUserGroup{ID: user.GroupID}).GetMarks(),
+		"menu":    menu,
 	})
 }
 
@@ -233,7 +232,9 @@ func (*Basic) GetUnreadMessageCount(c *znet.Context) { // 原systemApi
 	u, _ := c.Value("user")
 	userid := u.(*model.AuthUser).ID
 
-	c.ApiJSON(200, "未读日志", (&model.AuthUserLogs{Userid: userid, ID: uint(lastId)}).UnreadMessageCount())
+	c.ApiJSON(200, "未读日志", map[string]interface{}{
+		"count": (&model.AuthUserLogs{Userid: userid, ID: uint(lastId)}).UnreadMessageCount(),
+	})
 	return
 }
 
