@@ -76,7 +76,7 @@ func (m *AuthGroupMenu) conv(menu Menu) Router {
 		Breadcrumb: menu.Breadcrumb == 1,
 		Real:       menu.Real == 1,
 		Show:       menu.Show == 1,
-		Has:        manageBusiness.InArray(append(strings.Split(m.Menu, ","), "1", "2", "3", "4"), strconv.Itoa(int(menu.ID))),
+		Has:        manageBusiness.InArray(append(strings.Split(m.Menu, ","), "1", "2", "3", "4", "7"), strconv.Itoa(int(menu.ID))),
 		Collapse:   false,
 		Children:   []Router{},
 	}
