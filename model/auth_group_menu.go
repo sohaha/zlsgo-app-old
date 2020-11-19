@@ -121,7 +121,12 @@ func (m *AuthGroupMenu) VueUrl(show bool, url string) string {
 	if !show {
 		return ""
 	}
-	return "pages/main/" + url + ".vue"
+
+	if url == "main" {
+		return "pages/main/" + url + ".vue"
+	}
+
+	return "pages/" + url + ".vue"
 }
 
 func (m *AuthGroupMenu) VuePath(path string) string {
