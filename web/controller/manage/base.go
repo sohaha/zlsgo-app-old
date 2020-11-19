@@ -105,7 +105,10 @@ func Authority() func(c *znet.Context) {
 
 				token.ID = uint(tokenID)
 				token.Token = t[idx+1:]
-				user.TokenToInfo(token)
+				if err := user.TokenToInfo(token); err != nil {
+					c.ApiJSON(401, err.Error(), nil)
+					return
+				}
 			}
 			// 后期可以考虑把用户信息缓存
 		}

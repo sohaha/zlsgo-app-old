@@ -157,7 +157,7 @@ func (u *AuthUser) UserExist() (bool, error) {
 	return Exist(context.Background(), db.Where("username = ?", where.Username).Or("email = ?", where.Email).Model(&where))
 }
 
-func (u *AuthUser) TokenToInfo(t *AuthUserToken) {
+func (u *AuthUser) TokenToInfo(t *AuthUserToken) error {
 	t.Status = 1
 	db.Where(t).Limit(1).Find(&t)
 
@@ -166,7 +166,7 @@ func (u *AuthUser) TokenToInfo(t *AuthUserToken) {
 	nowTime, _ := ztime.Parse(ztime.Now("Y-m-d H:i:s"))
 	if flag := nowTime.Before(lastTime.Add(1 * h)); !flag { // 接口有效时间
 		db.Model(&t).Select("status", "update_time").Updates(AuthUserToken{Status: TOKEN_DISABLED}) // 让token过期
-		return
+		return errors.New("登录过期，请重新登录")
 	}
 
 	if t.Userid != 0 {
@@ -177,6 +177,8 @@ func (u *AuthUser) TokenToInfo(t *AuthUserToken) {
 
 		db.Where(&AuthUser{ID: t.Userid}).Limit(0).Find(&u)
 	}
+
+	return nil
 }
 
 func (u *AuthUser) Login(ip string, ua string) (string, uint, error) {
