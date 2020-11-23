@@ -63,7 +63,7 @@ func FindPage(ctx context.Context, db *gorm.DB, pp *Page, itmes interface{}) (in
 	if curpage == 0 {
 		curpage = 1
 	}
-	err := db.Count(&total).Error
+	err := db.WithContext(ctx).Count(&total).Error
 	pp.Total = uint(total)
 	pp.Count = uint(math.Ceil(float64(total) / float64(pageSize)))
 	if err != nil {

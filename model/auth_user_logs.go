@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sohaha/zlsgo/znet"
+	"github.com/sohaha/zlsgo/zstring"
 	"gorm.io/gorm"
 )
 
@@ -71,20 +72,23 @@ type LogListsModel struct {
 }
 
 func (c *AuthUserLogs) Lists(pp *Page) (logs []LogListsModel) {
-	wCond := " 1 = 1"
+	au := db.NamingStrategy.TableName("auth_user")
+	aul := db.NamingStrategy.TableName("auth_user_logs")
+
+	wCond := zstring.Buffer()
 	wParams := make([]interface{}, 0)
-	wCond += " and auth_user_logs.`userid` = ?"
+	wCond.WriteString(" auth_user_logs.`userid` = ?")
 	wParams = append(wParams, c.Userid)
 	if c.Type > 0 {
-		wCond += " and auth_user_logs.`type` = ?"
+		wCond.WriteString(" and auth_user_logs.`type` = ?")
 		wParams = append(wParams, c.Type)
 	}
 	if c.Status > 0 {
-		wCond += " and auth_user_logs.`status` = ?"
+		wCond.WriteString(" and auth_user_logs.`status` = ?")
 		wParams = append(wParams, LOG_STATUS_NOT)
 	}
 
-	_, _ = FindPage(context.Background(), db.Model(c).Select("auth_user_logs.*", "auth_user.username as username").Where(wCond, wParams...).Joins("LEFT JOIN auth_user ON auth_user.id = auth_user_logs.operate_id").Order("auth_user_logs.id desc"), pp, &logs)
+	_, _ = FindPage(context.Background(), db.Model(c).Select(aul+".*", au+".username as username").Where(wCond.String(), wParams...).Joins("LEFT JOIN "+au+" ON auth_user.id = "+aul+".operate_id").Order(aul+".id desc"), pp, &logs)
 	return
 }
 
