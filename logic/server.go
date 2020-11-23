@@ -2,8 +2,6 @@ package logic
 
 import (
 	"runtime"
-	
-	"github.com/sohaha/zlsgo/zfile"
 )
 
 func GetServerInfo() map[string]interface{} {
