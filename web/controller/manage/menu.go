@@ -14,6 +14,10 @@ type Menu struct {
 
 // PostUserMenu 获取全部菜单
 func (*Menu) PostUserMenu(c *znet.Context) {
+	if !VerifPermissionMark(c, "systems") {
+		return
+	}
+
 	groupid, _ := strconv.Atoi(c.DefaultFormOrQuery("groupid", "0"))
 
 	c.ApiJSON(200, "请求成功", (&model.Menu{}).Lists(uint8(groupid)))
@@ -22,6 +26,10 @@ func (*Menu) PostUserMenu(c *znet.Context) {
 
 // PostCreate 新增菜单
 func (*Menu) PostCreate(c *znet.Context) {
+	if !VerifPermissionMark(c, "systems") {
+		return
+	}
+
 	var postParam struct {
 		Title      string `json:"title"`
 		Index      string `json:"index"`
@@ -70,6 +78,10 @@ func (*Menu) PostCreate(c *znet.Context) {
 
 // PostDelete 删除菜单
 func (*Menu) PostDelete(c *znet.Context) {
+	if !VerifPermissionMark(c, "systems") {
+		return
+	}
+
 	id, _ := strconv.Atoi(c.DefaultFormOrQuery("id", "0"))
 	if id == 0 {
 		c.ApiJSON(211, "菜单id不允许为空", nil)
@@ -93,6 +105,10 @@ func (*Menu) PostDelete(c *znet.Context) {
 
 // PostUpdate 更新菜单
 func (*Menu) PostUpdate(c *znet.Context) {
+	if !VerifPermissionMark(c, "systems") {
+		return
+	}
+
 	var postParam struct {
 		ID         int    `json:"id"`
 		Title      string `json:"title"`
@@ -134,6 +150,10 @@ func (*Menu) PostUpdate(c *znet.Context) {
 
 // PostSort 菜单拖拽排序(支持多次拖拽一起排)
 func (*Menu) PostSort(c *znet.Context) {
+	if !VerifPermissionMark(c, "systems") {
+		return
+	}
+
 	menu := c.DefaultFormOrQuery("menu", "")
 	var postSortMap model.PostSortSt
 	json.Unmarshal([]byte(menu), &postSortMap)
@@ -149,6 +169,10 @@ func (*Menu) PostSort(c *znet.Context) {
 
 // PostUpdateGroupMenu 角色菜单更新
 func (*Menu) PostUpdateGroupMenu(c *znet.Context) {
+	if !VerifPermissionMark(c, "systems") {
+		return
+	}
+	
 	var postParam struct {
 		GroupID int    `json:"groupid"`
 		Menu    string `json:"menu"`

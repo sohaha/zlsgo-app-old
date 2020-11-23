@@ -66,7 +66,11 @@ type Router struct {
 	Children   []Router `json:"children"`
 }
 
-func (m *AuthGroupMenu) conv(menu Menu) Router {
+func (m *AuthGroupMenu) conv(menu Menu, user *AuthUser) Router {
+	has := manageBusiness.InArray(append(strings.Split(m.Menu, ","), "1", "2", "3", "7"), strconv.Itoa(int(menu.ID)))
+	if user.IsSuper {
+		has = true
+	}
 	return Router{
 		Name: menu.Title,
 		Path: m.VuePath(menu.Index),
@@ -75,32 +79,32 @@ func (m *AuthGroupMenu) conv(menu Menu) Router {
 		Icon:       menu.Icon,
 		Breadcrumb: menu.Breadcrumb == 1,
 		Real:       menu.Real == 1,
-		Show:       menu.Show == 1,
-		Has:        manageBusiness.InArray(append(strings.Split(m.Menu, ","), "1", "2", "3", "4", "7"), strconv.Itoa(int(menu.ID))),
+		Show:       menu.Show == 1 && has,
+		Has:        has,
 		Collapse:   false,
 		Children:   []Router{},
 	}
 }
 
-func (m *AuthGroupMenu) getChild(menu Menu, menus []Menu) []Router {
+func (m *AuthGroupMenu) getChild(menu Menu, menus []Menu, user *AuthUser) []Router {
 	re := make([]Router, 0)
 	for _, v := range menus {
 		if v.Pid == uint8(menu.ID) {
-			re = append(re, m.conv(v))
+			re = append(re, m.conv(v, user))
 		}
 	}
 
 	return re
 }
 
-func (m *AuthGroupMenu) MenuInfo() (re []Router) {
+func (m *AuthGroupMenu) MenuInfo(user *AuthUser) (re []Router) {
 	menuInfo := (&Menu{}).All()
 	db.Where("groupid = ?", m.GroupID).Find(&m)
 
 	for _, menu := range menuInfo {
 		if menu.Pid == 0 {
-			r := m.conv(menu)
-			r.Children = m.getChild(menu, menuInfo)
+			r := m.conv(menu, user)
+			r.Children = m.getChild(menu, menuInfo, user)
 			for _, mm := range r.Children {
 				if mm.Show {
 					r.Collapse = true

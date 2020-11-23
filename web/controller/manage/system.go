@@ -182,7 +182,7 @@ func (*System) PutSystemConfig(c *znet.Context) {
 
 	if paramPutSystemConfigSt.LoginMode {
 		t, _ := c.Value("token")
-		t.(*model.AuthUserToken).LoginModeTrue()
+		_ = t.(*model.AuthUserToken).LoginModeTrue()
 	}
 
 	c.ApiJSON(200, "更新系统配置", true)

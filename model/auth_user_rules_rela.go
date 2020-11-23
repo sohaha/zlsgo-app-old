@@ -40,14 +40,6 @@ func (*migrate) CreateAuthUserRulesRela() {
 					RuleID:  3,
 					GroupID: 1,
 					Status:  1,
-				}, {
-					RuleID:  3,
-					GroupID: 2,
-					Status:  1,
-				}, {
-					RuleID:  4,
-					GroupID: 2,
-					Status:  1,
 				},
 			}
 			db.Create(data)

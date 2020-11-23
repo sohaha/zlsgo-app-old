@@ -78,8 +78,19 @@ func VerifPermissionMark(c *znet.Context, mark string, disable ...bool) (adopt b
 func Authority() func(c *znet.Context) {
 	ignoreRules := &model.RuleCollation{
 		AdoptRoute: map[string][]string{
-			"POST": {"/ZlsManage/UserApi/GetToken.go", "/ZlsManage/UserApi/ClearToken.go"},
-			"GET":  {"/ZlsManage/SystemApi/Logs.go", "/ZlsManage/SystemApi/UnreadMessageCount.go"},
+			"PUT": {
+				"/ZlsManage/UserApi/EditPassword.go",
+			},
+			"POST": {
+				"/ZlsManage/UserApi/GetToken.go",
+				"/ZlsManage/UserApi/ClearToken.go",
+			},
+			"GET": {
+				"/ZlsManage/UserApi/UnreadMessageCount.go",
+				"/ZlsManage/UserApi/UseriInfo.go",
+				"/ZlsManage/UserManageApi/UserLists.go",
+				"/ZlsManage/UserApi/Logs.go",
+			},
 		},
 	}
 	return func(c *znet.Context) {
@@ -137,6 +148,22 @@ func Authority() func(c *znet.Context) {
 			return
 		}
 		ruleMarks = currentRule.Marks
+
+		if user.GroupID == GROUP_ADMIN && VerifRoutingPermission(path, method, &model.RuleCollation{
+			AdoptRoute: map[string][]string{
+				"GET": {
+					"/ZlsManage/SystemApi/SystemConfig.go",
+					"/ZlsManage/SystemApi/SystemLogs.go",
+				},
+				"POST": {
+					"/ZlsManage/MenuApi/UserMenu.go",
+				},
+			},
+		}) {
+			c.Next()
+			return
+		}
+
 		if !VerifRoutingPermission(path, method, currentRule) {
 			c.ApiJSON(403, "对不起，权限不足", nil)
 			return

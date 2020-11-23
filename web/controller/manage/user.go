@@ -65,7 +65,7 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 	groups := []model.AuthUserGroup{}
 	(model.AuthUserGroup{}).All(&groups)
 
-	menu := (&model.AuthGroupMenu{GroupID: uint8(user.GroupID)}).MenuInfo()
+	menu := (&model.AuthGroupMenu{GroupID: uint8(user.GroupID)}).MenuInfo(user)
 
 	web.ApiJSON(c, 200, "用户详情", user, map[string]interface{}{
 		"last":    t,
