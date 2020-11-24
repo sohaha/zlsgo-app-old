@@ -30,7 +30,9 @@ func main() {
 	zcli.Version = "1.0.0"
 	zcli.Lang = "zh"
 	zcli.SetLangText("zh", "init", "生成配置")
+	zcli.SetLangText("zh", "passwd", "重置密码")
 	zcli.Add("init", zcli.GetLangText("init", "Init config file"), &InitCli{})
+	zcli.Add("passwd", zcli.GetLangText("passwd", "Change admin password"), &passwdCli{})
 
 	err := zcli.LaunchServiceRun(zcli.Name, "", run)
 	zutil.CheckErr(err, true)
