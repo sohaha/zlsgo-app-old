@@ -53,37 +53,44 @@ func (m *AuthGroupMenu) Update() error {
 }
 
 type Router struct {
-	ID         uint     `json:"-"`
-	Name       string   `json:"name"`
-	Path       string   `json:"path"`
-	Url        string   `json:"url"`
-	Icon       string   `json:"icon"`
-	Breadcrumb bool     `json:"breadcrumb"`
-	Real       bool     `json:"real"`
-	Show       bool     `json:"show"`
-	Has        bool     `json:"has"`
-	Collapse   bool     `json:"collapse"`
-	Children   []Router `json:"children"`
+	ID   uint   `json:"-"`
+	Name string `json:"name"`
+	Path string `json:"path"`
+	Url  string `json:"url"`
+	Icon string `json:"icon"`
+	Meta struct {
+		Breadcrumb bool `json:"breadcrumb"`
+		Real       bool `json:"real"`
+		Show       bool `json:"show"`
+		Has        bool `json:"has"`
+		Collapse   bool `json:"collapse"`
+	} `json:"meta"`
+	Children []Router `json:"children"`
 }
 
-func (m *AuthGroupMenu) conv(menu Menu, user *AuthUser) Router {
-	has := manageBusiness.InArray(append(strings.Split(m.Menu, ","), "1", "2", "3", "7"), strconv.Itoa(int(menu.ID)))
+func (m *AuthGroupMenu) conv(menu Menu, user *AuthUser) (r Router) {
+	show := manageBusiness.InArray(append(strings.Split(m.Menu, ","), "1"), strconv.Itoa(int(menu.ID)))
+	has := manageBusiness.InArray(append(strings.Split(m.Menu, ","), "1", "2", "7"), strconv.Itoa(int(menu.ID)))
 	if user.IsSuper {
 		has = true
+		show = true
 	}
-	return Router{
+
+	r = Router{
 		Name: menu.Title,
 		Path: m.VuePath(menu.Index),
 		// Url:        m.VueUrl(manageBusiness.InArray(strings.Split(m.Menu, ","), strconv.Itoa(int(menu.ID))), menu.Index),
-		Url:        m.VueUrl(true, menu.Index),
-		Icon:       menu.Icon,
-		Breadcrumb: menu.Breadcrumb == 1,
-		Real:       menu.Real == 1,
-		Show:       menu.Show == 1 && has,
-		Has:        has,
-		Collapse:   false,
-		Children:   []Router{},
+		Url:      m.VueUrl(true, menu.Index),
+		Icon:     menu.Icon,
+		Children: []Router{},
 	}
+	r.Meta.Breadcrumb = menu.Breadcrumb == 1
+	r.Meta.Real = menu.Real == 1
+	r.Meta.Show = menu.Show == 1 && show
+	r.Meta.Has = has
+	r.Meta.Collapse = false
+
+	return
 }
 
 func (m *AuthGroupMenu) getChild(menu Menu, menus []Menu, user *AuthUser) []Router {
@@ -106,12 +113,13 @@ func (m *AuthGroupMenu) MenuInfo(user *AuthUser) (re []Router) {
 			r := m.conv(menu, user)
 			r.Children = m.getChild(menu, menuInfo, user)
 			for _, mm := range r.Children {
-				if mm.Show {
-					r.Collapse = true
+				if mm.Meta.Show {
+					r.Meta.Collapse = true
 				}
-			}
-			if r.Collapse {
-				r.Url = ""
+
+				if mm.Meta.Has && r.Name != "后台中心" {
+					r.Url = ""
+				}
 			}
 
 			re = append(re, r)
