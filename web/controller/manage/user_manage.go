@@ -31,7 +31,14 @@ func (*UserManage) GetUserLists(c *znet.Context) {
 	if u, ok := c.Value("user"); ok {
 		user = u.(*model.AuthUser)
 	}
-	if !user.IsSuper && user.GroupID != GROUP_ADMIN{
+
+	groupsHas1 := false
+	for _, groupID := range user.GroupID {
+		if groupID == 1 {
+			groupsHas1 = true
+		}
+	}
+	if !user.IsSuper && !groupsHas1 {
 		authUserQuery.ID = user.ID
 	}
 	users := authUserQuery.Lists(&p)
@@ -73,6 +80,14 @@ func (*UserManage) PostUser(c *znet.Context) {
 	if err != nil {
 		c.ApiJSON(211, err.Error(), nil)
 		return
+	}
+
+	//re get group_id => arr
+	groupIdKV := c.PostFormMap("group_id")
+	for _, groupID := range groupIdKV {
+		if g, err := strconv.Atoi(groupID); err == nil {
+			user.GroupID = append(user.GroupID, uint(g))
+		}
 	}
 
 	err = (&user).Insert(user.Password)

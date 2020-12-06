@@ -141,7 +141,16 @@ func Authority() func(c *znet.Context) {
 		}
 
 		// 获取角色的规则
-		currentRule := (&model.AuthUserGroup{Status: 1, ID: user.GroupID}).GetRuleCollation()
+		currentRule := &model.RuleCollation{
+			AdoptRoute:     map[string][]string{},
+			InterceptRoute: map[string][]string{},
+			Marks:          []string{},
+		}
+		for _, groupID := range user.GroupID {
+			currentRule = (&model.AuthUserGroup{Status: 1, ID: groupID}).GetRuleCollation(currentRule)
+		}
+
+		//currentRule := (&model.AuthUserGroup{Status: 1, ID: user.GroupID}).GetRuleCollation()
 		if currentRule == nil {
 			// 没有对应的权限规则，禁止访问
 			c.ApiJSON(403, "请先为当前用户设置权限", nil)
@@ -149,19 +158,21 @@ func Authority() func(c *znet.Context) {
 		}
 		ruleMarks = currentRule.Marks
 
-		if user.GroupID == GROUP_ADMIN && VerifRoutingPermission(path, method, &model.RuleCollation{
-			AdoptRoute: map[string][]string{
-				"GET": {
-					"/ZlsManage/SystemApi/SystemConfig.go",
-					"/ZlsManage/SystemApi/SystemLogs.go",
+		for _, groupID := range user.GroupID {
+			if groupID == GROUP_ADMIN && VerifRoutingPermission(path, method, &model.RuleCollation{
+				AdoptRoute: map[string][]string{
+					"GET": {
+						"/ZlsManage/SystemApi/SystemConfig.go",
+						"/ZlsManage/SystemApi/SystemLogs.go",
+					},
+					"POST": {
+						"/ZlsManage/MenuApi/UserMenu.go",
+					},
 				},
-				"POST": {
-					"/ZlsManage/MenuApi/UserMenu.go",
-				},
-			},
-		}) {
-			c.Next()
-			return
+			}) {
+				c.Next()
+				return
+			}
 		}
 
 		if !VerifRoutingPermission(path, method, currentRule) {

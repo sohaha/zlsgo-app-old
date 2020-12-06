@@ -4,17 +4,25 @@ import (
 	"app/web/business/manageBusiness"
 	"context"
 	"crypto/md5"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"github.com/sohaha/zlsgo/znet"
+	"github.com/sohaha/zlsgo/zstring"
 	"github.com/sohaha/zlsgo/ztime"
 	"github.com/sohaha/zlsgo/ztype"
 	"github.com/sohaha/zlsgo/zvalid"
 	"gorm.io/gorm"
+	"strconv"
+	"strings"
 	"time"
 )
 
+type GroupIdArr []uint
+
 // AuthUser 管理员
+//GroupID   uint           `gorm:"column:group_id;type:int(11);not null;default:0;comment:角色Id;" json:"group_id"`
+//GroupID2  GroupIdArr     `gorm:"column:group_id2;type:varchar(255);not null;default:'';comment:角色Id2;" json:"group_id2"`
 type AuthUser struct {
 	ID        uint           `gorm:"column:id;primaryKey;" json:"id,omitempty"`
 	Username  string         `gorm:"column:username;type:varchar(255);not null;default:'';comment:用户名;" json:"username"`
@@ -25,11 +33,46 @@ type AuthUser struct {
 	Remark    string         `gorm:"column:remark;type:varchar(255);not null;default:'';comment:用户简介;" json:"remark"`
 	Avatar    string         `gorm:"column:avatar;type:varchar(255);not null;default:'';comment:头像;" json:"avatar"`
 	Status    uint8          `gorm:"column:status;type:tinyint(4);not null;default:0;comment:状态:-1软删除,0待激活,1正常,2禁止;" json:"status"`
-	GroupID   uint           `gorm:"autoIncrement;column:group_id;type:int(11);not null;default:0;comment:角色Id;" json:"group_id"`
+	GroupID   GroupIdArr     `gorm:"column:group_id;type:varchar(255);not null;default:'';comment:角色Id;" json:"group_id"`
 	IsSuper   bool           `gorm:"column:is_super;default:0;" json:"is_super"`
 	CreatedAt JSONTime       `gorm:"column:create_time;type:datetime(0);comment:创建时间;" json:"create_time"`
 	UpdatedAt JSONTime       `gorm:"column:update_time;type:datetime(0);comment:更新时间;" json:"update_time"`
 	DeletedAt gorm.DeletedAt `gorm:"type:datetime(0);index;" json:"-"`
+}
+
+func (g GroupIdArr) Value() (driver.Value, error) {
+	sqlStr := zstring.Buffer()
+	gLen := len(g)
+	for i, gid := range g {
+		fmt.Println(i)
+		if gLen-1 == i {
+			sqlStr.WriteString(strconv.Itoa(int(gid)))
+		} else {
+			sqlStr.WriteString(strconv.Itoa(int(gid)) + ",")
+		}
+	}
+
+	return sqlStr.String(), nil
+}
+
+func (g *GroupIdArr) Scan(v interface{}) error {
+	val, _ := v.([]byte)
+	/*if string(val) == "null" {
+		return nil
+	}*/
+
+	arrStr := strings.Split(string(val), ",")
+	arrUint := []uint{}
+	for _, str := range arrStr {
+		if parInt, err := strconv.Atoi(str); err == nil { // 因为这里数据不应该存在中文等字符
+			arrUint = append(arrUint, uint(parInt))
+		}
+	}
+
+	//*g = GroupIdArr(arrUint)
+	*g = arrUint
+
+	return nil
 }
 
 // 默认管理员密码
@@ -64,8 +107,10 @@ func (u *AuthUser) ListsSub(users []AuthUser) (lists []ListsModel) {
 	}
 
 	getGroups := func(user *AuthUser, pools map[uint]string) (re []string) {
-		if v, flag := pools[user.GroupID]; flag {
-			re = append(re, v)
+		for _, groupID := range user.GroupID {
+			if v, flag := pools[groupID]; flag {
+				re = append(re, v)
+			}
 		}
 
 		if user.IsSuper {
@@ -98,7 +143,7 @@ func (*migrate) CreateAuthUser() {
 					Nickname: "超级管理员",
 					Email:    "manage@qq.com",
 					Avatar:   "",
-					GroupID:  1,
+					GroupID:  []uint{1},
 					Status:   1,
 					IsSuper:  true,
 				},
@@ -109,7 +154,7 @@ func (*migrate) CreateAuthUser() {
 					Nickname: "管理员",
 					Email:    "admin@qq.com",
 					Avatar:   "",
-					GroupID:  1,
+					GroupID:  []uint{1},
 					Status:   1,
 					IsSuper:  false,
 				},
@@ -120,7 +165,7 @@ func (*migrate) CreateAuthUser() {
 					Nickname: "编辑",
 					Email:    "edit@qq.com",
 					Avatar:   "",
-					GroupID:  2,
+					GroupID:  []uint{2},
 					Status:   1,
 					IsSuper:  false,
 				},

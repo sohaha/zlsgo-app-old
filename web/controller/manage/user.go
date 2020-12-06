@@ -65,14 +65,24 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 	groups := []model.AuthUserGroup{}
 	(model.AuthUserGroup{}).All(&groups)
 
-	menu := (&model.AuthGroupMenu{GroupID: uint8(user.GroupID)}).MenuInfo(user)
+	//menu := (&model.AuthGroupMenu{GroupID: uint8(user.GroupID)}).MenuInfo(user)
+	marksKV := map[string]uint{}
+	marks := []string{}
+	for _, groupID := range user.GroupID {
+		for _, mark := range (model.AuthUserGroup{ID: groupID}).GetMarks() {
+			marksKV[mark] = 1
+		}
+	}
+	for uniMarks, _ := range marksKV {
+		marks = append(marks, uniMarks)
+	}
 
 	web.ApiJSON(c, 200, "用户详情", user, map[string]interface{}{
 		"last":    t,
 		"systems": systems,
 		"groups":  groups,
-		"marks":   (model.AuthUserGroup{ID: user.GroupID}).GetMarks(),
-		"menu":    menu,
+		"marks":   marks,
+		//"menu":    menu,
 	})
 }
 
@@ -87,6 +97,15 @@ func (*Basic) PutUpdate(c *znet.Context) {
 	if err := c.Bind(&postData); err != nil {
 		web.ApiJSON(c, 201, err.Error(), nil)
 		return
+	}
+
+	groupIdKV := c.PostFormMap("group_id")
+	if len(groupIdKV) > 0 {
+		for _, groupID := range groupIdKV {
+			if g, err := strconv.Atoi(groupID); err == nil {
+				postData.GroupID = append(postData.GroupID, uint(g))
+			}
+		}
 	}
 
 	uid := user.ID
@@ -110,7 +129,14 @@ func (*Basic) PutUpdate(c *znet.Context) {
 	}
 
 	// _, err := user.Update(c, postData, currentUserId, isAdmin, isMe)
-	_, err := user.Update(c, postData, currentUserId, user.IsSuper || user.GroupID == 1)
+	groupsHas1 := false
+	for _, groupID := range user.GroupID {
+		if groupID == 1 {
+			groupsHas1 = true
+		}
+	}
+
+	_, err := user.Update(c, postData, currentUserId, user.IsSuper || groupsHas1)
 	if err != nil {
 		web.ApiJSON(c, 201, err.Error(), nil)
 		return

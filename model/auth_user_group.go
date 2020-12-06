@@ -71,17 +71,23 @@ func (g AuthUserGroup) GetRules() (rules []GetRulesModel) {
 }
 
 // GetRuleCollation 获取整理后的规则列表
-func (g AuthUserGroup) GetRuleCollation() (s *RuleCollation) {
+func (g AuthUserGroup) GetRuleCollation(p *RuleCollation) (s *RuleCollation) {
 	rules := g.GetRules()
 	if len(rules) == 0 {
 		return
 	}
-	// 有必要可以升级成树
-	s = &RuleCollation{
-		AdoptRoute:     map[string][]string{},
-		InterceptRoute: map[string][]string{},
-		Marks:          []string{},
+
+	if p != nil {
+		s = p
+	} else {
+		// 有必要可以升级成树
+		s = &RuleCollation{
+			AdoptRoute:     map[string][]string{},
+			InterceptRoute: map[string][]string{},
+			Marks:          []string{},
+		}
 	}
+
 	setData := func(methods []string, route string, v GetRulesModel) {
 		for _, m := range methods {
 			if v.RelaStauts == AuthUserRulesStatusIntercept {

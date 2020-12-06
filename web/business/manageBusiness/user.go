@@ -23,7 +23,7 @@ type PutUpdateSt struct {
 	Avatar    string `json:"avatar"`
 	Remark    string `json:"remark"`
 	Email     string `json:"email"`
-	GroupID   uint   `json:"group_id"`
+	GroupID   []uint `json:"group_id"`
 	Nickname  string `json:"nickname"`
 }
 
