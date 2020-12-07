@@ -166,6 +166,10 @@ func (m *AuthGroupMenu) VueUrl(show bool, url string) string {
 		return "pages/main/" + url + ".vue"
 	}
 
+	if strings.HasPrefix(url, "/") {
+		return "pages" + url + ".vue"
+	}
+
 	return "pages/" + url + ".vue"
 }
 
