@@ -4,6 +4,7 @@ import (
 	"app/web/business/manageBusiness"
 	"errors"
 	"gorm.io/gorm"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -106,7 +107,34 @@ func (m *AuthGroupMenu) getChild(menu Menu, menus []Menu, user *AuthUser) []Rout
 
 func (m *AuthGroupMenu) MenuInfo(user *AuthUser) (re []Router) {
 	menuInfo := (&Menu{}).All()
-	db.Where("groupid = ?", m.GroupID).Find(&m)
+
+	var groupIDArr []string
+	for _, groupID := range user.GroupID {
+		groupIDArr = append(groupIDArr, strconv.Itoa(int(groupID)))
+	}
+
+	var res []AuthGroupMenu
+	menuKV := map[string]uint{}
+	db.Where("groupid IN ?", groupIDArr).Find(&res)
+	for _, groupRes := range res {
+		for _, m := range strings.Split(groupRes.Menu, ",") {
+			menuKV[m] = 1
+		}
+	}
+
+	var mergeMenu []int
+	for gid := range menuKV {
+		if g, err := strconv.Atoi(gid); err == nil {
+			mergeMenu = append(mergeMenu, g)
+		}
+	}
+
+	var mergeMenuStr []string
+	sort.Ints(mergeMenu)
+	for _, gid := range mergeMenu {
+		mergeMenuStr = append(mergeMenuStr, strconv.Itoa(gid))
+	}
+	m.Menu = strings.Join(mergeMenuStr, ",")
 
 	for _, menu := range menuInfo {
 		if menu.Pid == 0 {

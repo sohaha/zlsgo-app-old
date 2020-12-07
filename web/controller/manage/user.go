@@ -65,9 +65,9 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 	groups := []model.AuthUserGroup{}
 	(model.AuthUserGroup{}).All(&groups)
 
-	//menu := (&model.AuthGroupMenu{GroupID: uint8(user.GroupID)}).MenuInfo(user)
+	menu := (&model.AuthGroupMenu{}).MenuInfo(user)
 	marksKV := map[string]uint{}
-	marks := []string{}
+	var marks []string
 	for _, groupID := range user.GroupID {
 		for _, mark := range (model.AuthUserGroup{ID: groupID}).GetMarks() {
 			marksKV[mark] = 1
@@ -82,7 +82,7 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 		"systems": systems,
 		"groups":  groups,
 		"marks":   marks,
-		//"menu":    menu,
+		"menu":    menu,
 	})
 }
 
