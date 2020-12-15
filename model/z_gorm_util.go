@@ -54,6 +54,10 @@ type (
 	}
 )
 
+func TableName(table string) string {
+	return db.NamingStrategy.TableName(table)
+}
+
 // FindPage 查询分页数据
 func FindPage(ctx context.Context, db *gorm.DB, pp *Page, itmes interface{}) (int64, error) {
 	total, curpage, pageSize := int64(0), pp.Curpage, pp.Pagesize
