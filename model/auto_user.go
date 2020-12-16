@@ -21,8 +21,7 @@ import (
 type GroupIdArr []uint
 
 // AuthUser 管理员
-//GroupID   uint           `gorm:"column:group_id;type:int(11);not null;default:0;comment:角色Id;" json:"group_id"`
-//GroupID2  GroupIdArr     `gorm:"column:group_id2;type:varchar(255);not null;default:'';comment:角色Id2;" json:"group_id2"`
+// GroupID   uint           `gorm:"column:group_id;type:int(11);not null;default:0;comment:角色Id;" json:"group_id"`
 type AuthUser struct {
 	ID        uint           `gorm:"column:id;primaryKey;" json:"id,omitempty"`
 	Username  string         `gorm:"column:username;type:varchar(255);not null;default:'';comment:用户名;" json:"username"`
@@ -44,7 +43,6 @@ func (g GroupIdArr) Value() (driver.Value, error) {
 	sqlStr := zstring.Buffer()
 	gLen := len(g)
 	for i, gid := range g {
-		fmt.Println(i)
 		if gLen-1 == i {
 			sqlStr.WriteString(strconv.Itoa(int(gid)))
 		} else {
@@ -69,7 +67,7 @@ func (g *GroupIdArr) Scan(v interface{}) error {
 		}
 	}
 
-	//*g = GroupIdArr(arrUint)
+	// *g = GroupIdArr(arrUint)
 	*g = arrUint
 
 	return nil
