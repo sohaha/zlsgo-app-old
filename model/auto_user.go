@@ -214,9 +214,6 @@ func (u *AuthUser) TokenToInfo(t *AuthUserToken) error {
 
 	if t.Userid != 0 {
 		db.Model(&t).Select("update_time").Updates(AuthUserToken{}) // 更新token时间
-		if cfg, _ := (&manageBusiness.ParamPutSystemConfigSt{}).GetConf(); cfg.LoginMode {
-			db.Model(&AuthUserToken{}).Select("update_time, status").Where("userid = ? and id != ? and status != ?", t.Userid, t.ID, TOKEN_DISABLED).Updates(AuthUserToken{Status: TOKEN_DISABLED})
-		}
 
 		db.Where(&AuthUser{ID: t.Userid}).Limit(0).Find(&u)
 	}
@@ -224,14 +221,14 @@ func (u *AuthUser) TokenToInfo(t *AuthUserToken) error {
 	return nil
 }
 
-func (u *AuthUser) Login(ip string, ua string) (string, uint, error) {
+func (u *AuthUser) Login(ip string, ua string) (string, error) {
 	password := u.Password
 	db.Model(&u).Where(&AuthUser{Username: u.Username}).Limit(1).Find(&u)
 	if u.ID == 0 {
-		return "", 0, errors.New("用户不存在")
+		return "", errors.New("用户不存在")
 	}
 	if err := zvalid.Text(password, "用户密码").CheckPassword(u.Password).Error(); err != nil {
-		return "", 0, err
+		return "", err
 	}
 
 	t := AuthUserToken{
@@ -241,9 +238,10 @@ func (u *AuthUser) Login(ip string, ua string) (string, uint, error) {
 	}
 	token := t.CreateToken()
 	if token == "" {
-		return "", 0, errors.New("创建 Token 失败")
+		return "", errors.New("创建 Token 失败")
 	}
-	return t.Token, t.ID, nil
+
+	return t.Token, nil
 }
 
 func (u *AuthUser) GetUser() {

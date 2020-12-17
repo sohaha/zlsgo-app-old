@@ -1,8 +1,10 @@
 package model
 
 import (
+	"app/web/business/manageBusiness"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -33,17 +35,32 @@ type AuthUserToken struct {
 var tokenKen = "zls"
 
 func (t *AuthUserToken) CreateToken() (token string) {
-	now := time.Now().UnixNano()
-	token = fmt.Sprintf("%d|%s|%d|%s", t.Userid, t.IP, now, zstring.Rand(4))
-	ecrypt, err := zstring.AesEnCryptString(token, tokenKen)
+	tx := db.Begin()
+
+	err := tx.Model(&t).Create(t).Error
 	if err != nil {
-		return
-	}
-	t.Token = ecrypt
-	tx := db.Model(&t).Create(t)
-	if tx.Error != nil {
+		tx.Rollback()
 		return ""
 	}
+
+	now := time.Now().UnixNano()
+	token = fmt.Sprintf("%d|%s|%d|%d|%s", t.Userid, t.IP, t.ID, now, zstring.Rand(4))
+	ecrypt, err := zstring.AesEnCryptString(token, tokenKen)
+	if err != nil {
+		return ""
+	}
+	t.Token = ecrypt
+	err = tx.Model(&t).Select("token").Updates(AuthUserToken{Token: t.Token}).Error
+	if err != nil {
+		return ""
+	}
+	tx.Commit()
+
+	return
+}
+
+func (t *AuthUserToken) DeToken() (token string, err error) {
+	token, err = zstring.AesDeCryptString(t.Token, tokenKen)
 	return
 }
 
@@ -79,4 +96,23 @@ func (t *AuthUserToken) LoginModeTrue() error {
 	}
 
 	return nil
+}
+
+func (t *AuthUserToken) TokenRules() (string, error) {
+	deToken, err := t.DeToken()
+	if err != nil {
+		return "", err
+	}
+	if strings.Count(deToken, "|") != 4 {
+		return "", errors.New("token错误")
+	}
+
+	return deToken, nil
+}
+
+func (t *AuthUserToken) UserOthersTokenDisable() {
+	db.Where("id = ?", t.ID).First(t)
+	if cfg, _ := (&manageBusiness.ParamPutSystemConfigSt{}).GetConf(); cfg.LoginMode {
+		db.Model(&AuthUserToken{}).Select("update_time, status").Where("userid = ? and id != ? and status != ?", t.Userid, t.ID, TOKEN_DISABLED).Updates(AuthUserToken{Status: TOKEN_DISABLED})
+	}
 }

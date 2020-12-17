@@ -8,6 +8,7 @@ import (
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zvalid"
 	"strconv"
+	"strings"
 
 	"app/model"
 )
@@ -18,7 +19,6 @@ type Basic struct{}
 // PostGetToken 用户登录
 func (*Basic) PostGetToken(c *znet.Context) {
 	var user, token = model.AuthUser{}, ""
-	var tokenID uint
 
 	v := c.ValidRule()
 	err := zvalid.Batch(
@@ -31,15 +31,20 @@ func (*Basic) PostGetToken(c *znet.Context) {
 	}
 	ip := c.GetClientIP()
 	ua := c.GetHeader("User-Agent")
-	token, tokenID, err = user.Login(ip, ua)
+	token, err = user.Login(ip, ua)
 	if err != nil {
 		c.ApiJSON(212, err.Error(), nil)
 		return
 	}
 
+	tokenModel := &model.AuthUserToken{Token: token}
+	deToken, _ := tokenModel.TokenRules()
+	tokenId, _ := strconv.Atoi(strings.Split(deToken, "|")[2])
+	tokenModel.ID = uint(tokenId)
+	tokenModel.UserOthersTokenDisable()
+
 	web.ApiJSON(c, 200, "登录成功", user, map[string]interface{}{
 		"token": token,
-		"tid":   tokenID,
 	})
 }
 

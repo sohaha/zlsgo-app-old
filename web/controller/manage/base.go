@@ -110,16 +110,20 @@ func Authority() func(c *znet.Context) {
 		}
 
 		if t != "" {
-			idx := strings.Index(t, "_")
-			if idx >= 0 {
-				tokenID, _ := strconv.Atoi(t[0:idx])
+			token.Token = t
+			deToken, err := token.TokenRules()
+			if err != nil {
+				c.ApiJSON(401, "请先登录", nil)
+				return
+			}
 
-				token.ID = uint(tokenID)
-				token.Token = t[idx+1:]
-				if err := user.TokenToInfo(token); err != nil {
-					c.ApiJSON(401, err.Error(), nil)
-					return
-				}
+			if tokenId, err := strconv.Atoi(strings.Split(deToken, "|")[2]); err != nil {
+				token.ID = uint(tokenId)
+			}
+
+			if err := user.TokenToInfo(token); err != nil {
+				c.ApiJSON(401, err.Error(), nil)
+				return
 			}
 			// 后期可以考虑把用户信息缓存
 		}
@@ -150,7 +154,7 @@ func Authority() func(c *znet.Context) {
 			currentRule = (&model.AuthUserGroup{Status: 1, ID: groupID}).GetRuleCollation(currentRule)
 		}
 
-		//currentRule := (&model.AuthUserGroup{Status: 1, ID: user.GroupID}).GetRuleCollation()
+		// currentRule := (&model.AuthUserGroup{Status: 1, ID: user.GroupID}).GetRuleCollation()
 		if currentRule == nil {
 			// 没有对应的权限规则，禁止访问
 			c.ApiJSON(403, "请先为当前用户设置权限", nil)
