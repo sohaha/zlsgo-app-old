@@ -63,10 +63,10 @@ func ReadConf(init bool) {
 			cfg = gconf.New(FileName)
 			setComposeDefaultConf()
 			readComposeConf()
+			setLogger()
 			if init {
 				initCompose()
 			}
-			setLogger()
 		}, func(e interface{}) {
 			if err, ok := e.(error); ok {
 				Log.Fatal(err.Error())

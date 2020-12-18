@@ -4,6 +4,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 
 	. "github.com/sohaha/zlsgo"
@@ -35,11 +37,42 @@ func request(method, url string, body *stBody) *httptest.ResponseRecorder {
 	return w
 }
 
+func walkDir(f func(path string)) {
+	_ = filepath.Walk("./", func(path string, info os.FileInfo, err error) error {
+		f(path)
+		return nil
+	})
+}
+
 func TestMain(m *testing.M) {
+	fileList := make([]string, 0)
+
+	walkDir(func(path string) {
+		fileList = append(fileList, path)
+	})
+
+	// 如果项目根目录存在配置文件，直接 copy 一份
+	if zfile.FileExist("../../conf.yml") {
+		_ = zfile.CopyFile("../../conf.yml", "./conf.yml")
+	}
+
 	// 清除数据
 	defer func() {
-		zfile.Rmdir("./db.sqlite")
+		walkDir(func(path string) {
+			rm := true
+			for i, v := range fileList {
+				if path == v {
+					rm = false
+					fileList = append(fileList[:i], fileList[i+1:]...)
+					break
+				}
+			}
+			if rm {
+				zfile.Rmdir(path)
+			}
+		})
 		// initialize.Clear()
+
 	}()
 
 	// 初始化
