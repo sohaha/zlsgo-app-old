@@ -23,7 +23,7 @@ func (*StController) RegManage(r *znet.Engine) {
 	g := gzip.Default()
 
 	prefix := "manage"
-	fileserver := zstatic.NewFileserver("resource/manage")
+	fileserver := zstatic.NewFileserver(global.ManageConf().Path)
 	r.GET(prefix, func(c *znet.Context) {
 		c.Redirect(prefix + "/")
 	})
