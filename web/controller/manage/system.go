@@ -1,6 +1,7 @@
 package manage
 
 import (
+	"app/global"
 	"app/model"
 	"app/web/business/manageBusiness"
 	"fmt"
@@ -8,7 +9,6 @@ import (
 	"github.com/sohaha/zlsgo/zlog"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zvalid"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -36,37 +36,19 @@ func (*System) GetSystemLogs(c *znet.Context) {
 		return
 	}
 
-	showDir := manageBusiness.GetTmpLogDir()
-	logLists := manageBusiness.ShowLogsLists(postData.Type)
-	inDir := false
-	for _, dir := range showDir {
-		if dir == postData.Type {
-			inDir = true
-		}
+	showDir := manageBusiness.GetTmpLogDir(global.BaseConf().LogDir)
+	logLists := manageBusiness.ShowLogsLists(postData.Type, global.BaseConf().LogDir)
+
+	logPath := zfile.RealPath("./" + global.BaseConf().LogDir + "/" + postData.Type + "/" + postData.Name)
+	var (
+		fileContentSlice []string
+		fileSize         int64
+		fileLine         int
+	)
+	if global.BaseConf().LogDir != "" {
+		fileContentSlice, fileSize, fileLine = manageBusiness.GetSystemLogInfo(logPath, postData.CurrentLine)
 	}
 
-	logItems := make([]string, 0)
-	if postData.Name != "" && inDir {
-		// aaa := zfile.RealPath("./static/logs/"+time.Now().Format("2006"))
-		searchDirPath := zfile.RealPath("./" + postData.Name)
-
-		dirInfo, _ := ioutil.ReadDir(searchDirPath)
-		for _, v := range dirInfo {
-			if v.IsDir() {
-				lastDir := searchDirPath + "/" + v.Name()
-				lastDirInfo, _ := ioutil.ReadDir(lastDir)
-				for _, last := range lastDirInfo {
-					if !last.IsDir() {
-						logItems = append(logItems, v.Name()+"/"+last.Name())
-					}
-				}
-			}
-		}
-	}
-
-	logPath := zfile.RealPath("./" + postData.Type + "/" + postData.Name)
-
-	fileContentSlice, fileSize, fileLine := manageBusiness.GetSystemLogInfo(logPath, postData.CurrentLine)
 	fileContent := ""
 	if fileSize > (1024 * 500) {
 		fileContent = "日志文件过大（" + fmt.Sprintf("%v", manageBusiness.Byte2Kb(fileSize)) + "kb），不支持在线查看全部内容。\n\n"

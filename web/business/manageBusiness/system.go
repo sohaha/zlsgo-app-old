@@ -24,59 +24,34 @@ type (
 )
 
 // 返回log目录列表
-func GetTmpLogDir() []string {
-	path := zfile.RealPath(".")
-	poolDir := map[string]int8{
-		"logs": 1,
+func GetTmpLogDir(logDir string) []string {
+	var reDir []string
+	if logDir == "" {
+		return reDir
 	}
-	reDir := make([]string, 0)
+
+	path := zfile.RealPath("./" + logDir)
 	files, _ := ioutil.ReadDir(path)
 	for _, file := range files {
 		if file.IsDir() {
-			_, has := poolDir[file.Name()]
-			if has {
-				reDir = append(reDir, file.Name())
-			}
+			reDir = append(reDir, file.Name())
 		}
 	}
 
 	return reDir
 }
 
-func ShowLogsLists(logType string) []string {
-	reLists := make([]string, 0)
+func ShowLogsLists(logType string, logDir string) []string {
+	var reLists []string
+	if logDir == "" {
+		return reLists
+	}
 
-	// 这里会默认指向运行时候设置的,例如tmp
-
-	logPath := zfile.RealPath(".")
-	showDir := GetTmpLogDir()
-	if logType != "" {
-		for _, dir := range showDir {
-			if dir != logType {
-				continue
-			}
-
-			temDirPath := logPath + "/" + dir
-			dirInfo, _ := ioutil.ReadDir(temDirPath)
-
-			for _, info := range dirInfo {
-				if info.IsDir() {
-					continue
-				}
-
-				reLists = append(reLists, info.Name())
-			}
-		}
-	} else {
-		for _, dir := range showDir {
-			temDirPath := logPath + "/" + dir
-			dirInfo, _ := ioutil.ReadDir(temDirPath)
-			for _, info := range dirInfo {
-				if info.IsDir() {
-					continue
-				}
-				reLists = append(reLists, dir+"/"+info.Name())
-			}
+	logPath := zfile.RealPath("./" + logDir)
+	dirInfo, _ := ioutil.ReadDir(logPath + "/" +logType)
+	for _, info := range dirInfo {
+		if !info.IsDir() {
+			reLists = append(reLists, info.Name())
 		}
 	}
 
