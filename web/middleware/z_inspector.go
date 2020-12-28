@@ -256,7 +256,7 @@ const (
                               </table>
                             {{end}}
                             {{ if .PostMultipart }}
-                                {{if .PostMultipart.File}}
+                                {{if .PostMultipart.TmpFile}}
                                   <h3>Post Multipart Files</h3>
                                   <table class="table table-hover">
                                     <thead>
@@ -266,7 +266,7 @@ const (
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {{ range $key, $value :=  .PostMultipart.File}}
+                                    {{ range $key, $value :=  .PostMultipart.TmpFile}}
                                       <tr>
                                         <th scope="row">{{$key}}</th>
                                         <td>{{$value}}</td>

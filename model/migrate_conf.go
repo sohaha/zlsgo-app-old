@@ -3,7 +3,12 @@ package model
 import (
 	"sync"
 
+	"github.com/sohaha/zlsgo/zutil"
 	"gorm.io/gorm"
+)
+
+type (
+	migrate struct{}
 )
 
 var (
@@ -24,13 +29,15 @@ func AutoMigrateTable() []interface{} {
 	}
 }
 
-func AutoMigrateData() (data []func() (key string, exec func(db *gorm.DB) error)) {
+var migrateData []func() (key string, exec func(db *gorm.DB) error)
+
+func AutoMigrateData() []func() (key string, exec func(db *gorm.DB) error) {
 
 	// 需要自动创建初始化执行的操作，key 是唯一
 	// 🙅 不要修改历史数据！不要修改历史数据！不要修改历史数据！
 
-	data = append(data, func() (string, func(db *gorm.DB) error) {
-		return "first auto migrate data", func(db *gorm.DB) error {
+	migrateData = append(migrateData, func() (string, func(db *gorm.DB) error) {
+		return "FirstAutoMigrateData", func(db *gorm.DB) error {
 			db.Create(&MigrateLogs{
 				Name: "AutoMigrateData",
 			})
@@ -38,5 +45,6 @@ func AutoMigrateData() (data []func() (key string, exec func(db *gorm.DB) error)
 		}
 	})
 
-	return data
+	_ = zutil.RunAllMethod(&migrate{})
+	return migrateData
 }

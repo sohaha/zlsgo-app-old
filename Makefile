@@ -11,15 +11,11 @@ run:
 
 .PHONY: test
 test:
-	go test ./...
+	go test ./... -v
 
 .PHONY: clean
 clean:
 	go clean
-
-.PHONY: reverse
-reverse:
-	reverse -f service/model/z_reverse.yaml
 
 .PHONY: dev
 dev:

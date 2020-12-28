@@ -11,6 +11,7 @@ import (
 // Home Home 控制器
 type Home struct{}
 
+// Get 首页
 func (*Home) Get(c *znet.Context) {
 	c.ApiJSON(200, "服务正常", map[string]interface{}{
 		"time": ztime.Now(),

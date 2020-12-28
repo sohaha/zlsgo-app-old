@@ -73,10 +73,12 @@ func gormInit(dbType string, sqlDB *sql.DB) (err error) {
 
 	model.BindDB(DB)
 
-	err = DB.AutoMigrate(model.AutoMigrateTable()...)
+	tables := model.AutoMigrateTable()
+	err = DB.Migrator().AutoMigrate(tables...)
 	if err != nil {
 		return
 	}
+
 	err = dbMigrateData(model.AutoMigrateData())
 	return
 }
