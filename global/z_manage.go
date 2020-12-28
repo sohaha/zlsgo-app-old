@@ -6,8 +6,9 @@ import (
 
 type (
 	stManageConf struct {
-		Path string
-		Gz   string
+		Path   string
+		Remote string
+		Md5    string
 	}
 )
 
@@ -28,8 +29,8 @@ func ManageConf() stManageConf {
 }
 
 func (*stCompose) ManageDone() error {
-	if manageConf.Gz == "" {
-		manageConf.Gz = "http://127.0.0.1:1234/z.tar.gz"
+	if manageConf.Remote == "" {
+		manageConf.Remote = "https://resources.73zls.com/vue-admin-template.tar.gz"
 	}
 	if manageConf.Path == "" {
 		manageConf.Path = "resource/manage/"

@@ -4,12 +4,13 @@ import (
 	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zstatic"
 
-	"app/global"
-	"app/web/controller/manage"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/znet/cors"
 	"github.com/sohaha/zlsgo/znet/gzip"
 	"github.com/sohaha/zlsgo/zutil"
+
+	"app/global"
+	"app/web/controller/manage"
 )
 
 // RegHome 注册 后台 路由

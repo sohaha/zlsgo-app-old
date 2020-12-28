@@ -48,7 +48,7 @@ func ShowLogsLists(logType string, logDir string) []string {
 	}
 
 	logPath := zfile.RealPath("./" + logDir)
-	dirInfo, _ := ioutil.ReadDir(logPath + "/" +logType)
+	dirInfo, _ := ioutil.ReadDir(logPath + "/" + logType)
 	for _, info := range dirInfo {
 		if !info.IsDir() {
 			reLists = append(reLists, info.Name())

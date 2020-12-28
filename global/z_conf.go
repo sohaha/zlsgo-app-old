@@ -30,6 +30,9 @@ func (b *stBaseConf) ConfName() string {
 // FileName 配置文件名
 const FileName = "conf.yml"
 
+// 日志前缀
+const LogPrefix = "[App] "
+
 // noinspection GoUnusedGlobalVariable
 var (
 	baseConf stBaseConf
@@ -37,7 +40,7 @@ var (
 	onec     sync.Once
 	onecInit sync.Once
 	confLock sync.RWMutex
-	Log      = zlog.New("[App] ")
+	Log      = zlog.New(LogPrefix)
 	Cache    = zcache.New("app")
 	EnvPort  = ""
 	EnvDebug = false

@@ -172,7 +172,7 @@ func (*Menu) PostUpdateGroupMenu(c *znet.Context) {
 	if !VerifPermissionMark(c, "systems") {
 		return
 	}
-	
+
 	var postParam struct {
 		GroupID int    `json:"groupid"`
 		Menu    string `json:"menu"`
