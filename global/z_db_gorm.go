@@ -71,7 +71,7 @@ func gormInit(dbType string, sqlDB *sql.DB) (err error) {
 		return
 	}
 
-	model.BindDB(DB)
+	model.BindDB(DB, Log)
 
 	tables := model.AutoMigrateTable()
 	err = DB.Migrator().AutoMigrate(tables...)

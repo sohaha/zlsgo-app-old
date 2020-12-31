@@ -1,21 +1,23 @@
 package model
 
 import (
-	"app/web/business/manageBusiness"
 	"context"
 	"crypto/md5"
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zstring"
 	"github.com/sohaha/zlsgo/ztime"
 	"github.com/sohaha/zlsgo/ztype"
 	"github.com/sohaha/zlsgo/zvalid"
 	"gorm.io/gorm"
-	"strconv"
-	"strings"
-	"time"
+
+	"app/web/business/manageBusiness"
 )
 
 type GroupIdArr []uint
@@ -97,7 +99,7 @@ func (u *AuthUser) Lists(pp *Page) (users []AuthUser) {
 }
 
 func (u *AuthUser) ListsSub(users []AuthUser) (lists []ListsModel) {
-	groups := []AuthUserGroup{}
+	groups := make([]AuthUserGroup, 0)
 	(&AuthUserGroup{}).All(&groups)
 	kV := map[uint]string{}
 	for _, v := range groups {
@@ -133,7 +135,7 @@ func (*migrate) CreateAuthUser() {
 		password := DefManagePassword // zstring.Rand(6)
 		encryptPassword, _ := zvalid.Text(password).EncryptPassword().String()
 		return "CreateAuthUser", func(db *gorm.DB) error {
-			db.Create([]AuthUser{
+			builtInUsers := []AuthUser{
 				{
 					Username: "manage",
 					Password: encryptPassword,
@@ -167,7 +169,12 @@ func (*migrate) CreateAuthUser() {
 					Status:   1,
 					IsSuper:  false,
 				},
-			})
+			}
+			db.Create(builtInUsers)
+			log.Tips("初始化内置用户:")
+			for _, v := range builtInUsers {
+				log.Printf("      账号: %s 密码: %s", v.Username, password)
+			}
 			return nil
 		}
 	})

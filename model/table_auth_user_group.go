@@ -59,8 +59,8 @@ func (g AuthUserGroup) GetRules() (rules []GetRulesModel) {
 			ids = append(ids, v.RuleID)
 		}
 
-		authUserRulesTable := TableName("auth_user_rules")
-		authUserRulesRelaTable := TableName("auth_user_rules_rela")
+		authUserRulesTable := WithTableName("auth_user_rules")
+		authUserRulesRelaTable := WithTableName("auth_user_rules_rela")
 
 		db.Model(&AuthUserRules{}).Select(authUserRulesTable+".*", authUserRulesRelaTable+".status as rela_stauts").Where(authUserRulesRelaTable+".group_id = ? and "+authUserRulesTable+".id in (?)", g.ID, ids).Joins("LEFT JOIN " + authUserRulesRelaTable + " ON " + authUserRulesRelaTable + ".rule_id = " + authUserRulesTable + ".id").Scan(&rules)
 

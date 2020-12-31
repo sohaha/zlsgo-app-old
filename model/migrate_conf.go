@@ -3,6 +3,7 @@ package model
 import (
 	"sync"
 
+	"github.com/sohaha/zlsgo/zlog"
 	"github.com/sohaha/zlsgo/zutil"
 	"gorm.io/gorm"
 )
@@ -14,11 +15,13 @@ type (
 var (
 	db       *gorm.DB
 	bindOnce sync.Once
+	log      *zlog.Logger
 )
 
-func BindDB(currentDB *gorm.DB) {
+func BindDB(currentDB *gorm.DB, l *zlog.Logger) {
 	bindOnce.Do(func() {
 		db = currentDB
+		log = l
 	})
 }
 
@@ -45,12 +48,13 @@ func AutoMigrateData() []func() (key string, exec func(db *gorm.DB) error) {
 	// 🙅 不要修改历史数据！不要修改历史数据！不要修改历史数据！
 
 	migrateData = append(migrateData, func() (string, func(db *gorm.DB) error) {
-		return "FirstAutoMigrateData", func(db *gorm.DB) error {
-			db.Create(&MigrateLogs{
-				Name: "AutoMigrateData",
-			})
-			return nil
-		}
+		return "FirstAutoMigrateData", // Key
+			func(db *gorm.DB) error { // 数据处理
+				db.Create(&MigrateLogs{
+					Name: "AutoMigrateData",
+				})
+				return nil
+			}
 	})
 
 	_ = zutil.RunAllMethod(&migrate{})
