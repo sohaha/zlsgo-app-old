@@ -4,7 +4,7 @@ import (
 	"github.com/sohaha/gconf"
 	"github.com/sohaha/zlsgo/zfile"
 
-	"github.com/sohaha/wechat"
+	"github.com/zlsgo/wechat"
 )
 
 type (

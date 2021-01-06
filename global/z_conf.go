@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	"github.com/sohaha/gconf"
-
 	"github.com/sohaha/zlsgo/zcache"
+	"github.com/sohaha/zlsgo/zcli"
 	"github.com/sohaha/zlsgo/zlog"
 	"github.com/sohaha/zlsgo/zutil"
 )
@@ -27,7 +27,11 @@ func (b *stBaseConf) ConfName() string {
 	return "base"
 }
 
+// FileName 配置文件名
 const FileName = "conf.yml"
+
+// 日志前缀
+const LogPrefix = "[App] "
 
 // noinspection GoUnusedGlobalVariable
 var (
@@ -36,7 +40,7 @@ var (
 	onec     sync.Once
 	onecInit sync.Once
 	confLock sync.RWMutex
-	Log      = zlog.New("[App] ")
+	Log      = zlog.New(LogPrefix)
 	Cache    = zcache.New("app")
 	EnvPort  = ""
 	EnvDebug = false
@@ -46,24 +50,31 @@ func init() {
 	Log.ResetFlags(zlog.BitLevel | zlog.BitTime)
 }
 
-func Init() {
-	Read(true)
+// InitConf 初始化配置
+func InitConf() {
+	ReadConf(true)
 	onec.Do(func() {
 		setDebugMode()
 		// setWatchConf()
 	})
 }
 
-func Read(init bool) {
+// ReadConf 读取配置
+func ReadConf(init bool) {
 	onecInit.Do(func() {
 		zutil.Try(func() {
 			cfg = gconf.New(FileName)
+
+
+
 			setComposeDefaultConf()
 			readComposeConf()
+			setLogger()
 			if init {
 				initCompose()
 			}
-			setLogger()
+			Log.Dump(BaseConf())
+			Log.Dump(cfg.Get("logdir"))
 		}, func(e interface{}) {
 			if err, ok := e.(error); ok {
 				Log.Fatal(err.Error())
@@ -72,8 +83,20 @@ func Read(init bool) {
 	})
 }
 
+// SaveConf 保存当前配置
+func SaveConf() error {
+	ReadConf(false)
+	// Update the current configuration to the configuration file
+	return cfg.Core.WriteConfig()
+}
+
 // 设置初始化模块
 func setComposeDefaultConf() {
+	// 读取环境变量 zcliName_xxx
+	cfg.Core.SetEnvPrefix(zcli.Name)
+	cfg.Core.AutomaticEnv()
+	cfg.Core.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	// 遍历初始化配置
 	err := zutil.RunAssignMethod(&stCompose{}, func(methodName string) bool {
 		return strings.HasSuffix(methodName, "DefaultConf")
 	}, cfg)
@@ -94,11 +117,6 @@ func readComposeConf() {
 		return strings.HasSuffix(methodName, "ReadConf")
 	}, cfg)
 	zutil.CheckErr(err)
-	// Update the current configuration to the configuration file
-	err = cfg.Core.WriteConfig()
-	if err != nil {
-		Log.Warn(err)
-	}
 }
 
 // 模块配置
@@ -165,7 +183,7 @@ func (*stCompose) BaseDefaultConf(cfg *gconf.Confhub) {
 	cfg.SetDefault(baseConf.ConfName(), map[string]interface{}{
 		"debug":        false,
 		"log_dir":      "",
-		"log_position": true,
+		"log_position": false,
 	})
 }
 

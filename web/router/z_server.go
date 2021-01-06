@@ -59,6 +59,20 @@ func Init() {
 		c.String(404, "NotFound")
 	})
 
+	// 处理 panic
+	Engine.PanicHandler(func(c *znet.Context, err error) {
+		errMsg := ""
+		if Engine.IsDebug() {
+			errMsg = err.Error()
+		}
+		Engine.Log.Stack(errMsg)
+		if c.IsAjax() {
+			c.ApiJSON(500, "panic", errMsg)
+			return
+		}
+		c.String(500, errMsg)
+	})
+
 	// 绑定端口
 	webPort := global.EnvPort
 	if webPort == "" {

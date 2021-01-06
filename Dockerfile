@@ -1,20 +1,43 @@
-FROM golang:alpine as builder
+FROM golang:alpine AS builder
+# FROM seekwe/go-builder:latest AS builder
+LABEL stage=gobuilder
 
-# 设置go mod proxy 国内代理
-# 设置golang path
-ENV GOPROXY=https://goproxy.cn,https://goproxy.io,direct \
-    GO111MODULE=on \
-    CGO_ENABLED=1
-WORKDIR /zlsapp
-RUN go env -w GOPROXY=https://goproxy.cn,https://goproxy.io,direct
+ENV CGO_ENABLED 0
+ENV GOOS linux
+ENV GOPROXY https://goproxy.cn,direct
+
+WORKDIR /zlsgo-app
+
+ADD go.mod .
+ADD go.sum .
+RUN go mod download
+
 COPY . .
-RUN go env && go list && go build -o app main.go
 
+# 编译指令
+RUN go build -ldflags="-s -w" -o /app/zls .
+
+FROM alpine
+
+RUN apk update --no-cache && apk add --no-cache ca-certificates tzdata
+
+ENV TZ Asia/Shanghai
+
+WORKDIR /app
+
+COPY --from=builder /app/zls /app/zls
+
+# 暴露一个端口
 EXPOSE 3788
-ENTRYPOINT /zlsapp/app
+
+# 执行程序
+CMD ["./zls"]
 
 # 根据 Dockerfile 生成 Docker 镜像
-# docker build -t zlsapp .
+# docker build -t zlsapp:v1 -f ./Dockerfile  .
 
-# 根据 Docker 镜像启动 Docker 容器
-# docker run -itd -p 8888:8888 --name zlsapp zlsapp
+# 启动容器
+# docker run --rm -it -p 3788:3788 zlsapp:v1
+
+# 进入容器
+# docker run --rm -it zlsapp:v1 sh

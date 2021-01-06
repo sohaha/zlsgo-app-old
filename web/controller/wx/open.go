@@ -7,7 +7,7 @@ import (
 	"github.com/sohaha/zlsgo/zjson"
 	"github.com/sohaha/zlsgo/znet"
 
-	"github.com/sohaha/wechat"
+	"github.com/zlsgo/wechat"
 
 	"app/global"
 )
@@ -37,7 +37,7 @@ func (*Open) GetApiQueryAuth(c *znet.Context) {
 	res, redirect, err := global.WxOpen.ComponentApiQueryAuth(authCode, redirectUri)
 	if err != nil {
 		if err != wechat.ErrOpenJumpAuthorization {
-			c.ApiJSON(211, err.Error(), nil)
+			c.ApiJSON(211, wechat.ErrorMsg(err), nil)
 			return
 		}
 		// JS 发起跳转
@@ -54,7 +54,7 @@ func (*Open) GetTicket(c *znet.Context) {
 	ticket, err := global.WxOpen.GetConfig().(*wechat.Open).GetComponentTicket()
 	c.Log.Debug(ticket, err)
 	if err != nil {
-		c.ApiJSON(211, err.Error(), nil)
+		c.ApiJSON(211, wechat.ErrorMsg(err), nil)
 		return
 	}
 	c.ApiJSON(200, "获取 Ticket", ticket)
@@ -69,7 +69,7 @@ func (*Open) GetAccessToken(c *znet.Context) {
 	})
 	token, err := global.WxOpen.GetAccessToken()
 	if err != nil {
-		c.ApiJSON(211, err.Error(), nil)
+		c.ApiJSON(211, wechat.ErrorMsg(err), nil)
 		return
 	}
 	c.ApiJSON(200, "获取成功", map[string]interface{}{

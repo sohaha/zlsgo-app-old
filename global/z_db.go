@@ -1,12 +1,18 @@
 package global
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 
 	"github.com/sohaha/gconf"
+	"github.com/sohaha/zdb"
 
+	dbmysql "github.com/sohaha/zdb/Driver/mysql"
+	dbpostgres "github.com/sohaha/zdb/Driver/postgres"
 	"github.com/sohaha/zlsgo/zfile"
+	"github.com/sohaha/zlsgo/zlog"
+	"github.com/sohaha/zlsgo/zutil"
 	"github.com/sohaha/zlsgo/zvalid"
 )
 
@@ -22,10 +28,10 @@ type (
 		DisableAutoMigrate bool
 		MySQL              mysql
 		Postgres           postgres
-		Sqlite3            sqlite
+		Sqlite             sqlite
 	}
 
-	// mysql mysql配置参数
+	// mysql mysql 配置参数
 	mysql struct {
 		Host       string
 		Port       int
@@ -34,7 +40,7 @@ type (
 		DBName     string
 		Parameters string
 	}
-	// postgres postgres配置参数
+	// postgres postgres 配置参数
 	postgres struct {
 		Host     string
 		Port     int
@@ -43,10 +49,11 @@ type (
 		DBName   string
 		SSLMode  string
 	}
-	// sqlite sqlite配置参数
+	// sqlite sqlite 配置参数
 	sqlite struct {
 		Path string
 	}
+	dbDriver struct{}
 )
 
 func (*stDatabaseConf) ConfName(key ...string) string {
@@ -57,11 +64,17 @@ func (*stDatabaseConf) ConfName(key ...string) string {
 }
 
 var (
+	// SqlDB sql.DB
+	SqlDB *sql.DB
+	// ZDB zdb engine
+	ZDB *zdb.Engine
+	// dbType db type
+	dbType                  string
 	databaseConf            stDatabaseConf
 	databaseDefaultInitConf = map[string]interface{}{
 		"prefix":           "z_",
 		"debug":            false,
-		"db_type":          "none",
+		"db_type":          "mysql",
 		"mysql.host":       "127.0.0.1",
 		"mysql.port":       "3306",
 		"mysql.dbname":     "dbname",
@@ -70,6 +83,7 @@ var (
 		"mysql.parameters": "charset=utf8mb4&parseTime=True&loc=Local",
 		// "sqlite.path":     "./db.sqlite",
 	}
+	dbDriverMap = map[string]zdb.IfeConfig{}
 )
 
 func (*stCompose) DatabaseDefaultConf(cfg *gconf.Confhub) {
@@ -83,6 +97,7 @@ func (*stCompose) DatabaseReadConf(cfg *gconf.Confhub) error {
 	return cfg.Core.UnmarshalKey(databaseConf.ConfName(), &databaseConf)
 }
 
+// DatabaseConf Database Conf
 // noinspection GoExportedFuncWithUnexportedType
 func DatabaseConf() stDatabaseConf {
 	confLock.RLock()
@@ -91,7 +106,6 @@ func DatabaseConf() stDatabaseConf {
 }
 
 func validDb() error {
-	// 数据库
 	dbTypes := []string{"mysql", "sqlite", "postgres"}
 	return zvalid.Text(DatabaseConf().DBType, "数据库类型").Required().
 		EnumString(append(dbTypes, "none"), "数据库类型暂只支持: "+strings.Join(dbTypes, ", ")).Error()
@@ -112,4 +126,41 @@ func (a postgres) DSN() string {
 // DSN 数据库连接串
 func (a sqlite) DSN() string {
 	return zfile.RealPath(a.Path)
+}
+
+func (d dbDriver) Mysql(conf stDatabaseConf) {
+	dbDriverMap["mysql"] = &dbmysql.Config{Dsn: conf.MySQL.DSN()}
+}
+
+func (d dbDriver) Postgres(conf stDatabaseConf) {
+	dbDriverMap["postgres"] = &dbpostgres.Config{Dsn: conf.Postgres.DSN()}
+}
+
+func (*stCompose) DBDone() {
+	conf := DatabaseConf()
+	dbType = conf.DBType
+	if dbType == "none" {
+		Log.Debug(zlog.ColorTextWrap(zlog.ColorYellow, "No database"))
+		return
+	}
+	zutil.CheckErr(validDb())
+
+	err := zutil.RunAllMethod(&dbDriver{}, conf)
+	zutil.CheckErr(err)
+
+	dbConf, ok := dbDriverMap[dbType]
+	if !ok {
+		Log.Fatal("not supported:", dbType)
+	}
+
+	ZDB, err = zdb.New(dbConf)
+	if err != nil {
+		Log.Fatal("failed opening connection to database:", err)
+	}
+
+	SqlDB = dbConf.DB()
+
+	err = gormInit(dbType, SqlDB)
+
+	zutil.CheckErr(err)
 }

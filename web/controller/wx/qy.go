@@ -3,6 +3,7 @@ package wx
 import (
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zstring"
+	"github.com/zlsgo/wechat"
 
 	"app/global"
 )
@@ -13,7 +14,7 @@ type Qy struct {
 func (*Qy) GetAccessToken(c *znet.Context) {
 	token, err := global.WxQy.GetAccessToken()
 	if err != nil {
-		c.ApiJSON(211, err.Error(), nil)
+		c.ApiJSON(211, wechat.ErrorMsg(err), nil)
 		return
 	}
 	c.ApiJSON(200, "获取成功", map[string]interface{}{
@@ -25,13 +26,13 @@ func (*Qy) GetAccessToken(c *znet.Context) {
 func (*Qy) GetJsapiTicket(c *znet.Context) {
 	jsapiTicket, err := global.WxQy.GetJsapiTicket()
 	if err != nil {
-		c.ApiJSON(211, err.Error(), nil)
+		c.ApiJSON(211, wechat.ErrorMsg(err), nil)
 		return
 	}
 	url := c.Host(true)
 	jsSign, err := global.WxQy.GetJsSign(url)
 	if err != nil {
-		c.ApiJSON(211, err.Error(), nil)
+		c.ApiJSON(211, wechat.ErrorMsg(err), nil)
 		return
 	}
 	c.ApiJSON(200, "获取成功", map[string]interface{}{

@@ -8,7 +8,7 @@ import (
 	"github.com/sohaha/zlsgo/zstring"
 
 	"app/global"
-	"github.com/sohaha/wechat"
+	"github.com/zlsgo/wechat"
 )
 
 type Mp struct {
@@ -17,7 +17,8 @@ type Mp struct {
 func (*Mp) GetAccessToken(c *znet.Context) {
 	token, err := global.WxMp.GetAccessToken()
 	if err != nil {
-		c.ApiJSON(211, err.Error(), nil)
+		c.Log.Debug(err)
+		c.ApiJSON(211, wechat.ErrorMsg(err), nil)
 		return
 	}
 	c.ApiJSON(200, "获取成功", map[string]interface{}{
@@ -29,13 +30,13 @@ func (*Mp) GetAccessToken(c *znet.Context) {
 func (*Mp) GetJsapiTicket(c *znet.Context) {
 	jsapiTicket, err := global.WxMp.GetJsapiTicket()
 	if err != nil {
-		c.ApiJSON(211, err.Error(), nil)
+		c.ApiJSON(211, wechat.ErrorMsg(err), nil)
 		return
 	}
 	url := c.Host(true)
 	jsSign, err := global.WxMp.GetJsSign(url)
 	if err != nil {
-		c.ApiJSON(211, err.Error(), nil)
+		c.ApiJSON(211, wechat.ErrorMsg(err), nil)
 		return
 	}
 	c.ApiJSON(200, "获取成功", map[string]interface{}{
