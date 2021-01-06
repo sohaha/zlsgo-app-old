@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	"github.com/sohaha/gconf"
-
 	"github.com/sohaha/zlsgo/zcache"
+	"github.com/sohaha/zlsgo/zcli"
 	"github.com/sohaha/zlsgo/zlog"
 	"github.com/sohaha/zlsgo/zutil"
 )
@@ -64,12 +64,17 @@ func ReadConf(init bool) {
 	onecInit.Do(func() {
 		zutil.Try(func() {
 			cfg = gconf.New(FileName)
+
+
+
 			setComposeDefaultConf()
 			readComposeConf()
 			setLogger()
 			if init {
 				initCompose()
 			}
+			Log.Dump(BaseConf())
+			Log.Dump(cfg.Get("logdir"))
 		}, func(e interface{}) {
 			if err, ok := e.(error); ok {
 				Log.Fatal(err.Error())
@@ -87,6 +92,11 @@ func SaveConf() error {
 
 // 设置初始化模块
 func setComposeDefaultConf() {
+	// 读取环境变量 zcliName_xxx
+	cfg.Core.SetEnvPrefix(zcli.Name)
+	cfg.Core.AutomaticEnv()
+	cfg.Core.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	// 遍历初始化配置
 	err := zutil.RunAssignMethod(&stCompose{}, func(methodName string) bool {
 		return strings.HasSuffix(methodName, "DefaultConf")
 	}, cfg)
