@@ -5,6 +5,7 @@ import (
 	"app/web"
 	"app/web/business/manageBusiness"
 	"errors"
+	"github.com/sohaha/zlsgo/zjson"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zvalid"
 	"strconv"
@@ -21,9 +22,11 @@ func (*Basic) PostGetToken(c *znet.Context) {
 	var user, token = model.AuthUser{}, ""
 
 	v := c.ValidRule()
+	postUser, _ := c.Valid(v, "user").String()
+	postPass, _ := c.Valid(v, "pass").String()
 	err := zvalid.Batch(
-		zvalid.BatchVar(&user.Username, v.Verifi(c.DefaultFormOrQuery("user", ""), "用户名").Required()),
-		zvalid.BatchVar(&user.Password, v.Verifi(c.DefaultFormOrQuery("pass", ""), "用户密码").Required()),
+		zvalid.BatchVar(&user.Username, v.Verifi(postUser, "用户名").Required()),
+		zvalid.BatchVar(&user.Password, v.Verifi(postPass, "用户密码").Required()),
 	)
 	if err != nil {
 		c.ApiJSON(211, err.Error(), nil)
@@ -104,7 +107,11 @@ func (*Basic) PutUpdate(c *znet.Context) {
 		return
 	}
 
-	groupIdKV := c.PostFormMap("group_id")
+	var groupIdKV []string
+	c.GetJSON("group_id").ForEach(func(key, val zjson.Res) bool {
+		groupIdKV = append(groupIdKV, val.String())
+		return true
+	})
 	if len(groupIdKV) > 0 {
 		for _, groupID := range groupIdKV {
 			if g, err := strconv.Atoi(groupID); err == nil {
@@ -166,7 +173,7 @@ func (*Basic) PutEditPassword(c *znet.Context) {
 				newErr = err
 				return
 			}
-			if rawValue != c.DefaultPostForm("pass2", "") {
+			if rawValue != c.GetJSON("pass2").String() {
 				newErr = errors.New("两次密码不一致")
 			}
 			newValue = rawValue
@@ -271,7 +278,11 @@ func (*Basic) GetUnreadMessageCount(c *znet.Context) { // 原systemApi
 
 // PutMessageStatus 更新日志状态
 func (*Basic) PutMessageStatus(c *znet.Context) { // 原systemApi
-	idsMap, _ := c.GetPostFormMap("ids")
+	var idsMap []string
+	c.GetJSON("ids").ForEach(func(key, val zjson.Res) bool {
+		idsMap = append(idsMap, val.String())
+		return true
+	})
 
 	u, _ := c.Value("user")
 	uid := u.(*model.AuthUser).ID

@@ -6,7 +6,6 @@ import (
 	"app/web/business/manageBusiness"
 	"fmt"
 	"github.com/sohaha/zlsgo/zfile"
-	"github.com/sohaha/zlsgo/zlog"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zvalid"
 	"os"
@@ -74,16 +73,20 @@ func (*System) DeleteSystemLogs(c *znet.Context) {
 		return
 	}
 
-	var PostData manageBusiness.DeleteSystemLogsSt
-
-	temRule := c.ValidRule().Required()
-	err := zvalid.Batch(
-		zvalid.BatchVar(&PostData.Name, c.Valid(temRule, "name", "文件名称")),
-		zvalid.BatchVar(&PostData.Type, c.Valid(temRule, "type", "文件夹名称")),
+	var (
+		PostData manageBusiness.DeleteSystemLogsSt
+		err      error
 	)
 
+	PostData.Name, err = zvalid.Text(c.GetJSON("name").Str, "文件名称").Required().String()
 	if err != nil {
-		zlog.Error("参数错误: ", PostData)
+		global.Log.Error("参数错误: ", PostData)
+		c.ApiJSON(200, "删除系统日志", false)
+		return
+	}
+	PostData.Type, err = zvalid.Text(c.GetJSON("type").Str, "文件夹名称").Required().String()
+	if err != nil {
+		global.Log.Error("参数错误: ", PostData)
 		c.ApiJSON(200, "删除系统日志", false)
 		return
 	}
@@ -92,9 +95,9 @@ func (*System) DeleteSystemLogs(c *znet.Context) {
 	// 因为当天日志一直被占用 无法删除
 	// 又因为日志生成都是日期组成所以..
 	nowDate := time.Now().Format("2006-01-02")
-	zlog.Error("当前时间: ", nowDate)
+	// global.Log.Error("当前时间: ", nowDate)
 	if PostData.Name == nowDate {
-		zlog.Error("删除文件得时间和参数输入的时间相等,所以直接清空内容.")
+		global.Log.Error("删除文件得时间和参数输入的时间相等,所以直接清空内容.")
 		f, _ := os.Create(rmLogPath)
 		f.Close()
 		c.ApiJSON(200, "删除系统日志", true)
@@ -102,18 +105,18 @@ func (*System) DeleteSystemLogs(c *znet.Context) {
 	}
 
 	_, err = os.Lstat(rmLogPath)
-	zlog.Error("文件是否存在: ", err)
+	global.Log.Error("文件是否存在: ", err)
 	if err == nil {
 		// f, _ := os.Open(rmLogPath)
 		// f.Close()
 		err = os.Remove(rmLogPath)
 		if err != nil {
-			zlog.Error("删除文件失败: ", err)
+			global.Log.Error("删除文件失败: ", err)
 			c.ApiJSON(200, "删除系统日志", false)
 			return
 		}
 
-		zlog.Error("删除文件成功")
+		global.Log.Error("删除文件成功")
 		c.ApiJSON(200, "删除系统日志", true)
 		return
 	}

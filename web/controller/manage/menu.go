@@ -18,7 +18,10 @@ func (*Menu) PostUserMenu(c *znet.Context) {
 		return
 	}
 
-	groupid, _ := strconv.Atoi(c.DefaultFormOrQuery("groupid", "0"))
+	groupid, err := strconv.Atoi(c.GetJSON("groupid").String())
+	if err != nil {
+		groupid = 0
+	}
 
 	c.ApiJSON(200, "请求成功", (&model.Menu{}).Lists(uint8(groupid)))
 	return
@@ -82,8 +85,8 @@ func (*Menu) PostDelete(c *znet.Context) {
 		return
 	}
 
-	id, _ := strconv.Atoi(c.DefaultFormOrQuery("id", "0"))
-	if id == 0 {
+	id, err := strconv.Atoi(c.GetJSON("id").String())
+	if err != nil || id == 0 {
 		c.ApiJSON(211, "菜单id不允许为空", nil)
 		return
 	}

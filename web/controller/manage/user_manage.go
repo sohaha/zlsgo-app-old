@@ -4,6 +4,7 @@ import (
 	"app/web"
 	"app/web/business/manageBusiness"
 	"errors"
+	"github.com/sohaha/zlsgo/zjson"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zvalid"
 	"strconv"
@@ -65,7 +66,7 @@ func (*UserManage) PostUser(c *znet.Context) {
 	err := c.BindValid(&user, map[string]zvalid.Engine{
 		"username": valid.Required("用户名不能为空").MaxUTF8Length(20, "用户名最多20字符"),
 		"password": valid.Required().Customize(func(rawValue string, err error) (newValue string, newErr error) {
-			if rawValue != c.DefaultPostForm("password2", "") {
+			if rawValue != c.GetJSON("password2").Str {
 				newErr = errors.New("两次密码不一致")
 			}
 			newValue = rawValue
@@ -82,8 +83,13 @@ func (*UserManage) PostUser(c *znet.Context) {
 		return
 	}
 
-	//re get group_id => arr
-	groupIdKV := c.PostFormMap("group_id")
+	// re get group_id => arr
+	var groupIdKV []string
+	c.GetJSON("group_id").ForEach(func(key, val zjson.Res) bool {
+		groupIdKV = append(groupIdKV, val.String())
+		return true
+	})
+
 	for _, groupID := range groupIdKV {
 		if g, err := strconv.Atoi(groupID); err == nil {
 			user.GroupID = append(user.GroupID, uint(g))
