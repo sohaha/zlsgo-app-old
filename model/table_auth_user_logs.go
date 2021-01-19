@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	LOG_TYPE_NORMAL = 1
-	LOG_TYPE_WARN   = 2
-	LOG_TYPE_ERROR  = 3
-	LOG_STATUS_NOT  = 1
-	LOG_STATUS_READ = 2
+	LogTypeNormal = 1
+	LogTypeWarn   = 2
+	LogTypeError  = 3
+	LogStatusNot  = 1
+	LogStatusRead = 2
 )
 
 // AuthUserLogs 用户日志
@@ -38,18 +38,18 @@ func (c *AuthUserLogs) UpdatePasswordTip(ctx *znet.Context) error {
 
 	if c.Userid == user.(*AuthUser).ID {
 		c.Content = "修改密码成功"
-		c.Type = LOG_TYPE_NORMAL
-		c.Status = LOG_STATUS_READ
+		c.Type = LogTypeNormal
+		c.Status = LogStatusRead
 	} else {
 		c.Content = fmt.Sprintf("您的密码被[%v]修改!", user.(*AuthUser).Username)
-		c.Type = LOG_TYPE_WARN
-		c.Status = LOG_TYPE_NORMAL
+		c.Type = LogTypeWarn
+		c.Status = LogTypeNormal
 	}
 
 	c.title(ctx)
 	res := db.Select([]string{}).Create(&c)
 	if res.RowsAffected < 1 {
-		return errors.New("服务繁忙,请重试.")
+		return errors.New("服务繁忙，请重试")
 	}
 
 	return nil
@@ -85,7 +85,7 @@ func (c *AuthUserLogs) Lists(pp *Page) (logs []LogListsModel) {
 	}
 	if c.Status > 0 {
 		wCond.WriteString(" and auth_user_logs.`status` = ?")
-		wParams = append(wParams, LOG_STATUS_NOT)
+		wParams = append(wParams, LogStatusNot)
 	}
 
 	_, _ = FindPage(context.Background(), db.Model(c).Select(aul+".*", au+".username as username").Where(wCond.String(), wParams...).Joins("LEFT JOIN "+au+" ON auth_user.id = "+aul+".operate_id").Order(aul+".id desc"), pp, &logs)
@@ -93,12 +93,12 @@ func (c *AuthUserLogs) Lists(pp *Page) (logs []LogListsModel) {
 }
 
 func (c *AuthUserLogs) UnreadMessageCount() (count int64) {
-	db.Model(&AuthUserLogs{}).Where("id > ? and userid = ? and status = ?", c.ID, c.Userid, LOG_STATUS_NOT).Count(&count)
+	db.Model(&AuthUserLogs{}).Where("id > ? and userid = ? and status = ?", c.ID, c.Userid, LogStatusNot).Count(&count)
 	return
 }
 
 func (c *AuthUserLogs) UpdateMessageStatus(ids []int) uint {
-	c.Status = LOG_STATUS_READ
+	c.Status = LogStatusRead
 	res := db.Model(&AuthUserLogs{}).Select([]string{"update_time", "status"}).Where("id IN ? and userid = ?", ids, c.Userid).Updates(c)
 
 	return uint(res.RowsAffected)

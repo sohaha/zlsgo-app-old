@@ -27,13 +27,11 @@ type Menu struct {
 func (*migrate) CreateMenu() {
 	migrateData = append(migrateData, func() (string, func(db *gorm.DB) error) {
 		return "CreateMenu", func(db *gorm.DB) error {
-			db.Create([]Menu{
+			tx := db.Create([]Menu{
 				{Title: "后台中心", Index: "main", Icon: "icon-pie-chart-", Breadcrumb: 1, Real: 1, Show: 1, Pid: 0, Sort: 1},
 				{Title: "站内消息", Index: "user/logs", Icon: "icon-settings-", Breadcrumb: 0, Real: 0, Show: 0, Pid: 1, Sort: 2},
 				{Title: "多端登录", Index: "user/client", Icon: "icon-globe--outline", Breadcrumb: 0, Real: 0, Show: 0, Pid: 1, Sort: 3},
-
 				{Title: "日志查看", Index: "system/logs", Icon: "icon-alert-circle", Breadcrumb: 0, Real: 0, Show: 1, Pid: 0, Sort: 4},
-
 				{Title: "系统设置", Index: "system", Icon: "icon-options-", Breadcrumb: 0, Real: 0, Show: 1, Pid: 0, Sort: 5},
 				{Title: "程序设置", Index: "system/config", Icon: "icon-settings", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 6},
 				{Title: "用户设置", Index: "user/lists", Icon: "icon-person", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 7},
@@ -42,7 +40,7 @@ func (*migrate) CreateMenu() {
 				{Title: "个人设置", Index: "user/my", Icon: "icon-person-done", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 10},
 				{Title: "权限设置", Index: "user/rules", Icon: "icon-pantone", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 11},
 			})
-			return nil
+			return tx.Error
 		}
 	})
 }
@@ -61,18 +59,18 @@ type ListsRes struct {
 	Child      []ListsRes `json:"child"`
 }
 
-func (m *Menu) Lists(groupid uint8) []ListsRes {
-	items := []Menu{}
+func (m *Menu) Lists(groupid uint8) (re []ListsRes) {
+	var items []Menu
 	db.Model(&m).Order("pid asc").Order("sort asc").Find(&items)
 
-	menuArr := []string{}
+	var menuArr []string
 	if groupid > 0 {
 		groupMenuInfo := AuthGroupMenu{}
 		db.Model(&AuthGroupMenu{}).Where("groupid = ?", groupid).Find(&groupMenuInfo)
 		menuArr = strings.Split(groupMenuInfo.Menu, ",")
 	}
 
-	listsRes := []ListsRes{}
+	var listsRes []ListsRes
 	for _, v := range items {
 		listsRes = append(listsRes, ListsRes{
 			ID:         v.ID,
@@ -87,8 +85,6 @@ func (m *Menu) Lists(groupid uint8) []ListsRes {
 			IsShow:     manageBusiness.InArray(menuArr, strconv.Itoa(int(v.ID))),
 		})
 	}
-
-	re := listsRes[0:0]
 	for _, v := range listsRes {
 		if v.Pid != 0 {
 			break
@@ -122,7 +118,7 @@ func (m *Menu) PidExist() {
 
 func (m *Menu) Create() error {
 	if res := db.Select("title", "index", "icon", "breadcrumb", "real", "show", "pid", "sort").Create(&m); res.RowsAffected == 0 {
-		return errors.New("服务繁忙,请重试.")
+		return errors.New("服务繁忙，请重试")
 	}
 
 	return nil
@@ -130,7 +126,7 @@ func (m *Menu) Create() error {
 
 func (m *Menu) Delete() error {
 	if res := db.Delete(&m); res.RowsAffected == 0 {
-		return errors.New("服务繁忙,请重试.")
+		return errors.New("服务繁忙，请重试")
 	}
 
 	return nil
@@ -138,7 +134,7 @@ func (m *Menu) Delete() error {
 
 func (m *Menu) Update() error {
 	if res := db.Model(&m).Select("update_time", "title", "index", "icon", "breadcrumb", "real", "show").Where("id = ?", m.ID).Updates(m); res.RowsAffected == 0 {
-		return errors.New("服务繁忙,请重试.")
+		return errors.New("服务繁忙，请重试")
 	}
 
 	return nil
@@ -160,7 +156,7 @@ func (m *Menu) MenuSort(data PostSortSt) error {
 		uRes := &Menu{ID: uint(v.ID), Sort: uint8(i)}
 		if res := tx.Model(&m).Select("update_time", "sort").Where("id = ?", uRes.ID).Updates(uRes); res.RowsAffected == 0 {
 			tx.Rollback()
-			return errors.New("服务繁忙,请重试.")
+			return errors.New("服务繁忙，请重试")
 		}
 		i++
 		if len(v.Child) > 0 {
@@ -168,7 +164,7 @@ func (m *Menu) MenuSort(data PostSortSt) error {
 				uRes2 := &Menu{ID: uint(vv.ID), Sort: uint8(i), Pid: uint8(v.ID)}
 				if res := tx.Model(&m).Select("update_time", "sort", "pid").Where("id = ?", uRes2.ID).Updates(uRes2); res.RowsAffected == 0 {
 					tx.Rollback()
-					return errors.New("服务繁忙,请重试.")
+					return errors.New("服务繁忙，请重试")
 				}
 				i++
 			}

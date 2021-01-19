@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	TYPE_ROUTER uint8 = 1 // 路由
-	TYPE_MARK   uint8 = 2 // 标识码
+	TypeRouter uint8 = 1 // 路由
+	TypeMark   uint8 = 2 // 标识码
 )
 
 // AuthUserGroup 用户角色
@@ -139,8 +139,8 @@ func (*migrate) CreateAuthUserGroup() {
 					ID:     2,
 				},
 			}
-			db.Create(data)
-			return nil
+			tx := db.Create(data)
+			return tx.Error
 		}
 	})
 }
@@ -150,7 +150,7 @@ func (g AuthUserGroup) GetMarks() []string {
 	currentRules := g.GetRules()
 	res := make([]string, 0)
 	for _, v := range currentRules {
-		if TYPE_MARK == v.Type && AuthUserRulesStatusAdopt == v.RelaStauts {
+		if TypeMark == v.Type && AuthUserRulesStatusAdopt == v.RelaStauts {
 			res = append(res, v.Mark)
 		}
 	}

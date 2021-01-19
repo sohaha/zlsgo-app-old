@@ -57,19 +57,14 @@ func (g GroupIdArr) Value() (driver.Value, error) {
 
 func (g *GroupIdArr) Scan(v interface{}) error {
 	val, _ := v.([]byte)
-	/*if string(val) == "null" {
-		return nil
-	}*/
-
 	arrStr := strings.Split(string(val), ",")
-	arrUint := []uint{}
+	var arrUint []uint
 	for _, str := range arrStr {
 		if parInt, err := strconv.Atoi(str); err == nil { // 因为这里数据不应该存在中文等字符
 			arrUint = append(arrUint, uint(parInt))
 		}
 	}
 
-	// *g = GroupIdArr(arrUint)
 	*g = arrUint
 
 	return nil
@@ -170,7 +165,10 @@ func (*migrate) CreateAuthUser() {
 					IsSuper:  false,
 				},
 			}
-			db.Create(builtInUsers)
+			tx := db.Create(builtInUsers)
+			if tx.Error != nil {
+				log.Fatalf("初始化内置用户失败: %s", tx.Error.Error())
+			}
 			log.Tips("初始化内置用户:")
 			for _, v := range builtInUsers {
 				log.Printf("      账号: %s 密码: %s", v.Username, password)
@@ -211,11 +209,11 @@ func (u *AuthUser) TokenToInfo(t *AuthUserToken) error {
 	t.Status = 1
 	db.Where(t).Limit(1).Find(&t)
 
-	h, _ := time.ParseDuration(TOKEN_EFFECTIVE_TIME)
+	h, _ := time.ParseDuration(TokenEffectiveTime)
 	lastTime, _ := ztime.Parse(ztime.FormatTime(t.UpdatedAt.Time, "Y-m-d H:i:s"))
 	nowTime, _ := ztime.Parse(ztime.Now("Y-m-d H:i:s"))
 	if flag := nowTime.Before(lastTime.Add(1 * h)); !flag { // 接口有效时间
-		db.Model(&t).Select("status", "update_time").Updates(AuthUserToken{Status: TOKEN_DISABLED}) // 让token过期
+		db.Model(&t).Select("status", "update_time").Updates(AuthUserToken{Status: TokenDisabled}) // 让token过期
 		return errors.New("登录过期，请重新登录")
 	}
 
@@ -280,9 +278,9 @@ func (u *AuthUser) Update(c *znet.Context, postData manageBusiness.PutUpdateSt, 
 			newValue = rawValue
 			return
 		}).EncryptPassword(),
-		"email": valid.IsMail("Email地址错误").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+		"email": valid.IsMail("email 地址错误").Customize(func(rawValue string, err error) (newValue string, newErr error) {
 			if has, _ := editUser.EmailExist(postData.Email); has {
-				return rawValue, errors.New("Email已被使用")
+				return rawValue, errors.New("email 已被使用")
 			}
 			newValue = rawValue
 			return
@@ -319,7 +317,7 @@ func (u *AuthUser) Update(c *znet.Context, postData manageBusiness.PutUpdateSt, 
 
 	uRes := db.Model(&AuthUser{}).Select(queryFiled).Where("id = ?", editUser.ID).Updates(updateUser)
 	if uRes.RowsAffected < 1 {
-		return 0, errors.New("服务繁忙,请重试.")
+		return 0, errors.New("服务繁忙，请重试")
 	}
 
 	if err = (&AuthUserLogs{Userid: editUser.ID}).UpdatePasswordTip(c); err != nil {
@@ -342,7 +340,7 @@ func (u *AuthUser) EditPassword(c *znet.Context, postData manageBusiness.PutEdit
 
 	uRes := db.Model(&AuthUser{}).Select("password").Where("id = ?", editUser.ID).Updates(&AuthUser{Password: postData.Pass})
 	if uRes.RowsAffected < 1 {
-		return errors.New("服务繁忙,请重试.")
+		return errors.New("服务繁忙，请重试")
 	}
 
 	if err := (&AuthUserLogs{Userid: editUser.ID}).UpdatePasswordTip(c); err != nil {
@@ -360,7 +358,7 @@ func (u *AuthUser) Delete() error {
 
 	res := db.Delete(&AuthUser{}, u.ID)
 	if res.RowsAffected < 1 {
-		return errors.New("服务繁忙,请重试.")
+		return errors.New("服务繁忙，请重试")
 	}
 
 	return nil

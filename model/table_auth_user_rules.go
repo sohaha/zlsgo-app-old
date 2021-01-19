@@ -51,8 +51,8 @@ func (*migrate) CreateAuthUserRules() {
 					Mark:   "/ZlsManage/UserApi*",
 				},
 			}
-			db.Create(data)
-			return nil
+			tx := db.Create(data)
+			return tx.Error
 		}
 	})
 }
@@ -85,7 +85,7 @@ func (r *AuthUserRules) MarkExist() error {
 
 func (r *AuthUserRules) Insert() error {
 	if res := db.Create(&r); res.RowsAffected == 0 {
-		return errors.New("服务繁忙,请重试.")
+		return errors.New("服务繁忙，请重试")
 	}
 
 	return nil
@@ -94,7 +94,7 @@ func (r *AuthUserRules) Insert() error {
 func (r *AuthUserRules) Update() error {
 	res := db.Model(&r).Select([]string{"update_time", "title", "mark", "remark"}).Updates(r)
 	if res.RowsAffected == 0 {
-		return errors.New("服务繁忙,请重试.")
+		return errors.New("服务繁忙，请重试")
 	}
 
 	return nil
@@ -102,7 +102,7 @@ func (r *AuthUserRules) Update() error {
 
 func (r *AuthUserRules) Delete() error {
 	if res := db.Delete(&r, r.ID); res.RowsAffected == 0 {
-		return errors.New("服务繁忙,请重试.")
+		return errors.New("服务繁忙，请重试")
 	}
 
 	return nil

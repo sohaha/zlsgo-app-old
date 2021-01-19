@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	TOKEN_NORMAL         uint8  = 1
-	TOKEN_DISABLED       uint8  = 2
-	TOKEN_EFFECTIVE_TIME string = "1h" // 有效时间
+	TokenNormal        uint8  = 1
+	TokenDisabled      uint8  = 2
+	TokenEffectiveTime string = "1h" // 有效时间
 )
 
 // AuthUserToken 管理员权限密钥
@@ -78,20 +78,20 @@ func (t *AuthUserToken) UpdateStatus() {
 func (t *AuthUserToken) ClearAllToken() error {
 	uRes := db.Model(&AuthUserToken{}).Select("status").Where("status = ? and userid = ?", 1, t.Userid).Updates(&AuthUserToken{Status: 2})
 	if uRes.RowsAffected < 1 {
-		return errors.New("服务繁忙,请重试.")
+		return errors.New("服务繁忙，请重试")
 	}
 
 	return nil
 }
 
 func (t *AuthUserToken) LoginModeTrue() error {
-	res := []AuthUserToken{}
-	db.Select("MAX(id) as id, userid").Where("userid != ? and status = ?", t.Userid, TOKEN_NORMAL).Group("userid").Find(&res)
+	var res []AuthUserToken
+	db.Select("MAX(id) as id, userid").Where("userid != ? and status = ?", t.Userid, TokenNormal).Group("userid").Find(&res)
 	idMap := []uint{t.ID}
 	for _, v := range res {
 		idMap = append(idMap, v.ID)
 	}
-	if uRes := db.Model(AuthUserToken{}).Where("status = ? and id NOT IN ?", TOKEN_NORMAL, idMap).Updates(AuthUserToken{Status: TOKEN_DISABLED}); uRes.Error != nil {
+	if uRes := db.Model(AuthUserToken{}).Where("status = ? and id NOT IN ?", TokenNormal, idMap).Updates(AuthUserToken{Status: TokenDisabled}); uRes.Error != nil {
 		return errors.New("更新失败")
 	}
 
@@ -113,6 +113,6 @@ func (t *AuthUserToken) TokenRules() (string, error) {
 func (t *AuthUserToken) UserOthersTokenDisable() {
 	db.Where("id = ?", t.ID).First(t)
 	if cfg, _ := (&manageBusiness.ParamPutSystemConfigSt{}).GetConf(); cfg.LoginMode {
-		db.Model(&AuthUserToken{}).Select("update_time, status").Where("userid = ? and id != ? and status != ?", t.Userid, t.ID, TOKEN_DISABLED).Updates(AuthUserToken{Status: TOKEN_DISABLED})
+		db.Model(&AuthUserToken{}).Select("update_time, status").Where("userid = ? and id != ? and status != ?", t.Userid, t.ID, TokenDisabled).Updates(AuthUserToken{Status: TokenDisabled})
 	}
 }

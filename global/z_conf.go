@@ -65,8 +65,6 @@ func ReadConf(init bool) {
 		zutil.Try(func() {
 			cfg = gconf.New(FileName)
 
-
-
 			setComposeDefaultConf()
 			readComposeConf()
 			setLogger()

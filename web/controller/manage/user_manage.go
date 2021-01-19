@@ -495,7 +495,7 @@ func (*UserManage) PutUpdateUserRuleStatus(c *znet.Context) {
 			newValue = rawValue
 			return
 		}),
-		"status": valid.Required("状态不能为空").EnumInt([]int{model.RELA_STATUS_NORMAL, model.RELA_STATUS_BAN, model.RELA_STATUS_IGNORE}, "非正常状态码").Customize(func(rawValue string, err error) (newValue string, newErr error) {
+		"status": valid.Required("状态不能为空").EnumInt([]int{model.RelaStatusNormal, model.RelaStatusBan, model.RelaStatusIgnore}, "非正常状态码").Customize(func(rawValue string, err error) (newValue string, newErr error) {
 			if err != nil {
 				newErr = err
 				return

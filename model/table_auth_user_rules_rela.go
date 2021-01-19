@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	RELA_STATUS_NORMAL = 1
-	RELA_STATUS_BAN    = 2
-	RELA_STATUS_IGNORE = 3
+	RelaStatusNormal = 1
+	RelaStatusBan    = 2
+	RelaStatusIgnore = 3
 )
 
 // AuthUserRules 角色权限规则对应
@@ -42,8 +42,8 @@ func (*migrate) CreateAuthUserRulesRela() {
 					Status:  1,
 				},
 			}
-			db.Create(data)
-			return nil
+			tx := db.Create(data)
+			return tx.Error
 		}
 	})
 }
@@ -56,7 +56,7 @@ type GroupIntegration struct {
 
 // 整合角色相关数据
 func (rr *AuthUserRulesRela) Integration() *GroupIntegration {
-	lists := []AuthUserRulesRela{}
+	var lists []AuthUserRulesRela
 	db.Where("group_id = ?", rr.GroupID).Find(&lists)
 
 	groupIntegration := &GroupIntegration{RuleIds: []uint{}, BanRuleIds: []uint{}, UserCount: 0}
@@ -79,6 +79,7 @@ func (rr *AuthUserRulesRela) Integration() *GroupIntegration {
 // 更新用户规则
 func (rr *AuthUserRulesRela) UpdateUserRuleStatus() (*AuthUserRulesRela, error) {
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	ctxDB := db.WithContext(ctx)
 	findRes := AuthUserRulesRela{}
 	ctxDB.Where("group_id = ? and rule_id = ?", rr.GroupID, rr.RuleID).First(&findRes)

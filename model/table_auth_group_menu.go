@@ -22,7 +22,7 @@ type AuthGroupMenu struct {
 func (*migrate) CreateAuthGroupMenu() {
 	migrateData = append(migrateData, func() (string, func(db *gorm.DB) error) {
 		return "CreateAuthGroupMenu", func(db *gorm.DB) error {
-			db.Create([]AuthGroupMenu{
+			tx := db.Create([]AuthGroupMenu{
 				{
 					GroupID: 1,
 					Menu:    "1,2,3,4,5,6,7,8,9,10,11",
@@ -32,7 +32,7 @@ func (*migrate) CreateAuthGroupMenu() {
 					Menu:    "1",
 				},
 			})
-			return nil
+			return tx.Error
 		}
 	})
 }
@@ -42,11 +42,11 @@ func (m *AuthGroupMenu) Update() error {
 	db.Where("groupid = ?", m.GroupID).First(hasInfo)
 	if hasInfo.ID == 0 {
 		if res := db.Create(m); res.RowsAffected == 0 {
-			return errors.New("服务繁忙,请重试")
+			return errors.New("服务繁忙，请重试")
 		}
 	} else {
 		if res := db.Model(&m).Select("update_time", "menu").Where("id = ?", hasInfo.ID).Updates(m); res.RowsAffected == 0 {
-			return errors.New("服务繁忙,请重试")
+			return errors.New("服务繁忙，请重试")
 		}
 	}
 
