@@ -43,17 +43,18 @@ func gormInit(dbType string, sqlDB *sql.DB) (err error) {
 	if baseConf.Debug && databaseConf.Debug {
 		LogLevel = zutil.IfVal(databaseConf.Debug, logger.Info, logger.Warn).(logger.LogLevel)
 	}
+	gormLogger := logger.New(
+		Log,
+		logger.Config{
+			SlowThreshold: 200 * time.Millisecond,
+			LogLevel:      LogLevel,
+			Colorful:      zlog.IsSupportColor(),
+		},
+	)
 	gormConfig := &gorm.Config{
 		PrepareStmt:            true,
 		SkipDefaultTransaction: true,
-		Logger: logger.New(
-			Log,
-			logger.Config{
-				SlowThreshold: time.Second,
-				LogLevel:      LogLevel,
-				Colorful:      true,
-			},
-		),
+		Logger:                 gormLogger,
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix:   databaseConf.Prefix,
 			SingularTable: true,

@@ -71,8 +71,6 @@ func ReadConf(init bool) {
 			if init {
 				initCompose()
 			}
-			Log.Dump(BaseConf())
-			Log.Dump(cfg.Get("logdir"))
 		}, func(e interface{}) {
 			if err, ok := e.(error); ok {
 				Log.Fatal(err.Error())
