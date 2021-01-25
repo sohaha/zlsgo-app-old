@@ -95,20 +95,16 @@ func (*System) DeleteSystemLogs(c *znet.Context) {
 	// 因为当天日志一直被占用 无法删除
 	// 又因为日志生成都是日期组成所以..
 	nowDate := time.Now().Format("2006-01-02")
-	// global.Log.Error("当前时间: ", nowDate)
 	if PostData.Name == nowDate {
 		global.Log.Error("删除文件得时间和参数输入的时间相等,所以直接清空内容.")
 		f, _ := os.Create(rmLogPath)
-		f.Close()
+		_ = f.Close()
 		c.ApiJSON(200, "删除系统日志", true)
 		return
 	}
 
 	_, err = os.Lstat(rmLogPath)
-	global.Log.Error("文件是否存在: ", err)
 	if err == nil {
-		// f, _ := os.Open(rmLogPath)
-		// f.Close()
 		err = os.Remove(rmLogPath)
 		if err != nil {
 			global.Log.Error("删除文件失败: ", err)

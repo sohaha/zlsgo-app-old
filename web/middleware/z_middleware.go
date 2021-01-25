@@ -29,6 +29,9 @@ func RegisterMiddleware(r *znet.Engine) {
 	}))
 	// r.Use(demoMiddleware())
 
+	// 维护模式
+	// r.Use(maintainModeMiddleware())
+
 	// limiterHandle := limiter.New(10000, func(c *znet.Context) {
 	// 	c.String(504, "超过限制")
 	// })
