@@ -29,7 +29,7 @@ func (*StController) RegManage(r *znet.Engine) {
 	})
 	r.GET(prefix+"/{file:.*}", fileserver, g)
 
-	r.Static("/static/", zfile.RealPath("./resource/static"))
+	r.Static("/static/", zfile.RealPathMkdir("./resource/static"))
 
 	r.Group("/ZlsManage/", func(r *znet.Engine) {
 		corsHandler := cors.New(&cors.Config{

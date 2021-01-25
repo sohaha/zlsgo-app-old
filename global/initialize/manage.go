@@ -11,7 +11,7 @@ func InitManage() {
 	c := global.ManageConf()
 	if _, e := zstatic.MustBytes(c.Path + "index.html"); e == nil {
 		if global.BaseConf().Debug {
-			global.Log.Tipsf("TmpFile: %sindex.html already exists\n", c.Path)
+			global.Log.Tipsf("ManageFile: %sindex.html already exists\n", c.Path)
 		}
 		return
 	}

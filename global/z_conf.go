@@ -66,7 +66,6 @@ func ReadConf(init bool) {
 	onecInit.Do(func() {
 		zutil.Try(func() {
 			cfg = gconf.New(FileName)
-
 			setComposeDefaultConf()
 			readComposeConf()
 			setLogger()
@@ -86,6 +85,31 @@ func SaveConf() error {
 	ReadConf(false)
 	// Update the current configuration to the configuration file
 	return cfg.Core.WriteConfig()
+}
+
+// 获取指定配置
+//goland:noinspection GoUnusedExportedFunction
+func GetConf(key string) interface{} {
+	confLock.RLock()
+	defer confLock.RUnlock()
+	return cfg.Get(key)
+}
+
+// 更新配置
+//goland:noinspection GoUnusedExportedFunction
+func UpdateConf(key string, value interface{}) error {
+	confLock.RLock()
+	defer confLock.RUnlock()
+	cfg.Set(key, value)
+	return SaveConf()
+}
+
+// GetConfAll 获取配置值
+// noinspection ALL
+func GetConfAll() map[string]interface{} {
+	confLock.RLock()
+	defer confLock.RUnlock()
+	return cfg.GetAll()
 }
 
 // 设置初始化模块
@@ -194,14 +218,6 @@ func BaseConf() stBaseConf {
 
 func (*stCompose) BaseReadConf(cfg *gconf.Confhub) error {
 	return cfg.Core.UnmarshalKey(baseConf.ConfName(), &baseConf)
-}
-
-// GetConfAll 获取配置值
-// noinspection ALL
-func GetConfAll() map[string]interface{} {
-	confLock.RLock()
-	defer confLock.RUnlock()
-	return cfg.GetAll()
 }
 
 // GetConfInstance 获取配置实例
