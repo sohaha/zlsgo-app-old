@@ -1,7 +1,6 @@
 package model
 
 import (
-	"app/web/business/manageBusiness"
 	"errors"
 	"fmt"
 	"strings"
@@ -110,9 +109,12 @@ func (t *AuthUserToken) TokenRules() (string, error) {
 	return deToken, nil
 }
 
-func (t *AuthUserToken) UserOthersTokenDisable() {
+func (t *AuthUserToken) SelectUser() *AuthUserToken {
 	db.Where("id = ?", t.ID).First(t)
-	if cfg, _ := (&manageBusiness.ParamPutSystemConfigSt{}).GetConf(); cfg.LoginMode {
-		db.Model(&AuthUserToken{}).Select("update_time, status").Where("userid = ? and id != ? and status != ?", t.Userid, t.ID, TokenDisabled).Updates(AuthUserToken{Status: TokenDisabled})
-	}
+
+	return t
+}
+
+func (t *AuthUserToken) UpdateUserToken() {
+	db.Model(&AuthUserToken{}).Select("update_time, status").Where("userid = ? and id != ? and status != ?", t.Userid, t.ID, TokenDisabled).Updates(AuthUserToken{Status: TokenDisabled})
 }

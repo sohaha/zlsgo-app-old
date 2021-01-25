@@ -1,6 +1,7 @@
 package manage
 
 import (
+	"app/logic"
 	"app/model"
 	"encoding/json"
 	"github.com/sohaha/zlsgo/znet"
@@ -23,7 +24,7 @@ func (*Menu) PostUserMenu(c *znet.Context) {
 		groupid = 0
 	}
 
-	c.ApiJSON(200, "请求成功", (&model.Menu{}).Lists(uint8(groupid)))
+	c.ApiJSON(200, "请求成功", logic.MenuLists(uint8(groupid)))
 	return
 }
 

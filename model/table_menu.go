@@ -1,11 +1,8 @@
 package model
 
 import (
-	"app/web/business/manageBusiness"
 	"errors"
 	"gorm.io/gorm"
-	"strconv"
-	"strings"
 )
 
 // Menu 菜单表
@@ -59,42 +56,11 @@ type ListsRes struct {
 	Child      []ListsRes `json:"child"`
 }
 
-func (m *Menu) Lists(groupid uint8) (re []ListsRes) {
+func (m *Menu) SelectMenuOrderByPidASC() []Menu {
 	var items []Menu
 	db.Model(&m).Order("pid asc").Order("sort asc").Find(&items)
 
-	var menuArr []string
-	if groupid > 0 {
-		groupMenuInfo := AuthGroupMenu{}
-		db.Model(&AuthGroupMenu{}).Where("groupid = ?", groupid).Find(&groupMenuInfo)
-		menuArr = strings.Split(groupMenuInfo.Menu, ",")
-	}
-
-	var listsRes []ListsRes
-	for _, v := range items {
-		listsRes = append(listsRes, ListsRes{
-			ID:         v.ID,
-			Title:      v.Title,
-			Index:      v.Index,
-			Icon:       v.Icon,
-			Breadcrumb: v.Breadcrumb,
-			Real:       v.Real,
-			Show:       v.Show,
-			Pid:        v.Pid,
-			Sort:       v.Sort,
-			IsShow:     manageBusiness.InArray(menuArr, strconv.Itoa(int(v.ID))),
-		})
-	}
-	for _, v := range listsRes {
-		if v.Pid != 0 {
-			break
-		}
-
-		v.Child = (&Menu{ID: v.ID}).AppendChild(listsRes)
-		re = append(re, v)
-	}
-
-	return re
+	return items
 }
 
 // AppendChild 追加子菜单
@@ -178,4 +144,11 @@ func (m *Menu) MenuSort(data PostSortSt) error {
 func (m *Menu) All() (res []Menu) {
 	db.Model(m).Order("sort asc").Find(&res)
 	return
+}
+
+func (m *Menu) SelectForGroupID(groupIDArr []string) []AuthGroupMenu {
+	var res []AuthGroupMenu
+	db.Where("groupid IN ?", groupIDArr).Find(&res)
+
+	return res
 }

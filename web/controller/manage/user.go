@@ -44,7 +44,7 @@ func (*Basic) PostGetToken(c *znet.Context) {
 	deToken, _ := tokenModel.TokenRules()
 	tokenId, _ := strconv.Atoi(strings.Split(deToken, "|")[2])
 	tokenModel.ID = uint(tokenId)
-	tokenModel.UserOthersTokenDisable()
+	logic.UserOthersTokenDisable(tokenModel)
 
 	web.ApiJSON(c, 200, "登录成功", user, map[string]interface{}{
 		"token": token,
@@ -73,7 +73,8 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 	groups := []model.AuthUserGroup{}
 	(model.AuthUserGroup{}).All(&groups)
 
-	menu := (&model.AuthGroupMenu{}).MenuInfo(user)
+	menu := logic.MenuInfo(user)
+
 	marksKV := map[string]uint{}
 	var marks []string
 	for _, groupID := range user.GroupID {
@@ -148,7 +149,7 @@ func (*Basic) PutUpdate(c *znet.Context) {
 		}
 	}
 
-	_, err := user.Update(c, postData, currentUserId, user.IsSuper || groupsHas1)
+	_, err := logic.Update(c, postData, currentUserId, user.IsSuper || groupsHas1)
 	if err != nil {
 		web.ApiJSON(c, 201, err.Error(), nil)
 		return
@@ -164,7 +165,7 @@ func (*Basic) PutEditPassword(c *znet.Context) {
 		user = u.(*model.AuthUser)
 	}
 
-	var postData manageBusiness.PutEditPasswordSt
+	var postData model.PutEditPasswordSt
 	valid := c.ValidRule()
 	err := c.BindValid(&postData, map[string]zvalid.Engine{
 		"oldPass": valid.Required("请输入旧密码"),

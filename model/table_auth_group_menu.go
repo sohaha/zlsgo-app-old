@@ -1,11 +1,8 @@
 package model
 
 import (
-	"app/web/business/manageBusiness"
 	"errors"
 	"gorm.io/gorm"
-	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -69,94 +66,6 @@ type Router struct {
 	Children []Router `json:"children"`
 }
 
-func (m *AuthGroupMenu) conv(menu Menu, user *AuthUser) (r Router) {
-	show := manageBusiness.InArray(append(strings.Split(m.Menu, ","), "1"), strconv.Itoa(int(menu.ID)))
-	has := manageBusiness.InArray(append(strings.Split(m.Menu, ","), "1", "2", "7"), strconv.Itoa(int(menu.ID)))
-	if user.IsSuper {
-		has = true
-		show = true
-	}
-
-	r = Router{
-		Name: menu.Title,
-		Path: m.VuePath(menu.Index),
-		// Url:        m.VueUrl(manageBusiness.InArray(strings.Split(m.Menu, ","), strconv.Itoa(int(menu.ID))), menu.Index),
-		Url:      m.VueUrl(true, menu.Index),
-		Icon:     menu.Icon,
-		Children: []Router{},
-	}
-	r.Meta.Breadcrumb = menu.Breadcrumb == 1
-	r.Meta.Real = menu.Real == 1
-	r.Meta.Show = menu.Show == 1 && show
-	r.Meta.Has = has
-	r.Meta.Collapse = false
-
-	return
-}
-
-func (m *AuthGroupMenu) getChild(menu Menu, menus []Menu, user *AuthUser) []Router {
-	re := make([]Router, 0)
-	for _, v := range menus {
-		if v.Pid == uint8(menu.ID) {
-			re = append(re, m.conv(v, user))
-		}
-	}
-
-	return re
-}
-
-func (m *AuthGroupMenu) MenuInfo(user *AuthUser) (re []Router) {
-	menuInfo := (&Menu{}).All()
-
-	var groupIDArr []string
-	for _, groupID := range user.GroupID {
-		groupIDArr = append(groupIDArr, strconv.Itoa(int(groupID)))
-	}
-
-	var res []AuthGroupMenu
-	menuKV := map[string]uint{}
-	db.Where("groupid IN ?", groupIDArr).Find(&res)
-	for _, groupRes := range res {
-		for _, m := range strings.Split(groupRes.Menu, ",") {
-			menuKV[m] = 1
-		}
-	}
-
-	var mergeMenu []int
-	for gid := range menuKV {
-		if g, err := strconv.Atoi(gid); err == nil {
-			mergeMenu = append(mergeMenu, g)
-		}
-	}
-
-	var mergeMenuStr []string
-	sort.Ints(mergeMenu)
-	for _, gid := range mergeMenu {
-		mergeMenuStr = append(mergeMenuStr, strconv.Itoa(gid))
-	}
-	m.Menu = strings.Join(mergeMenuStr, ",")
-
-	for _, menu := range menuInfo {
-		if menu.Pid == 0 {
-			r := m.conv(menu, user)
-			r.Children = m.getChild(menu, menuInfo, user)
-			for _, mm := range r.Children {
-				if mm.Meta.Show {
-					r.Meta.Collapse = true
-				}
-
-				if mm.Meta.Has && r.Name != "后台中心" {
-					r.Url = ""
-				}
-			}
-
-			re = append(re, r)
-		}
-	}
-
-	return re
-}
-
 func (m *AuthGroupMenu) VueUrl(show bool, url string) string {
 	if !show {
 		return ""
@@ -187,4 +96,11 @@ func (m *AuthGroupMenu) VuePath(path string) string {
 	}
 
 	return path
+}
+
+func (m *AuthGroupMenu) SelectGroupMenu(groupid uint8) AuthGroupMenu {
+	groupMenuInfo := AuthGroupMenu{}
+	db.Model(&AuthGroupMenu{}).Where("groupid = ?", groupid).Find(&groupMenuInfo)
+
+	return groupMenuInfo
 }
