@@ -104,7 +104,7 @@ func (*Basic) PutUpdate(c *znet.Context) {
 
 	var postData manageBusiness.PutUpdateSt
 	if err := c.Bind(&postData); err != nil {
-		web.ApiJSON(c, 201, err.Error(), nil)
+		web.ApiJSON(c, 211, err.Error(), nil)
 		return
 	}
 
@@ -132,12 +132,12 @@ func (*Basic) PutUpdate(c *znet.Context) {
 	isMe := currentUserId == uid
 
 	if isMe && 1 != postData.Status {
-		web.ApiJSON(c, 201, "不能禁止自己", nil)
+		web.ApiJSON(c, 211, "不能禁止自己", nil)
 		return
 	}
 
 	if (currentUserId != uid) && (userIsAdmin == 1) && (postData.Status != 0) {
-		web.ApiJSON(c, 201, "不能更新该账户状态", nil)
+		web.ApiJSON(c, 211, "不能更新该账户状态", nil)
 		return
 	}
 
@@ -151,7 +151,7 @@ func (*Basic) PutUpdate(c *znet.Context) {
 
 	_, err := manageBusiness.Update(c, postData, currentUserId, user.IsSuper || groupsHas1)
 	if err != nil {
-		web.ApiJSON(c, 201, err.Error(), nil)
+		web.ApiJSON(c, 211, err.Error(), nil)
 		return
 	}
 
@@ -183,7 +183,7 @@ func (*Basic) PutEditPassword(c *znet.Context) {
 	})
 
 	if err != nil {
-		web.ApiJSON(c, 210, err.Error(), nil)
+		web.ApiJSON(c, 211, err.Error(), nil)
 		return
 	}
 
@@ -194,7 +194,7 @@ func (*Basic) PutEditPassword(c *znet.Context) {
 	}
 	if userid == upUid {
 		if err := (&model.AuthUser{ID: upUid}).EditPassword(c, postData.OldPass, postData.Pass); err != nil {
-			web.ApiJSON(c, 210, err.Error(), nil)
+			web.ApiJSON(c, 211, err.Error(), nil)
 			return
 		}
 		_ = (&model.AuthUserToken{Userid: upUid}).ClearAllToken()
@@ -202,7 +202,7 @@ func (*Basic) PutEditPassword(c *znet.Context) {
 		web.ApiJSON(c, 200, "修改密码成功", nil)
 		return
 	} else {
-		web.ApiJSON(c, 210, "不能修改其他人密码", nil)
+		web.ApiJSON(c, 211, "不能修改其他人密码", nil)
 		return
 	}
 }

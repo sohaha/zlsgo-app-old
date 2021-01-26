@@ -32,7 +32,7 @@ func (*System) GetSystemLogs(c *znet.Context) {
 		zvalid.BatchVar(&postData.CurrentLine, c.Valid(tempRule, "currentLine", "当前行")),
 	)
 	if err != nil {
-		c.ApiJSON(201, err.Error(), nil)
+		c.ApiJSON(211, err.Error(), nil)
 		return
 	}
 
@@ -131,7 +131,7 @@ func (*System) GetSystemConfig(c *znet.Context) {
 	var paramPutSystemConfigSt manageBusiness.ParamPutSystemConfigSt
 	res, err := paramPutSystemConfigSt.GetConf()
 	if err != nil {
-		c.ApiJSON(201, err.Error(), nil)
+		c.ApiJSON(211, err.Error(), nil)
 		return
 	}
 
@@ -154,11 +154,11 @@ func (*System) PutSystemConfig(c *znet.Context) {
 		zvalid.BatchVar(&paramPutSystemConfigSt.LoginMode, c.Valid(tempRule, "loginMode", "登录模式")),
 	)
 	if err != nil {
-		c.ApiJSON(201, err.Error(), nil)
+		c.ApiJSON(211, err.Error(), nil)
 		return
 	}
 	if err := paramPutSystemConfigSt.SetConf(); err != nil {
-		c.ApiJSON(201, err.Error(), nil)
+		c.ApiJSON(211, err.Error(), nil)
 		return
 	}
 
