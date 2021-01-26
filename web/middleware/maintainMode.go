@@ -14,8 +14,8 @@ import (
 func maintainModeMiddleware() func(c *znet.Context) {
 	return func(c *znet.Context) {
 		ip := c.GetClientIP()
-		if ip != "" && global.BaseConf().MaintainMode {
-			ipWhitelist := strings.Split(global.BaseConf().IPWhitelist, ",")
+		if ip != "" && global.ManageConf().MaintainMode {
+			ipWhitelist := strings.Split(global.ManageConf().IPWhitelist, ",")
 			for _, v := range ipWhitelist {
 				if v == ip {
 					c.Next()

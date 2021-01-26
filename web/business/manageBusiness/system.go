@@ -1,8 +1,8 @@
-package logic
+package manageBusiness
 
 import (
+	"app/global"
 	"bufio"
-	"github.com/sohaha/gconf"
 	"github.com/sohaha/zlsgo/zfile"
 	"io"
 	"io/ioutil"
@@ -114,51 +114,52 @@ type ParamPutSystemConfigSt struct {
 }
 
 func (st *ParamPutSystemConfigSt) SetConf() error {
-	Mutex.Lock()
-
-	cfgName := "conf.yml"
-	cfg := gconf.New(cfgName)
-	err := cfg.Read()
+	err := global.UpdateConf("base.debug", st.Debug)
 	if err != nil {
 		return err
 	}
 
-	cfg.Set("base.debug", st.Debug)
-	cfg.Set("project.cdnHost", st.CdnHost)
-	cfg.Set("base.maintainMode", st.MaintainMode)
-	cfg.Set("base.ipWhitelist", st.IpWhitelist)
-	cfg.Set("base.loginMode", st.LoginMode)
-	cfg.Write(cfgName)
+	err = global.UpdateConf("project.cdnHost", st.CdnHost)
+	if err != nil {
+		return err
+	}
 
-	Mutex.Unlock()
+	err = global.UpdateConf("base.maintainMode", st.MaintainMode)
+
+	if err != nil {
+		return err
+	}
+	err = global.UpdateConf("base.ipWhitelist", st.IpWhitelist)
+	if err != nil {
+		return err
+	}
+
+	err = global.UpdateConf("base.loginMode", st.LoginMode)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (st *ParamPutSystemConfigSt) GetConf() (*ParamPutSystemConfigSt, error) {
-	cfgName := "conf.yml"
-	cfg := gconf.New(cfgName)
-	err := cfg.Read()
-	if err != nil {
-		return nil, err
-	}
-
-	cfgDebug := cfg.Get("base.debug")
+	cfgDebug := global.GetConf("base.debug")
 	if cfgDebug != nil {
 		st.Debug = cfgDebug.(bool)
 	}
-	cfgCdnHost := cfg.Get("project.cdnHost")
+	cfgCdnHost := global.GetConf("project.cdnHost")
 	if cfgCdnHost != nil {
 		st.CdnHost = cfgCdnHost.(string)
 	}
-	cfgMaintainMode := cfg.Get("base.maintainMode")
+	cfgMaintainMode := global.GetConf("base.maintainMode")
 	if cfgMaintainMode != nil {
 		st.MaintainMode = cfgMaintainMode.(bool)
 	}
-	cfgIpWhitelist := cfg.Get("base.ipWhitelist")
+	cfgIpWhitelist := global.GetConf("base.ipWhitelist")
 	if cfgIpWhitelist != nil {
 		st.IpWhitelist = cfgIpWhitelist.(string)
 	}
-	cfgLoginMode := cfg.Get("base.loginMode")
+	cfgLoginMode := global.GetConf("base.loginMode")
 	if cfgLoginMode != nil {
 		st.LoginMode = cfgLoginMode.(bool)
 	}

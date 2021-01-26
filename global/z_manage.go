@@ -6,9 +6,11 @@ import (
 
 type (
 	stManageConf struct {
-		Path   string
-		Remote string
-		Md5    string
+		Path         string
+		Remote       string
+		Md5          string
+		MaintainMode bool   `mapstructure:"maintain_mode"` // 维护模式
+		IPWhitelist  string `mapstructure:"ip_whitelist"`  // 维护模式下，白名单
 	}
 )
 

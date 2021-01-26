@@ -1,6 +1,7 @@
-package logic
+package manageBusiness
 
 import (
+	"app/logic"
 	"app/model"
 	"sort"
 	"strconv"
@@ -28,7 +29,7 @@ func MenuLists(groupid uint8) (re []model.ListsRes) {
 			Show:       v.Show,
 			Pid:        v.Pid,
 			Sort:       v.Sort,
-			IsShow:     InArray(menuArr, strconv.Itoa(int(v.ID))),
+			IsShow:     logic.InArray(menuArr, strconv.Itoa(int(v.ID))),
 		})
 	}
 	for _, v := range listsRes {
@@ -96,9 +97,15 @@ func MenuInfo(user *model.AuthUser) (re []model.Router) {
 	return re
 }
 
+func defMenuForGroup(m *model.AuthGroupMenu, menu model.Menu) (bool, bool) {
+	show := logic.InArray(append(strings.Split(m.Menu, ","), "1"), strconv.Itoa(int(menu.ID)))
+	has := logic.InArray(append(strings.Split(m.Menu, ","), "1", "2", "7"), strconv.Itoa(int(menu.ID)))
+
+	return show, has
+}
+
 func menuConv(m *model.AuthGroupMenu, menu model.Menu, user *model.AuthUser) (r model.Router) {
-	show := InArray(append(strings.Split(m.Menu, ","), "1"), strconv.Itoa(int(menu.ID)))
-	has := InArray(append(strings.Split(m.Menu, ","), "1", "2", "7"), strconv.Itoa(int(menu.ID)))
+	show, has := defMenuForGroup(m, menu)
 	if user.IsSuper {
 		has = true
 		show = true

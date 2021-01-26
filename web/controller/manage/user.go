@@ -3,6 +3,7 @@ package manage
 import (
 	"app/logic"
 	"app/web"
+	"app/web/business/manageBusiness"
 	"errors"
 	"github.com/sohaha/zlsgo/zjson"
 	"github.com/sohaha/zlsgo/znet"
@@ -43,7 +44,7 @@ func (*Basic) PostGetToken(c *znet.Context) {
 	deToken, _ := tokenModel.TokenRules()
 	tokenId, _ := strconv.Atoi(strings.Split(deToken, "|")[2])
 	tokenModel.ID = uint(tokenId)
-	logic.UserOthersTokenDisable(tokenModel)
+	manageBusiness.UserOthersTokenDisable(tokenModel)
 
 	web.ApiJSON(c, 200, "登录成功", user, map[string]interface{}{
 		"token": token,
@@ -72,7 +73,7 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 	groups := []model.AuthUserGroup{}
 	(model.AuthUserGroup{}).All(&groups)
 
-	menu := logic.MenuInfo(user)
+	menu := manageBusiness.MenuInfo(user)
 
 	marksKV := map[string]uint{}
 	var marks []string
@@ -101,7 +102,7 @@ func (*Basic) PutUpdate(c *znet.Context) {
 		user = u.(*model.AuthUser)
 	}
 
-	var postData logic.PutUpdateSt
+	var postData manageBusiness.PutUpdateSt
 	if err := c.Bind(&postData); err != nil {
 		web.ApiJSON(c, 201, err.Error(), nil)
 		return
@@ -127,7 +128,7 @@ func (*Basic) PutUpdate(c *znet.Context) {
 	}
 
 	// isAdmin := logic.IsAdmin(uid)
-	userIsAdmin := logic.IsAdmin(currentUserId)
+	userIsAdmin := manageBusiness.IsAdmin(currentUserId)
 	isMe := currentUserId == uid
 
 	if isMe && 1 != postData.Status {
@@ -148,7 +149,7 @@ func (*Basic) PutUpdate(c *znet.Context) {
 		}
 	}
 
-	_, err := logic.Update(c, postData, currentUserId, user.IsSuper || groupsHas1)
+	_, err := manageBusiness.Update(c, postData, currentUserId, user.IsSuper || groupsHas1)
 	if err != nil {
 		web.ApiJSON(c, 201, err.Error(), nil)
 		return
@@ -182,7 +183,7 @@ func (*Basic) PutEditPassword(c *znet.Context) {
 	})
 
 	if err != nil {
-		web.ApiJSON(c, 201, err.Error(), nil)
+		web.ApiJSON(c, 210, err.Error(), nil)
 		return
 	}
 
@@ -193,7 +194,7 @@ func (*Basic) PutEditPassword(c *znet.Context) {
 	}
 	if userid == upUid {
 		if err := (&model.AuthUser{ID: upUid}).EditPassword(c, postData.OldPass, postData.Pass); err != nil {
-			web.ApiJSON(c, 201, err.Error(), nil)
+			web.ApiJSON(c, 210, err.Error(), nil)
 			return
 		}
 		_ = (&model.AuthUserToken{Userid: upUid}).ClearAllToken()
@@ -201,7 +202,7 @@ func (*Basic) PutEditPassword(c *znet.Context) {
 		web.ApiJSON(c, 200, "修改密码成功", nil)
 		return
 	} else {
-		web.ApiJSON(c, 201, "不能修改其他人密码", nil)
+		web.ApiJSON(c, 210, "不能修改其他人密码", nil)
 		return
 	}
 }
@@ -215,7 +216,7 @@ func (*Basic) PostUploadAvatar(c *znet.Context) {
 		return
 	}
 
-	rePath, host, err := logic.UploadAvatar(file, c.Host())
+	rePath, host, err := manageBusiness.UploadAvatar(file, c.Host())
 	if err != nil {
 		web.ApiJSON(c, 211, err.Error(), nil)
 		return

@@ -4,6 +4,7 @@ import (
 	"app/global"
 	"app/logic"
 	"app/model"
+	"app/web/business/manageBusiness"
 	"fmt"
 	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zlsgo/znet"
@@ -23,7 +24,7 @@ func (*System) GetSystemLogs(c *znet.Context) {
 		return
 	}
 
-	var postData logic.GetSystemLogsSt
+	var postData manageBusiness.GetSystemLogsSt
 	tempRule := c.ValidRule()
 	err := zvalid.Batch(
 		zvalid.BatchVar(&postData.Name, c.Valid(tempRule, "name", "文件名称")),
@@ -35,8 +36,8 @@ func (*System) GetSystemLogs(c *znet.Context) {
 		return
 	}
 
-	showDir := logic.GetTmpLogDir(global.BaseConf().LogDir)
-	logLists := logic.ShowLogsLists(postData.Type, global.BaseConf().LogDir)
+	showDir := manageBusiness.GetTmpLogDir(global.BaseConf().LogDir)
+	logLists := manageBusiness.ShowLogsLists(postData.Type, global.BaseConf().LogDir)
 
 	logPath := zfile.RealPath("./" + global.BaseConf().LogDir + "/" + postData.Type + "/" + postData.Name)
 	var (
@@ -45,7 +46,7 @@ func (*System) GetSystemLogs(c *znet.Context) {
 		fileLine         int
 	)
 	if global.BaseConf().LogDir != "" {
-		fileContentSlice, fileSize, fileLine = logic.GetSystemLogInfo(logPath, postData.CurrentLine)
+		fileContentSlice, fileSize, fileLine = manageBusiness.GetSystemLogInfo(logPath, postData.CurrentLine)
 	}
 
 	fileContent := ""
@@ -74,7 +75,7 @@ func (*System) DeleteSystemLogs(c *znet.Context) {
 	}
 
 	var (
-		PostData logic.DeleteSystemLogsSt
+		PostData manageBusiness.DeleteSystemLogsSt
 		err      error
 	)
 
@@ -127,7 +128,7 @@ func (*System) GetSystemConfig(c *znet.Context) {
 		return
 	}
 
-	var paramPutSystemConfigSt logic.ParamPutSystemConfigSt
+	var paramPutSystemConfigSt manageBusiness.ParamPutSystemConfigSt
 	res, err := paramPutSystemConfigSt.GetConf()
 	if err != nil {
 		c.ApiJSON(201, err.Error(), nil)
@@ -143,7 +144,7 @@ func (*System) PutSystemConfig(c *znet.Context) {
 		return
 	}
 
-	var paramPutSystemConfigSt logic.ParamPutSystemConfigSt
+	var paramPutSystemConfigSt manageBusiness.ParamPutSystemConfigSt
 	tempRule := c.ValidRule()
 	err := zvalid.Batch(
 		zvalid.BatchVar(&paramPutSystemConfigSt.IpWhitelist, c.Valid(tempRule, "ipWhitelist", "IP白名单")),

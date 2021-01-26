@@ -1,6 +1,7 @@
-package logic
+package manageBusiness
 
 import (
+	"app/logic"
 	"app/model"
 	"crypto/md5"
 	"crypto/sha1"
@@ -175,7 +176,7 @@ func UploadImg(file *multipart.FileHeader, dist string, currentHost string) (pat
 		return "", "", errors.New("文件类型错误！只允许：jpg | png")
 	}
 
-	fileSize := Byte2Kb(file.Size)
+	fileSize := logic.Byte2Kb(file.Size)
 	if fileSize > avatarSize {
 		return "", "", errors.New(fmt.Sprintf("文件\"%v\"大小错误！最大：%vKB", fileName, avatarSize))
 	}
