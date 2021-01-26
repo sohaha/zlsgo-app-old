@@ -1,8 +1,8 @@
 package manage
 
 import (
+	"app/logic"
 	"app/web"
-	"app/web/business/manageBusiness"
 	"errors"
 	"github.com/sohaha/zlsgo/zjson"
 	"github.com/sohaha/zlsgo/znet"
@@ -128,7 +128,7 @@ func (*UserManage) DeleteUser(c *znet.Context) {
 	case uint(id) == user.ID:
 		err = errors.New("不可以删除自己")
 		break
-	case manageBusiness.IsAdmin(uint(id)) == 1:
+	case logic.IsAdmin(uint(id)) == 1:
 		err = errors.New("请移除该用户的超级管理员身份")
 		break
 	}

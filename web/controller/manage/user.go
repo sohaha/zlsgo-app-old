@@ -3,7 +3,6 @@ package manage
 import (
 	"app/logic"
 	"app/web"
-	"app/web/business/manageBusiness"
 	"errors"
 	"github.com/sohaha/zlsgo/zjson"
 	"github.com/sohaha/zlsgo/znet"
@@ -102,7 +101,7 @@ func (*Basic) PutUpdate(c *znet.Context) {
 		user = u.(*model.AuthUser)
 	}
 
-	var postData manageBusiness.PutUpdateSt
+	var postData logic.PutUpdateSt
 	if err := c.Bind(&postData); err != nil {
 		web.ApiJSON(c, 201, err.Error(), nil)
 		return
@@ -127,8 +126,8 @@ func (*Basic) PutUpdate(c *znet.Context) {
 		currentUserId = postData.Id
 	}
 
-	// isAdmin := manageBusiness.IsAdmin(uid)
-	userIsAdmin := manageBusiness.IsAdmin(currentUserId)
+	// isAdmin := logic.IsAdmin(uid)
+	userIsAdmin := logic.IsAdmin(currentUserId)
 	isMe := currentUserId == uid
 
 	if isMe && 1 != postData.Status {
@@ -193,7 +192,7 @@ func (*Basic) PutEditPassword(c *znet.Context) {
 		upUid = userid
 	}
 	if userid == upUid {
-		if err := (&model.AuthUser{ID: upUid}).EditPassword(c, postData); err != nil {
+		if err := (&model.AuthUser{ID: upUid}).EditPassword(c, postData.OldPass, postData.Pass); err != nil {
 			web.ApiJSON(c, 201, err.Error(), nil)
 			return
 		}
@@ -216,7 +215,7 @@ func (*Basic) PostUploadAvatar(c *znet.Context) {
 		return
 	}
 
-	rePath, host, err := manageBusiness.UploadAvatar(file, c.Host())
+	rePath, host, err := logic.UploadAvatar(file, c.Host())
 	if err != nil {
 		web.ApiJSON(c, 211, err.Error(), nil)
 		return

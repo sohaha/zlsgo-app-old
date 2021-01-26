@@ -2,7 +2,6 @@ package logic
 
 import (
 	"app/model"
-	"app/web/business/manageBusiness"
 	"sort"
 	"strconv"
 	"strings"
@@ -29,7 +28,7 @@ func MenuLists(groupid uint8) (re []model.ListsRes) {
 			Show:       v.Show,
 			Pid:        v.Pid,
 			Sort:       v.Sort,
-			IsShow:     manageBusiness.InArray(menuArr, strconv.Itoa(int(v.ID))),
+			IsShow:     InArray(menuArr, strconv.Itoa(int(v.ID))),
 		})
 	}
 	for _, v := range listsRes {
@@ -98,8 +97,8 @@ func MenuInfo(user *model.AuthUser) (re []model.Router) {
 }
 
 func menuConv(m *model.AuthGroupMenu, menu model.Menu, user *model.AuthUser) (r model.Router) {
-	show := manageBusiness.InArray(append(strings.Split(m.Menu, ","), "1"), strconv.Itoa(int(menu.ID)))
-	has := manageBusiness.InArray(append(strings.Split(m.Menu, ","), "1", "2", "7"), strconv.Itoa(int(menu.ID)))
+	show := InArray(append(strings.Split(m.Menu, ","), "1"), strconv.Itoa(int(menu.ID)))
+	has := InArray(append(strings.Split(m.Menu, ","), "1", "2", "7"), strconv.Itoa(int(menu.ID)))
 	if user.IsSuper {
 		has = true
 		show = true
@@ -107,9 +106,9 @@ func menuConv(m *model.AuthGroupMenu, menu model.Menu, user *model.AuthUser) (r 
 
 	r = model.Router{
 		Name: menu.Title,
-		Path: m.VuePath(menu.Index),
-		// Url:        m.VueUrl(manageBusiness.InArray(strings.Split(m.Menu, ","), strconv.Itoa(int(menu.ID))), menu.Index),
-		Url:      m.VueUrl(true, menu.Index),
+		Path: MenuVuePath(menu.Index),
+		// Url:        MenuVueUrl(InArray(strings.Split(m.Menu, ","), strconv.Itoa(int(menu.ID))), menu.Index),
+		Url:      MenuVueUrl(true, menu.Index),
 		Icon:     menu.Icon,
 		Children: []model.Router{},
 	}
@@ -131,4 +130,36 @@ func menuGetChild(m *model.AuthGroupMenu, menu model.Menu, menus []model.Menu, u
 	}
 
 	return re
+}
+
+func MenuVueUrl(show bool, url string) string {
+	if !show {
+		return ""
+	}
+
+	if url == "main" {
+		return "pages/main/" + url + ".vue"
+	}
+
+	if strings.HasPrefix(url, "/") {
+		return "pages" + url + ".vue"
+	}
+
+	return "pages/" + url + ".vue"
+}
+
+func MenuVuePath(path string) string {
+	if strings.HasPrefix(path, "/") {
+		if !strings.HasPrefix(path, "/main") {
+			return "/main" + path
+		}
+	} else {
+		if path == "main" {
+			return "/" + path + "/main"
+		} else if !strings.HasPrefix(path, "/main/") {
+			return "/main/" + path
+		}
+	}
+
+	return path
 }

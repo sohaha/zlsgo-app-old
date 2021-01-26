@@ -3,7 +3,6 @@ package model
 import (
 	"errors"
 	"gorm.io/gorm"
-	"strings"
 )
 
 // AuthGroupMenu 角色菜单对应表
@@ -64,38 +63,6 @@ type Router struct {
 		Collapse   bool `json:"collapse"`
 	} `json:"meta"`
 	Children []Router `json:"children"`
-}
-
-func (m *AuthGroupMenu) VueUrl(show bool, url string) string {
-	if !show {
-		return ""
-	}
-
-	if url == "main" {
-		return "pages/main/" + url + ".vue"
-	}
-
-	if strings.HasPrefix(url, "/") {
-		return "pages" + url + ".vue"
-	}
-
-	return "pages/" + url + ".vue"
-}
-
-func (m *AuthGroupMenu) VuePath(path string) string {
-	if strings.HasPrefix(path, "/") {
-		if !strings.HasPrefix(path, "/main") {
-			return "/main" + path
-		}
-	} else {
-		if path == "main" {
-			return "/" + path + "/main"
-		} else if !strings.HasPrefix(path, "/main/") {
-			return "/main/" + path
-		}
-	}
-
-	return path
 }
 
 func (m *AuthGroupMenu) SelectGroupMenu(groupid uint8) AuthGroupMenu {

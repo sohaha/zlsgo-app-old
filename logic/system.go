@@ -1,4 +1,4 @@
-package manageBusiness
+package logic
 
 import (
 	"bufio"

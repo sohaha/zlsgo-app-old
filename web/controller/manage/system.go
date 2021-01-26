@@ -2,8 +2,8 @@ package manage
 
 import (
 	"app/global"
+	"app/logic"
 	"app/model"
-	"app/web/business/manageBusiness"
 	"fmt"
 	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zlsgo/znet"
@@ -23,7 +23,7 @@ func (*System) GetSystemLogs(c *znet.Context) {
 		return
 	}
 
-	var postData manageBusiness.GetSystemLogsSt
+	var postData logic.GetSystemLogsSt
 	tempRule := c.ValidRule()
 	err := zvalid.Batch(
 		zvalid.BatchVar(&postData.Name, c.Valid(tempRule, "name", "文件名称")),
@@ -35,8 +35,8 @@ func (*System) GetSystemLogs(c *znet.Context) {
 		return
 	}
 
-	showDir := manageBusiness.GetTmpLogDir(global.BaseConf().LogDir)
-	logLists := manageBusiness.ShowLogsLists(postData.Type, global.BaseConf().LogDir)
+	showDir := logic.GetTmpLogDir(global.BaseConf().LogDir)
+	logLists := logic.ShowLogsLists(postData.Type, global.BaseConf().LogDir)
 
 	logPath := zfile.RealPath("./" + global.BaseConf().LogDir + "/" + postData.Type + "/" + postData.Name)
 	var (
@@ -45,12 +45,12 @@ func (*System) GetSystemLogs(c *znet.Context) {
 		fileLine         int
 	)
 	if global.BaseConf().LogDir != "" {
-		fileContentSlice, fileSize, fileLine = manageBusiness.GetSystemLogInfo(logPath, postData.CurrentLine)
+		fileContentSlice, fileSize, fileLine = logic.GetSystemLogInfo(logPath, postData.CurrentLine)
 	}
 
 	fileContent := ""
 	if fileSize > (1024 * 500) {
-		fileContent = "日志文件过大（" + fmt.Sprintf("%v", manageBusiness.Byte2Kb(fileSize)) + "kb），不支持在线查看全部内容。\n\n"
+		fileContent = "日志文件过大（" + fmt.Sprintf("%v", logic.Byte2Kb(fileSize)) + "kb），不支持在线查看全部内容。\n\n"
 		fileContent += strings.Join(fileContentSlice[len(fileContentSlice)-10:], "")
 	} else {
 		fileContent = strings.Join(fileContentSlice, "")
@@ -74,7 +74,7 @@ func (*System) DeleteSystemLogs(c *znet.Context) {
 	}
 
 	var (
-		PostData manageBusiness.DeleteSystemLogsSt
+		PostData logic.DeleteSystemLogsSt
 		err      error
 	)
 
@@ -127,7 +127,7 @@ func (*System) GetSystemConfig(c *znet.Context) {
 		return
 	}
 
-	var paramPutSystemConfigSt manageBusiness.ParamPutSystemConfigSt
+	var paramPutSystemConfigSt logic.ParamPutSystemConfigSt
 	res, err := paramPutSystemConfigSt.GetConf()
 	if err != nil {
 		c.ApiJSON(201, err.Error(), nil)
@@ -143,7 +143,7 @@ func (*System) PutSystemConfig(c *znet.Context) {
 		return
 	}
 
-	var paramPutSystemConfigSt manageBusiness.ParamPutSystemConfigSt
+	var paramPutSystemConfigSt logic.ParamPutSystemConfigSt
 	tempRule := c.ValidRule()
 	err := zvalid.Batch(
 		zvalid.BatchVar(&paramPutSystemConfigSt.IpWhitelist, c.Valid(tempRule, "ipWhitelist", "IP白名单")),

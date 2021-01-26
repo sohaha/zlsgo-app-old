@@ -269,18 +269,18 @@ type PutEditPasswordSt struct {
 	UserID  uint   `json:"userid"`
 }
 
-func (u *AuthUser) EditPassword(c *znet.Context, postData PutEditPasswordSt) error {
+func (u *AuthUser) EditPassword(c *znet.Context, oldPass string, newPass string) error {
 	editUser := &AuthUser{ID: u.ID}
 	(editUser).GetUser()
 	if editUser.Email == "" {
 		return errors.New("用户不存在")
 	}
 
-	if err := zvalid.Text(postData.OldPass, "原密码").CheckPassword(editUser.Password, "原密码错误").Error(); err != nil {
+	if err := zvalid.Text(oldPass, "原密码").CheckPassword(editUser.Password, "原密码错误").Error(); err != nil {
 		return err
 	}
 
-	uRes := db.Model(&AuthUser{}).Select("password").Where("id = ?", editUser.ID).Updates(&AuthUser{Password: postData.Pass})
+	uRes := db.Model(&AuthUser{}).Select("password").Where("id = ?", editUser.ID).Updates(&AuthUser{Password: newPass})
 	if uRes.RowsAffected < 1 {
 		return errors.New("服务繁忙，请重试")
 	}
