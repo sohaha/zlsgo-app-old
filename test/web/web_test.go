@@ -4,26 +4,23 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"testing"
 
+	"app/global/task"
+	"app/test"
+	"app/web/router"
 	. "github.com/sohaha/zlsgo"
-	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zlsgo/zjson"
 	"github.com/sohaha/zlsgo/znet"
-
-	"app/global/initialize"
-	"app/web/router"
 )
-
-var net *znet.Engine
 
 type stBody struct {
 	Body        io.Reader
 	ContentType string
 	Header      map[string]string
 }
+
+var net *znet.Engine
 
 func request(method, url string, body *stBody) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
@@ -37,50 +34,20 @@ func request(method, url string, body *stBody) *httptest.ResponseRecorder {
 	return w
 }
 
-func walkDir(f func(path string)) {
-	_ = filepath.Walk("./", func(path string, info os.FileInfo, err error) error {
-		f(path)
-		return nil
-	})
-}
-
 func TestMain(m *testing.M) {
-	fileList := make([]string, 0)
+	test.Run(func() {
+		// 初始化定时任务
+		task.Init()
 
-	walkDir(func(path string) {
-		fileList = append(fileList, path)
+		// 初始化 Web 服务
+		router.Init()
+
+		// 获取服务
+		net = router.Engine
+
+		// 运行测试
+		m.Run()
 	})
-
-	// 如果项目根目录存在配置文件，直接 copy 一份
-	if zfile.FileExist("../../conf.yml") {
-		_ = zfile.CopyFile("../../conf.yml", "./conf.yml")
-	}
-
-	// 清除数据
-	defer func() {
-		walkDir(func(path string) {
-			rm := true
-			for i, v := range fileList {
-				if path == v {
-					rm = false
-					fileList = append(fileList[:i], fileList[i+1:]...)
-					break
-				}
-			}
-			if rm {
-				zfile.Rmdir(path)
-			}
-		})
-		// initialize.Clear()
-
-	}()
-
-	// 初始化
-	initialize.InitEngine()
-	// 获取服务
-	net = router.Engine
-	// 运行测试
-	m.Run()
 }
 
 func TestHome(t *testing.T) {
