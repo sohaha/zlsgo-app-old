@@ -4,15 +4,12 @@ import (
 	"context"
 	"database/sql/driver"
 	"errors"
-	"strconv"
-	"strings"
-	"time"
-
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zstring"
-	"github.com/sohaha/zlsgo/ztime"
 	"github.com/sohaha/zlsgo/zvalid"
 	"gorm.io/gorm"
+	"strconv"
+	"strings"
 )
 
 type GroupIdArr []uint
@@ -198,27 +195,6 @@ func (u *AuthUser) UserExist() (bool, error) {
 		where.Email = u.Email
 	}
 	return Exist(context.Background(), db.Where("username = ?", where.Username).Or("email = ?", where.Email).Model(&where))
-}
-
-func (u *AuthUser) TokenToInfo(t *AuthUserToken) error {
-	t.Status = 1
-	db.Where(t).Limit(1).Find(&t)
-
-	h, _ := time.ParseDuration(TokenEffectiveTime)
-	lastTime, _ := ztime.Parse(ztime.FormatTime(t.UpdatedAt.Time, "Y-m-d H:i:s"))
-	nowTime, _ := ztime.Parse(ztime.Now("Y-m-d H:i:s"))
-	if flag := nowTime.Before(lastTime.Add(1 * h)); !flag { // 接口有效时间
-		db.Model(&t).Select("status", "update_time").Updates(AuthUserToken{Status: TokenDisabled}) // 让token过期
-		return errors.New("登录过期，请重新登录")
-	}
-
-	if t.Userid != 0 {
-		db.Model(&t).Select("update_time").Updates(AuthUserToken{}) // 更新token时间
-
-		db.Where(&AuthUser{ID: t.Userid}).Limit(0).Find(&u)
-	}
-
-	return nil
 }
 
 func (u *AuthUser) Login(ip string, ua string) (string, error) {

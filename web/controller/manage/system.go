@@ -6,6 +6,7 @@ import (
 	"app/model"
 	"app/web/business/manageBusiness"
 	"fmt"
+	"github.com/sohaha/zlsgo/zcache"
 	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zvalid"
@@ -175,4 +176,58 @@ func (*System) GetMenu(c *znet.Context) {
 	if !VerifPermissionMark(c, "systems") {
 		return
 	}
+}
+
+// GetSetting 读取系统配置
+func (*System) GetSetting(c *znet.Context) {
+	if !VerifPermissionMark(c, "systems") {
+		return
+	}
+
+	c.ApiJSON(200, "读取系统配置", manageBusiness.SettingValues())
+}
+
+// PutSetting 写入配置
+func (*System) PutSetting(c *znet.Context) {
+	if !VerifPermissionMark(c, "systems") {
+		return
+	}
+	
+	var err error
+	var currentField string
+	for _, field := range manageBusiness.SettingFields {
+		currentField = field
+		var setting = &model.Setting{Varname: field}
+		setting.SettingValue()
+		if setting.ID > 0 {
+			// update
+			setting.Value = c.GetJSON(field).String()
+			err = setting.SettingUpdate()
+			if err != nil {
+				break
+			}
+		} else {
+			// insert
+			setting.Value = c.GetJSON(field).String()
+			setting.Info = field
+			err = setting.SettingInsert()
+			if err != nil {
+				break
+			}
+		}
+	}
+	settingCache := zcache.New(manageBusiness.SETTING_CACHE_KEY)
+	_, _ = settingCache.Delete(manageBusiness.SETTING_VALUES)
+
+	if err != nil {
+		c.ApiJSON(211, fmt.Sprintf("更新 %s 失败", currentField), nil)
+		return
+	}
+
+	if isMultipleLogins := manageBusiness.IsMultipleLogins(); !isMultipleLogins {
+		t, _ := c.Value("token")
+		_ = t.(*model.AuthUserToken).LoginModeTrue()
+	}
+
+	c.ApiJSON(200, "更新系统配置", nil)
 }

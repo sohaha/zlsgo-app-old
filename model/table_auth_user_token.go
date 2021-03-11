@@ -12,9 +12,8 @@ import (
 )
 
 const (
-	TokenNormal        uint8  = 1
-	TokenDisabled      uint8  = 2
-	TokenEffectiveTime string = "1h" // 有效时间
+	TokenNormal   uint8 = 1
+	TokenDisabled uint8 = 2
 )
 
 // AuthUserToken 管理员权限密钥
@@ -83,6 +82,7 @@ func (t *AuthUserToken) ClearAllToken() error {
 	return nil
 }
 
+// 单点登录
 func (t *AuthUserToken) LoginModeTrue() error {
 	var res []AuthUserToken
 	db.Select("MAX(id) as id, userid").Where("userid != ? and status = ?", t.Userid, TokenNormal).Group("userid").Find(&res)
@@ -115,6 +115,25 @@ func (t *AuthUserToken) SelectUser() *AuthUserToken {
 	return t
 }
 
+// 除了当前token, 用户其余的token全部失效
 func (t *AuthUserToken) UpdateUserToken() {
-	db.Model(&AuthUserToken{}).Select("update_time, status").Where("userid = ? and id != ? and status != ?", t.Userid, t.ID, TokenDisabled).Updates(AuthUserToken{Status: TokenDisabled})
+	db.Model(&AuthUserToken{}).Select("status", "update_time").Where("userid = ? and id != ? and status != ?", t.Userid, t.ID, TokenDisabled).Updates(AuthUserToken{Status: TokenDisabled})
+}
+
+// 获取当前token数据
+func (t *AuthUserToken) TokenValues() {
+	t.Status = 1
+	db.Where(t).Limit(1).Find(&t)
+}
+
+// 设置当前token过期
+func (t *AuthUserToken) SetExpiration() {
+	db.Model(&t).Select("status", "update_time").Updates(AuthUserToken{Status: TokenDisabled}) // 让token过期
+}
+
+// 更新时间并返回用户信息
+func (t *AuthUserToken) UpdateTimeAndReturnUser(user *AuthUser) {
+	db.Model(&t).Select("update_time").Updates(AuthUserToken{}) // 更新token时间
+
+	db.Where(&AuthUser{ID: t.Userid}).Limit(0).Find(&user)
 }

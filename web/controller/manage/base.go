@@ -1,6 +1,7 @@
 package manage
 
 import (
+	"app/web/business/manageBusiness"
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zstring"
 	"strconv"
@@ -51,6 +52,7 @@ func VerifPermissionMark(c *znet.Context, mark string, disable ...bool) (adopt b
 	if u, ok := c.Value("user"); ok {
 		user = u.(*model.AuthUser)
 	}
+
 	// 超级管理员无需验证权限
 	if user.IsSuper {
 		return true
@@ -121,9 +123,13 @@ func Authority() func(c *znet.Context) {
 				token.ID = uint(tokenId)
 			}
 
-			if err := user.TokenToInfo(token); err != nil {
+			if err := manageBusiness.IsExpire(token); err != nil {
 				c.ApiJSON(401, err.Error(), nil)
 				return
+			}
+
+			if  token.Userid != 0 {
+				token.UpdateTimeAndReturnUser(user)
 			}
 			// 后期可以考虑把用户信息缓存
 		}

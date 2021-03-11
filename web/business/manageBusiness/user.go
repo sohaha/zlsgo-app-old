@@ -11,17 +11,19 @@ import (
 	"github.com/sohaha/gconf"
 	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zlsgo/znet"
+	"github.com/sohaha/zlsgo/ztime"
 	"github.com/sohaha/zlsgo/ztype"
 	"github.com/sohaha/zlsgo/zvalid"
 	"io"
 	"mime/multipart"
 	"os"
 	"strings"
+	"time"
 )
 
 func UserOthersTokenDisable(tokenModel *model.AuthUserToken) {
 	t := tokenModel.SelectUser()
-	if cfg, _ := (&ParamPutSystemConfigSt{}).GetConf(); cfg.LoginMode {
+	if flag := IsMultipleLogins(); !flag {
 		t.UpdateUserToken()
 	}
 }
@@ -217,4 +219,23 @@ func UploadAvatar(file *multipart.FileHeader, currentHost string) (rePath string
 	rePath = strings.TrimPrefix(rePath, avatarPrefix)
 
 	return
+}
+
+// 判断当前token是否过期
+func IsExpire(tokenInfo *model.AuthUserToken) error {
+	tokenInfo.TokenValues()
+	if LoginExpireTime() == 0 {
+		return nil
+	}
+
+	h, _ := time.ParseDuration(fmt.Sprintf("%ds", LoginExpireTime()))
+	lastTime, _ := ztime.Parse(ztime.FormatTime(tokenInfo.UpdatedAt.Time, "Y-m-d H:i:s"))
+	nowTime, _ := ztime.Parse(ztime.Now("Y-m-d H:i:s"))
+	fmt.Println("time: ", lastTime, nowTime, nowTime.Before(lastTime.Add(1 * h)))
+	if flag := nowTime.Before(lastTime.Add(1 * h)); !flag { // 接口有效时间
+		tokenInfo.SetExpiration()
+		return errors.New("登录过期，请重新登录")
+	}
+
+	return nil
 }
