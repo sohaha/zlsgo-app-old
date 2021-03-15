@@ -99,7 +99,7 @@ func MenuInfo(user *model.AuthUser) (re []model.Router) {
 
 func defMenuForGroup(m *model.AuthGroupMenu, menu model.Menu) (bool, bool) {
 	show := logic.InArray(append(strings.Split(m.Menu, ","), "1"), strconv.Itoa(int(menu.ID)))
-	has := logic.InArray(append(strings.Split(m.Menu, ","), "1", "2", "7"), strconv.Itoa(int(menu.ID)))
+	has := logic.InArray(append(strings.Split(m.Menu, ","), "1", "2", "8"), strconv.Itoa(int(menu.ID)))
 
 	return show, has
 }

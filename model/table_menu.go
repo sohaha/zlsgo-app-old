@@ -30,12 +30,13 @@ func (*migrate) CreateMenu() {
 				{Title: "多端登录", Index: "user/client", Icon: "icon-globe--outline", Breadcrumb: 0, Real: 0, Show: 0, Pid: 1, Sort: 3},
 				{Title: "日志查看", Index: "system/logs", Icon: "icon-alert-circle", Breadcrumb: 0, Real: 0, Show: 1, Pid: 0, Sort: 4},
 				{Title: "系统设置", Index: "system", Icon: "icon-options-", Breadcrumb: 0, Real: 0, Show: 1, Pid: 0, Sort: 5},
-				{Title: "程序设置", Index: "system/config", Icon: "icon-settings", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 6},
-				{Title: "用户设置", Index: "user/lists", Icon: "icon-person", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 7},
-				{Title: "角色设置", Index: "user/group", Icon: "icon-people", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 8},
-				{Title: "菜单设置", Index: "user/menu", Icon: "icon-pricetags", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 9},
-				{Title: "个人设置", Index: "user/my", Icon: "icon-person-done", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 10},
-				{Title: "权限设置", Index: "user/rules", Icon: "icon-pantone", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 11},
+				{Title: "系统设置", Index: "system/setting", Icon: "icon-settings-", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 6},
+				{Title: "程序设置", Index: "system/config", Icon: "icon-shield-off", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 7},
+				{Title: "用户设置", Index: "user/lists", Icon: "icon-person", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 8},
+				{Title: "角色设置", Index: "user/group", Icon: "icon-people", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 9},
+				{Title: "菜单设置", Index: "user/menu", Icon: "icon-pricetags", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 10},
+				{Title: "个人设置", Index: "user/my", Icon: "icon-person-done", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 11},
+				{Title: "权限设置", Index: "user/rules", Icon: "icon-pantone", Breadcrumb: 1, Real: 0, Show: 1, Pid: 5, Sort: 12},
 			})
 			return tx.Error
 		}
