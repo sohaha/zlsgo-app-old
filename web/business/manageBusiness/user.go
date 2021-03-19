@@ -231,7 +231,6 @@ func IsExpire(tokenInfo *model.AuthUserToken) error {
 	h, _ := time.ParseDuration(fmt.Sprintf("%ds", LoginExpireTime()))
 	lastTime, _ := ztime.Parse(ztime.FormatTime(tokenInfo.UpdatedAt.Time, "Y-m-d H:i:s"))
 	nowTime, _ := ztime.Parse(ztime.Now("Y-m-d H:i:s"))
-	fmt.Println("time: ", lastTime, nowTime, nowTime.Before(lastTime.Add(1 * h)))
 	if flag := nowTime.Before(lastTime.Add(1 * h)); !flag { // 接口有效时间
 		tokenInfo.SetExpiration()
 		return errors.New("登录过期，请重新登录")
