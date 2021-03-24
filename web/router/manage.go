@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zstatic"
+	"github.com/zlsgo/resource"
 
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/znet/cors"
@@ -15,6 +16,8 @@ import (
 
 // RegHome 注册 后台 路由
 func (*StController) RegManage(r *znet.Engine) {
+	prefix := "manage"
+
 	if global.DB == nil {
 		global.Log.Error("有没使用数据库，无法使用管理后台功能")
 		return
@@ -22,16 +25,20 @@ func (*StController) RegManage(r *znet.Engine) {
 
 	g := gzip.Default()
 
-	prefix := "manage"
-	fileserver := zstatic.NewFileserver(global.ManageConf().Path)
-	r.GET(prefix, func(c *znet.Context) {
-		c.Redirect(prefix + "/")
-	})
-	r.GET(prefix+"/{file:.*}", fileserver, g)
+	// 注意： 这里的路径不能直接使用变量 global.ManageConf().Path ，但需要保持一致
+	fileServ, group := zstatic.NewFileserverAndGroup("resource/manage")
+	if _, e := group.MustBytes("index.html"); e != nil {
+		// 初始化后台资源
+		initManageResource("resource/manage")
+		return
+	}
+	r.GET(prefix+"/{file:.*}", fileServ, g)
 
+	// 静态资源目录，常用于放上传的文件
 	r.Static("/static/", zfile.RealPathMkdir("./resource/static"))
 
 	r.Group("/ZlsManage/", func(r *znet.Engine) {
+		// 开启跨域
 		corsHandler := cors.New(&cors.Config{
 			Headers: []string{"Origin", "No-Cache", "X-Requested-With", "If-Modified-Since", "Pragma", "Last-Modified", "Cache-Control", "Expires", "Content-Type", "Access-Control-Allow-Origin", "token"},
 		})
@@ -54,5 +61,23 @@ func (*StController) RegManage(r *znet.Engine) {
 		r.Any("*", func(c *znet.Context) {
 			c.ApiJSON(404, "404", nil)
 		})
+	})
+}
+
+func initManageResource(path string) {
+	c := global.ManageConf()
+	var err error
+	defer func() {
+		if err != nil {
+			global.Log.Error("Manage init failed")
+		} else {
+			global.Log.Success("Manage init complete")
+		}
+	}()
+	r := resource.New(c.Remote)
+	r.SetMd5(c.Md5)
+	r.SetDeCompressPath(path)
+	r.SetFilterRule([]string{"(.*)/\\.git/", "(.*)/\\.vscode/", "(.*)/\\.idea/"})
+	err = r.SilentRun(func(current, total int64) {
 	})
 }

@@ -23,6 +23,7 @@ func AutoMigrateData() []func() (key string, exec func(db *gorm.DB) error) {
 	})
 
 	_ = zutil.RunAllMethod(&migrate{})
+
 	return migrateData
 }
 

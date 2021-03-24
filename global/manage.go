@@ -6,7 +6,6 @@ import (
 
 type (
 	stManageConf struct {
-		Path         string
 		Remote       string
 		Md5          string
 		MaintainMode bool   `mapstructure:"maintain_mode"` // 维护模式
@@ -33,9 +32,6 @@ func ManageConf() stManageConf {
 func (*stCompose) ManageDone() error {
 	if manageConf.Remote == "" {
 		manageConf.Remote = "https://resources.73zls.com/vue-admin-template.tar.gz"
-	}
-	if manageConf.Path == "" {
-		manageConf.Path = "resource/manage/"
 	}
 
 	return nil
