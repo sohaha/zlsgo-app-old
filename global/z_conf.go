@@ -40,7 +40,7 @@ var (
 	onec     sync.Once
 	onecInit sync.Once
 	confLock sync.RWMutex
-	Log      = zlog.New(LogPrefix)
+	Log      = zlog.Log
 	Cache    = zcache.New("app")
 	EnvPort  = ""
 	EnvDebug = false
@@ -48,6 +48,7 @@ var (
 
 func init() {
 	Log.ResetFlags(zlog.BitLevel | zlog.BitTime)
+	Log.SetPrefix(LogPrefix)
 }
 
 // InitConf 初始化配置

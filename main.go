@@ -40,9 +40,6 @@ func run() {
 	// 初始化
 	initialize.InitEngine()
 
-	// 初始化后台资源
-	initialize.InitManage()
-
 	// 启动 Web 服务
 	router.Run()
 }
