@@ -40,6 +40,11 @@ func (*Basic) PostGetToken(c *znet.Context) {
 		return
 	}
 
+	if user.Status != 1 {
+		c.ApiJSON(212, "禁止当前用户登录", nil)
+		return
+	}
+
 	tokenModel := &model.AuthUserToken{Token: token}
 	deToken, _ := tokenModel.TokenRules()
 	tokenId, _ := strconv.Atoi(strings.Split(deToken, "|")[2])

@@ -87,6 +87,7 @@ func (u *AuthUser) Lists(pp *Page) (users []AuthUser) {
 
 func (u *AuthUser) ListsSub(users []AuthUser) (lists []ListsModel) {
 	groups := make([]AuthUserGroup, 0)
+	lists = make([]ListsModel, 0)
 	(&AuthUserGroup{}).All(&groups)
 	kV := map[uint]string{}
 	for _, v := range groups {

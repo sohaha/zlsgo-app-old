@@ -4,6 +4,7 @@ import (
 	"app/global"
 	"bufio"
 	"github.com/sohaha/zlsgo/zfile"
+	"github.com/sohaha/zlsgo/znet"
 	"io"
 	"io/ioutil"
 	"os"
@@ -22,6 +23,28 @@ type (
 		CurrentLine int
 	}
 )
+
+// HasPermission 当前用户是否拥有指定标识码
+func HasPermission(c *znet.Context, key string) bool {
+	u, has := CurrentUser(c)
+	if !has {
+		return false
+	}
+	if u.IsSuper {
+		return true
+	}
+	m, ok := c.Value("ruleMarks")
+	if !ok {
+		return false
+	}
+	marks, _ := m.(*[]string)
+	for _, v := range *marks {
+		if v == key {
+			return true
+		}
+	}
+	return false
+}
 
 // 返回log目录列表
 func GetTmpLogDir(logDir string) []string {

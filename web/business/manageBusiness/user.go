@@ -21,6 +21,16 @@ import (
 	"time"
 )
 
+// CurrentUser 当前登录用户
+func CurrentUser(c *znet.Context) (user *model.AuthUser, has bool) {
+	u, h := c.Value("user")
+	if h {
+		user, h = u.(*model.AuthUser)
+
+	}
+	return user, h
+}
+
 func UserOthersTokenDisable(tokenModel *model.AuthUserToken) {
 	t := tokenModel.SelectUser()
 	if flag := IsMultipleLogins(); !flag {
