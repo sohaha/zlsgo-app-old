@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sohaha/gconf"
 	"github.com/sohaha/zdb"
+	"github.com/zlsgo/conf"
 
 	dbmysql "github.com/sohaha/zdb/Driver/mysql"
 	dbpostgres "github.com/sohaha/zdb/Driver/postgres"
@@ -86,14 +86,14 @@ var (
 	dbDriverMap = map[string]zdb.IfeConfig{}
 )
 
-func (*stCompose) DatabaseDefaultConf(cfg *gconf.Confhub) {
+func (*stCompose) DatabaseDefaultConf(cfg *conf.Confhub) {
 	// 数据库配置
 	for k, v := range databaseDefaultInitConf {
 		cfg.SetDefault(databaseConf.ConfName()+"."+k, v)
 	}
 }
 
-func (*stCompose) DatabaseReadConf(cfg *gconf.Confhub) error {
+func (*stCompose) DatabaseReadConf(cfg *conf.Confhub) error {
 	return cfg.Core.UnmarshalKey(databaseConf.ConfName(), &databaseConf)
 }
 

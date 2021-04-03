@@ -1,7 +1,7 @@
 package global
 
 import (
-	"github.com/sohaha/gconf"
+	"github.com/zlsgo/conf"
 )
 
 type (
@@ -19,7 +19,7 @@ func (*stManageConf) ConfName() string {
 
 var manageConf stManageConf
 
-func (*stCompose) ManageReadConf(cfg *gconf.Confhub) error {
+func (*stCompose) ManageReadConf(cfg *conf.Confhub) error {
 	return cfg.Core.UnmarshalKey(demoConf.ConfName(), &demoConf)
 }
 

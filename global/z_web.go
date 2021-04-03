@@ -1,7 +1,7 @@
 package global
 
 import (
-	"github.com/sohaha/gconf"
+	"github.com/zlsgo/conf"
 )
 
 type (
@@ -26,7 +26,7 @@ func (*stWebConf) ConfName(key ...string) string {
 
 var webConf stWebConf
 
-func (*stCompose) WebDefaultConf(cfg *gconf.Confhub) {
+func (*stCompose) WebDefaultConf(cfg *conf.Confhub) {
 	// web 配置
 	for k, v := range map[string]interface{}{
 		"port": "3788",
@@ -38,7 +38,7 @@ func (*stCompose) WebDefaultConf(cfg *gconf.Confhub) {
 	}
 }
 
-func (*stCompose) WebReadConf(cfg *gconf.Confhub) error {
+func (*stCompose) WebReadConf(cfg *conf.Confhub) error {
 	// 默认 web debug 开启
 	webConf.Debug = true
 	err := cfg.Core.UnmarshalKey(webConf.ConfName(), &webConf)

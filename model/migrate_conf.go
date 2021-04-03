@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	"github.com/sohaha/zlsgo/zlog"
-	"github.com/sohaha/zlsgo/zutil"
 	"gorm.io/gorm"
 )
 
@@ -40,4 +39,3 @@ func AutoMigrateTable() []interface{} {
 		&Setting{},
 	}
 }
-

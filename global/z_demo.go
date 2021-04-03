@@ -1,7 +1,7 @@
 package global
 
 import (
-	"github.com/sohaha/gconf"
+	"github.com/zlsgo/conf"
 )
 
 type (
@@ -15,13 +15,13 @@ func (*stDemoConf) ConfName() string {
 var demoConf stDemoConf
 
 // 默认配置
-func (*stCompose) DemoDefaultConf(cfg *gconf.Confhub) {
+func (*stCompose) DemoDefaultConf(cfg *conf.Confhub) {
 	// 设置生成的默认配置
 	// cfg.SetDefault("demo.description", "is demo description")
 }
 
 // 读取配置
-func (*stCompose) DemoReadConf(cfg *gconf.Confhub) error {
+func (*stCompose) DemoReadConf(cfg *conf.Confhub) error {
 	return cfg.Core.UnmarshalKey(demoConf.ConfName(), &demoConf)
 }
 

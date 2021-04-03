@@ -5,11 +5,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/sohaha/gconf"
 	"github.com/sohaha/zlsgo/zcache"
 	"github.com/sohaha/zlsgo/zcli"
 	"github.com/sohaha/zlsgo/zlog"
 	"github.com/sohaha/zlsgo/zutil"
+	"github.com/zlsgo/conf"
 )
 
 type (
@@ -36,7 +36,7 @@ const LogPrefix = "[App] "
 // noinspection GoUnusedGlobalVariable
 var (
 	baseConf stBaseConf
-	cfg      *gconf.Confhub
+	cfg      *conf.Confhub
 	onec     sync.Once
 	onecInit sync.Once
 	confLock sync.RWMutex
@@ -64,7 +64,7 @@ func InitConf() {
 func ReadConf(init bool) {
 	onecInit.Do(func() {
 		zutil.Try(func() {
-			cfg = gconf.New(FileName)
+			cfg = conf.New(FileName)
 			setComposeDefaultConf()
 			readComposeConf()
 			setLogger()
@@ -199,7 +199,7 @@ func SetConfData(fn func()) {
 // 	reloadConfFn = append(reloadConfFn, fn)
 // }
 
-func (*stCompose) BaseDefaultConf(cfg *gconf.Confhub) {
+func (*stCompose) BaseDefaultConf(cfg *conf.Confhub) {
 	// 基础配置
 	cfg.SetDefault(baseConf.ConfName(), map[string]interface{}{
 		"debug":        false,
@@ -215,13 +215,13 @@ func BaseConf() stBaseConf {
 	return baseConf
 }
 
-func (*stCompose) BaseReadConf(cfg *gconf.Confhub) error {
+func (*stCompose) BaseReadConf(cfg *conf.Confhub) error {
 	return cfg.Core.UnmarshalKey(baseConf.ConfName(), &baseConf)
 }
 
 // GetConfInstance 获取配置实例
 // noinspection ALL
-func GetConfInstance() *gconf.Confhub {
+func GetConfInstance() *conf.Confhub {
 	return cfg
 }
 

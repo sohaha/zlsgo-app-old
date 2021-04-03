@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/sohaha/gconf"
+	"github.com/zlsgo/conf"
 
 	"github.com/sohaha/zlsgo/zlog"
 	"github.com/sohaha/zlsgo/zutil"
@@ -34,7 +34,7 @@ var (
 	redisConf stRedisConf
 )
 
-func (*stCompose) RedisDefaultConf(cfg *gconf.Confhub) {
+func (*stCompose) RedisDefaultConf(cfg *conf.Confhub) {
 	cfg.SetDefault(redisConf.ConfName(), map[string]interface{}{
 		"host":     "",
 		"port":     "6379",
@@ -43,7 +43,7 @@ func (*stCompose) RedisDefaultConf(cfg *gconf.Confhub) {
 	})
 }
 
-func (*stCompose) RedisReadConf(cfg *gconf.Confhub) error {
+func (*stCompose) RedisReadConf(cfg *conf.Confhub) error {
 	redisConf.DBNumber = 0
 	return cfg.Core.UnmarshalKey(redisConf.ConfName(), &redisConf)
 }

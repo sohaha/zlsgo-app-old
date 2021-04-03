@@ -3,7 +3,6 @@ module app
 go 1.13
 
 require (
-	github.com/sohaha/zlsgo latest
-	github.com/shirou/gopsutil latest
-	github.com/zlsgo/resource latest
+	github.com/shirou/gopsutil v3.21.3+incompatible
+	gorm.io/gorm v1.21.6
 )
