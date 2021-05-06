@@ -81,11 +81,8 @@ func MenuInfo(user *model.AuthUser) (re []model.Router) {
 			r := menuConv(m, menu, user)
 			r.Children = menuGetChild(m, menu, menuInfo, user)
 			for _, mm := range r.Children {
-				if mm.Meta.Show {
+				if mm.Meta.Has && mm.Meta.Show {
 					r.Meta.Collapse = true
-				}
-
-				if mm.Meta.Has && r.Name != "后台中心" {
 					r.Url = ""
 				}
 			}

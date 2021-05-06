@@ -15,7 +15,7 @@ type Menu struct {
 	Real       uint8          `gorm:"column:real;type:tinyint(4);not null;default:0;comment:面包屑可点击:0,1;" json:"real"`
 	Show       uint8          `gorm:"column:show;type:tinyint(4);not null;default:0;comment:导航栏显示:0,1;" json:"show"`
 	Pid        uint8          `gorm:"column:pid;type:tinyint(4);not null;default:0;comment:父id;" json:"pid"`
-	Sort       uint8          `gorm:"column:sort;type:tinyint(4);not null;default:0;comment:排序id;" json:"sort"`
+	Sort       uint8          `gorm:"column:sort;type:smallint(6);not null;default:0;comment:排序id;" json:"sort"`
 	CreatedAt  JSONTime       `gorm:"column:create_time;type:datetime(0);comment:创建时间;" json:"create_time"`
 	UpdatedAt  JSONTime       `gorm:"column:update_time;type:datetime(0);comment:更新时间;" json:"update_time"`
 	DeletedAt  gorm.DeletedAt `gorm:"type:datetime(0);index;" json:"-"`
@@ -59,7 +59,7 @@ type ListsRes struct {
 
 func (m *Menu) SelectMenuOrderByPidASC() []Menu {
 	var items []Menu
-	db.Model(&m).Order("pid asc").Order("sort asc").Find(&items)
+	db.Model(&m).Order("pid asc").Order("sort asc").Order("id asc").Find(&items)
 
 	return items
 }
@@ -143,7 +143,7 @@ func (m *Menu) MenuSort(data PostSortSt) error {
 }
 
 func (m *Menu) All() (res []Menu) {
-	db.Model(m).Order("sort asc").Find(&res)
+	db.Model(m).Order("sort asc").Order("id asc").Find(&res)
 	return
 }
 

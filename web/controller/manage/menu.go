@@ -70,6 +70,7 @@ func (*Menu) PostCreate(c *znet.Context) {
 		Real:       uint8(postParam.Real),
 		Show:       uint8(postParam.Show),
 		Pid:        uint8(postParam.Pid),
+		Sort:       255,
 	}
 	if err := res.Create(); err != nil {
 		c.ApiJSON(211, err.Error(), nil)
