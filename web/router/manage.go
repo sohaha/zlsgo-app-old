@@ -37,7 +37,10 @@ func (*StController) RegManage(r *znet.Engine) {
 	// 静态资源目录，常用于放上传的文件
 	r.Static("/static/", zfile.RealPathMkdir("./resource/static"))
 
-	r.Group("/ZlsManage/", func(r *znet.Engine) {
+	// 后台
+	r.Static("/manage/", zfile.RealPathMkdir("./resource/manage"))
+
+	r.Group("/Manage/", func(r *znet.Engine) {
 		// 开启跨域
 		corsHandler := cors.New(&cors.Config{
 			Headers: []string{"Origin", "No-Cache", "X-Requested-With", "If-Modified-Since", "Pragma", "Last-Modified", "Cache-Control", "Expires", "Content-Type", "Access-Control-Allow-Origin", "token"},

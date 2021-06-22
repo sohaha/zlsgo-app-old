@@ -36,7 +36,7 @@ func testUser(t *testing.T) {
 
 func userLogin(t *testing.T, username, password string) (*httptest.ResponseRecorder, zjson.Res) {
 	body := strings.NewReader(fmt.Sprintf("user=%s&pass=%s", username, password))
-	w := request("POST", "/ZlsManage/UserApi/GetToken.go", &stBody{
+	w := request("POST", "/Manage/UserApi/GetToken.go", &stBody{
 		Body: body,
 		Header: map[string]string{
 			"Content-Type": "application/x-www-form-urlencoded",
@@ -48,7 +48,7 @@ func userLogin(t *testing.T, username, password string) (*httptest.ResponseRecor
 }
 
 func userInfo(t *testing.T) (*httptest.ResponseRecorder, zjson.Res) {
-	w := request("GET", "/ZlsManage/UserApi/UseriInfo.go", &stBody{
+	w := request("GET", "/Manage/UserApi/UseriInfo.go", &stBody{
 		Header: map[string]string{
 			"token": manageToken,
 		},

@@ -81,17 +81,17 @@ func Authority() func(c *znet.Context) {
 	ignoreRules := &model.RuleCollation{
 		AdoptRoute: map[string][]string{
 			"PUT": {
-				"/ZlsManage/UserApi/EditPassword.go",
+				"/Manage/UserApi/EditPassword.go",
 			},
 			"POST": {
-				"/ZlsManage/UserApi/GetToken.go",
-				"/ZlsManage/UserApi/ClearToken.go",
+				"/Manage/UserApi/GetToken.go",
+				"/Manage/UserApi/ClearToken.go",
 			},
 			"GET": {
-				"/ZlsManage/UserApi/UnreadMessageCount.go",
-				"/ZlsManage/UserApi/UseriInfo.go",
-				"/ZlsManage/UserManageApi/UserLists.go",
-				"/ZlsManage/UserApi/Logs.go",
+				"/Manage/UserApi/UnreadMessageCount.go",
+				"/Manage/UserApi/UseriInfo.go",
+				"/Manage/UserManageApi/UserLists.go",
+				"/Manage/UserApi/Logs.go",
 			},
 		},
 	}
@@ -172,11 +172,11 @@ func Authority() func(c *znet.Context) {
 			if groupID == GROUP_ADMIN && VerifRoutingPermission(path, method, &model.RuleCollation{
 				AdoptRoute: map[string][]string{
 					"GET": {
-						"/ZlsManage/SystemApi/SystemConfig.go",
-						"/ZlsManage/SystemApi/SystemLogs.go",
+						"/Manage/SystemApi/SystemConfig.go",
+						"/Manage/SystemApi/SystemLogs.go",
 					},
 					"POST": {
-						"/ZlsManage/MenuApi/UserMenu.go",
+						"/Manage/MenuApi/UserMenu.go",
 					},
 				},
 			}) {
