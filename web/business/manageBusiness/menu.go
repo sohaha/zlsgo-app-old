@@ -68,7 +68,7 @@ func MenuInfo(user *model.AuthUser) (re []model.Router) {
 		}
 	}
 
-	var mergeMenuStr []string
+	mergeMenuStr := []string{"1", "2", "8"}
 	sort.Ints(mergeMenu)
 	for _, gid := range mergeMenu {
 		mergeMenuStr = append(mergeMenuStr, strconv.Itoa(gid))
@@ -78,36 +78,42 @@ func MenuInfo(user *model.AuthUser) (re []model.Router) {
 
 	for _, menu := range menuInfo {
 		if menu.Pid == 0 {
-			r := menuConv(m, menu, user)
-			r.Children = menuGetChild(m, menu, menuInfo, user)
-			for _, mm := range r.Children {
-				if mm.Meta.Has && mm.Meta.Show {
-					r.Meta.Collapse = true
-					r.Url = ""
+			r := menuConv(menu)
+			r.Children = menuGetChild(m, menu, menuInfo)
+
+			appendFlag := false
+			if len(r.Children) > 0 {
+				appendFlag = true
+			}
+
+			if !appendFlag {
+				for _, groupId := range strings.Split(m.Menu, ",") {
+					if strconv.Itoa(int(menu.ID)) == groupId {
+						appendFlag = true
+						break
+					}
 				}
 			}
 
-			re = append(re, r)
+			if appendFlag {
+				re = append(re, r)
+			}
+		}
+	}
+
+	for topMenuKey, topMenu := range re {
+		for _, subMenu := range topMenu.Children {
+			if subMenu.Meta.Show == true {
+				re[topMenuKey].Url = ""
+				re[topMenuKey].Meta.Collapse = true
+			}
 		}
 	}
 
 	return re
 }
 
-func defMenuForGroup(m *model.AuthGroupMenu, menu model.Menu) (bool, bool) {
-	show := logic.InArray(append(strings.Split(m.Menu, ","), "1"), strconv.Itoa(int(menu.ID)))
-	has := logic.InArray(append(strings.Split(m.Menu, ","), "1", "2", "8"), strconv.Itoa(int(menu.ID)))
-
-	return show, has
-}
-
-func menuConv(m *model.AuthGroupMenu, menu model.Menu, user *model.AuthUser) (r model.Router) {
-	show, has := defMenuForGroup(m, menu)
-	if user.IsSuper {
-		has = true
-		show = true
-	}
-
+func menuConv(menu model.Menu) (r model.Router) {
 	r = model.Router{
 		Name: menu.Title,
 		Path: MenuVuePath(menu.Index),
@@ -118,18 +124,22 @@ func menuConv(m *model.AuthGroupMenu, menu model.Menu, user *model.AuthUser) (r 
 	}
 	r.Meta.Breadcrumb = menu.Breadcrumb == 1
 	r.Meta.Real = menu.Real == 1
-	r.Meta.Show = menu.Show == 1 && show
-	r.Meta.Has = has
+	r.Meta.Show = menu.Show == 1
 	r.Meta.Collapse = false
 
 	return
 }
 
-func menuGetChild(m *model.AuthGroupMenu, menu model.Menu, menus []model.Menu, user *model.AuthUser) []model.Router {
+func menuGetChild(m *model.AuthGroupMenu, menu model.Menu, menus []model.Menu) []model.Router {
 	re := make([]model.Router, 0)
 	for _, v := range menus {
 		if v.Pid == uint8(menu.ID) {
-			re = append(re, menuConv(m, v, user))
+			for _, groupId := range strings.Split(m.Menu, ",") {
+				if strconv.Itoa(int(v.ID)) == groupId {
+					re = append(re, menuConv(v))
+					break
+				}
+			}
 		}
 	}
 

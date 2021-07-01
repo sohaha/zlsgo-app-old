@@ -59,7 +59,6 @@ type Router struct {
 		Breadcrumb bool `json:"breadcrumb"`
 		Real       bool `json:"real"`
 		Show       bool `json:"show"`
-		Has        bool `json:"has"`
 		Collapse   bool `json:"collapse"`
 	} `json:"meta"`
 	Children []Router `json:"children"`
