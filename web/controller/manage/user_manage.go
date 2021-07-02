@@ -90,6 +90,7 @@ func (*UserManage) PostUser(c *znet.Context) {
 		return true
 	})
 
+	user.GroupID = model.GroupIdArr{}
 	for _, groupID := range groupIdKV {
 		if g, err := strconv.Atoi(groupID); err == nil {
 			user.GroupID = append(user.GroupID, uint(g))

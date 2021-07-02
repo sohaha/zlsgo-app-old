@@ -147,14 +147,13 @@ func (*Basic) PutUpdate(c *znet.Context) {
 	}
 
 	// _, err := user.Update(c, postData, currentUserId, isAdmin, isMe)
-	groupsHas1 := false
-	for _, groupID := range user.GroupID {
-		if groupID == 1 {
-			groupsHas1 = true
-		}
+
+	systemsMark := false
+	if !!VerifPermissionMark(c, "systems") {
+		systemsMark = true
 	}
 
-	_, err := manageBusiness.Update(c, postData, currentUserId, user.IsSuper || groupsHas1)
+	_, err := manageBusiness.Update(c, postData, currentUserId, systemsMark, isMe)
 	if err != nil {
 		web.ApiJSON(c, 211, err.Error(), nil)
 		return

@@ -38,7 +38,7 @@ func UserOthersTokenDisable(tokenModel *model.AuthUserToken) {
 	}
 }
 
-func Update(c *znet.Context, postData PutUpdateSt, currentUserId uint, editPwdAuth bool) (int64, error) {
+func Update(c *znet.Context, postData PutUpdateSt, currentUserId uint, editPwdAuth bool, isMe bool) (int64, error) {
 	editUser := &model.AuthUser{ID: currentUserId}
 	(editUser).GetUser()
 
@@ -91,9 +91,9 @@ func Update(c *znet.Context, postData PutUpdateSt, currentUserId uint, editPwdAu
 		queryFiled = append(queryFiled, "password")
 	}
 
-	// if isAdmin == 1 && !isMe {
-	queryFiled = append(queryFiled, "group_id")
-	// }
+	if editPwdAuth && !isMe {
+		queryFiled = append(queryFiled, "group_id")
+	}
 
 	updateRes, err := (&model.AuthUser{}).Update(queryFiled, editUser, updateUser)
 	if err != nil {
