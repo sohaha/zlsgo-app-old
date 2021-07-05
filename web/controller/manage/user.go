@@ -75,10 +75,14 @@ func (*Basic) GetUseriInfo(c *znet.Context) {
 		systems = logic.GetServerInfo()
 	}
 
-	groups := []model.AuthUserGroup{}
+	var groups []model.AuthUserGroup
 	(model.AuthUserGroup{}).All(&groups)
 
-	menu := manageBusiness.MenuInfo(user)
+	systemsFlag := false
+	if !!VerifPermissionMark(c, "systems") {
+		systemsFlag = true
+	}
+	menu := manageBusiness.MenuInfo(user, systemsFlag)
 
 	marksKV := map[string]uint{}
 	var marks []string

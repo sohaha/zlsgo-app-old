@@ -44,7 +44,7 @@ func MenuLists(groupid uint8) (re []model.ListsRes) {
 	return re
 }
 
-func MenuInfo(user *model.AuthUser) (re []model.Router) {
+func MenuInfo(user *model.AuthUser, systemsFlag bool) (re []model.Router) {
 	menuInfo := (&model.Menu{}).All()
 
 	var groupIDArr []string
@@ -69,6 +69,12 @@ func MenuInfo(user *model.AuthUser) (re []model.Router) {
 	}
 
 	mergeMenuStr := []string{"1", "2", "8"}
+	if systemsFlag {
+		mergeMenuStr = mergeMenuStr[0:0]
+		for _, menu := range menuInfo {
+			mergeMenuStr = append(mergeMenuStr, strconv.Itoa(int(menu.ID)))
+		}
+	}
 	sort.Ints(mergeMenu)
 	for _, gid := range mergeMenu {
 		mergeMenuStr = append(mergeMenuStr, strconv.Itoa(gid))
