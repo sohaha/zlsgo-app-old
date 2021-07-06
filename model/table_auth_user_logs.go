@@ -77,18 +77,18 @@ func (c *AuthUserLogs) Lists(pp *Page) (logs []LogListsModel) {
 
 	wCond := zstring.Buffer()
 	wParams := make([]interface{}, 0)
-	wCond.WriteString(" auth_user_logs.`userid` = ?")
+	wCond.WriteString(" " + aul + ".`userid` = ?")
 	wParams = append(wParams, c.Userid)
 	if c.Type > 0 {
-		wCond.WriteString(" and auth_user_logs.`type` = ?")
+		wCond.WriteString(" and " + aul + ".`type` = ?")
 		wParams = append(wParams, c.Type)
 	}
 	if c.Status > 0 {
-		wCond.WriteString(" and auth_user_logs.`status` = ?")
+		wCond.WriteString(" and " + aul + ".`status` = ?")
 		wParams = append(wParams, LogStatusNot)
 	}
 
-	_, _ = FindPage(context.Background(), db.Model(c).Select(aul+".*", au+".username as username").Where(wCond.String(), wParams...).Joins("LEFT JOIN "+au+" ON auth_user.id = "+aul+".operate_id").Order(aul+".id desc"), pp, &logs)
+	_, _ = FindPage(context.Background(), db.Model(c).Select(aul+".*", au+".username as username").Where(wCond.String(), wParams...).Joins("LEFT JOIN "+au+" ON "+au+".id = "+aul+".operate_id").Order(aul+".id desc"), pp, &logs)
 	return
 }
 
