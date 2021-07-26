@@ -25,6 +25,9 @@ func (*StController) RegManage(r *znet.Engine) {
 
 	g := gzip.Default()
 
+	// 静态资源目录，常用于放上传的文件
+	r.Static("/static/", zfile.RealPathMkdir("./resource/static"))
+
 	// 注意： 这里的路径不能直接使用变量 global.ManageConf().Path ，但需要保持一致
 	fileServ, group := zstatic.NewFileserverAndGroup("resource/manage")
 	if _, e := group.MustBytes("index.html"); e != nil {
@@ -34,11 +37,8 @@ func (*StController) RegManage(r *znet.Engine) {
 	}
 	r.GET(prefix+"/{file:.*}", fileServ, g)
 
-	// 静态资源目录，常用于放上传的文件
-	r.Static("/static/", zfile.RealPathMkdir("./resource/static"))
-
 	// 后台
-	r.Static("/manage/", zfile.RealPathMkdir("./resource/manage"))
+	// r.Static("/manage/", zfile.RealPathMkdir("./resource/manage"))
 
 	r.Group("/Manage/", func(r *znet.Engine) {
 		// 开启跨域
