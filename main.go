@@ -1,31 +1,42 @@
 package main
 
 import (
-	"github.com/sohaha/zlsgo/znet"
+	"app/conf"
+	"app/global"
+	"app/web/router"
+	"github.com/sohaha/zlsgo/zcli"
+	"github.com/sohaha/zlsgo/zutil"
+)
+
+var (
+	port  = zcli.SetVar("port", "Web 服务端口").String()
+	debug = zcli.SetVar("debug", "开启调试模式").Bool()
 )
 
 func main() {
-	// 获取一个实例
-	r := znet.New()
+	// 设置应用信息
+	zcli.Name = "ZlsApp"
+	zcli.Logo = `
+   _____                   
+  /  _  \  ______  ______  
+ /  /_\  \ \____ \ \____ \ 
+/    |    \|  |_> >|  |_> >
+\____|__  /|   __/ |   __/ 
+        \/ |__|    |__|     `
+	zcli.Version = "1.0.0"
+	zcli.Lang = "zh"
 
-	// 设置为开发模式
-	r.SetMode(znet.DebugMode)
+	err := zcli.LaunchServiceRun(zcli.Name, "", run)
+	zutil.CheckErr(err, true)
+}
 
-	// 异常处理
-	r.PanicHandler(func(c *znet.Context, err error) {
-		e := err.Error()
-		c.String(500, e)
-	})
-
-	// 注册路由
-	r.GET("/json", func(c *znet.Context) {
-		c.JSON(200, znet.Data{"message": "Hello World"})
-	})
-
-	r.GET("/", func(c *znet.Context) {
-		c.String(200, "Hello world")
-	})
-
-	// 启动
-	znet.Run()
+func run() {
+	// 设置终端执行参数
+	conf.EnvDebug = *debug
+	conf.EnvPort = *port
+	conf.Init(conf.FileName)
+	global.Init()
+	router.Init()
+	// logic.All(("app/conf"))
+	router.Run()
 }

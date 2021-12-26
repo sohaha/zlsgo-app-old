@@ -12,3 +12,4 @@ tmp/
 logs/
 test/web/*
 !test/web/*.go
+cmd/gen/gen
