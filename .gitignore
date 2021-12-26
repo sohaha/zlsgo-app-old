@@ -1,0 +1,14 @@
+.idea/
+.vscode/
+/app
+/tmpApp
+/db.sqlite3
+/conf.yml
+/app_*
+zzz-watch.yaml
+zzz-stress.yml
+build/
+tmp/
+logs/
+test/web/*
+!test/web/*.go
