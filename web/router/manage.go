@@ -4,6 +4,7 @@ import (
 	"app/web"
 	"app/web/controller/manage"
 	"app/web/controller/manage/permission"
+	"app/web/middleware"
 	"github.com/sohaha/zlsgo/znet"
 )
 
@@ -14,10 +15,8 @@ func (*StController) RegManage(r *znet.Engine) {
 		g.BindStructDelimiter = "_"
 		g.BindStructSuffix = ".go"
 
-		g.Use(func(c *znet.Context) {
-			c.Next()
-		})
-
+		pubRouters := []string{"/manage/base/login.go"}
+		g.Use(middleware.Manage(pubRouters))
 		g.Any("*", func(c *znet.Context) {
 			web.ApiJSON(c, 404, "此路不通", nil)
 		})
@@ -28,5 +27,6 @@ func (*StController) RegManage(r *znet.Engine) {
 
 		_ = g.BindStruct("role", &permission.Role{})
 		_ = g.BindStruct("rule", &permission.Rule{})
+
 	}
 }

@@ -50,7 +50,7 @@ func init() {
 		if err != nil {
 			return fmt.Errorf("failed opening connection to database: %v", err)
 		}
-
+		// DBDsn = dbDriverConf.GetDsn()
 		return gormInit(dbDriverConf.DB())
 	})
 }

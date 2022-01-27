@@ -3,6 +3,8 @@ package router
 import (
 	"app/conf"
 	"app/global"
+	"app/web/middleware"
+	"github.com/sohaha/zlsgo/zlog"
 
 	"github.com/sohaha/zlsgo/znet"
 	"github.com/sohaha/zlsgo/zpprof"
@@ -47,7 +49,7 @@ func Init() {
 	}
 
 	// 注册全局中间件
-	// middleware.RegisterMiddleware(Engine)
+	middleware.RegisterGlobal(Engine)
 
 	// 注册路由
 	registerController(Engine)
@@ -95,5 +97,8 @@ func Init() {
 }
 
 func registerController(r *znet.Engine) {
-	_ = zutil.RunAllMethod(&StController{}, r)
+	err := zutil.RunAllMethod(&StController{}, r)
+	if err != nil {
+		zlog.Fatal(err)
+	}
 }

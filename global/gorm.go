@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"app/conf"
+	"app/dal/model"
 	"github.com/sohaha/zlsgo/zutil"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -53,14 +54,21 @@ func gormInit(sqlDB *sql.DB) (err error) {
 		return
 	}
 
-	// model.BindDB(DB)
+	err = migrateTable()
+	if err != nil {
+		return
+	}
 
-	// tables := model.AutoMigrateTable()
-	// err = DB.Migrator().AutoMigrate(tables...)
-	// if err != nil {
-	// 	return
-	// }
-	//
-	// err = dbMigrateData(model.AutoMigrateData())
-	return
+	return migrateData()
+}
+
+func migrateTable() error {
+	tables := []interface{}{
+		&model.ManageRule{},
+	}
+	return DB.Migrator().AutoMigrate(tables...)
+}
+
+func migrateData() error {
+	return nil
 }

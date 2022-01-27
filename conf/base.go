@@ -50,7 +50,7 @@ func Init(filename string) {
 			}
 			cfg.SetDefault(key, confMaps)
 		}
-		zutil.CheckErr(cfg.Read())
+		zutil.CheckErr(cfg.Read(), true)
 		// fix: viper default config invalid
 		for key, v := range cfg.GetAll() {
 			conf, _ := allConf[key]

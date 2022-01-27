@@ -2,18 +2,25 @@ module app
 
 go 1.17
 require (
+	github.com/casbin/casbin/v2 v2.40.6
+	github.com/casbin/gorm-adapter/v3 v3.4.6
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/sohaha/gconf v1.0.3
 	github.com/sohaha/zdb v0.0.0-20200927072754-f47553c3014e
 	github.com/sohaha/zlsgo v1.1.22
 	gorm.io/driver/mysql v1.2.1
 	gorm.io/driver/postgres v1.2.3
+	gorm.io/driver/sqlite v1.2.6
 	gorm.io/gen v0.2.29
 	gorm.io/gorm v1.22.4
 )
 
 require (
+	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
+	github.com/denisenkom/go-mssqldb v0.11.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.10.1 // indirect
@@ -45,5 +52,7 @@ require (
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/datatypes v1.0.4 // indirect
+	gorm.io/driver/sqlserver v1.2.1 // indirect
 	gorm.io/hints v1.1.0 // indirect
+	gorm.io/plugin/dbresolver v1.1.0 // indirect
 )

@@ -12,6 +12,6 @@ var (
 
 func Init() {
 	for _, fn := range initMaps {
-		zutil.CheckErr(fn())
+		zutil.CheckErr(fn(), true)
 	}
 }
